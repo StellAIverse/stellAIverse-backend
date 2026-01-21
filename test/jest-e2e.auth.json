@@ -1,0 +1,119 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AuthModule } from '../src/auth/auth.module';
+import { Wallet } from 'ethers';
+
+describe('Auth Controller (e2e)', () => {
+  let app: INestApplication;
+  let testWallet: any;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AuthModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+
+    testWallet = Wallet.createRandom();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('POST /auth/challenge', () => {
+    it('should issue a challenge for a valid address', () => {
+      return request(app.getHttpServer())
+        .post('/auth/challenge')
+        .send({ address: testWallet.address })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.message).toContain(
+            'Sign this message to authenticate:',
+          );
+          expect(res.body.address).toBe(testWallet.address);
+        });
+    });
+  });
+
+  describe('POST /auth/verify', () => {
+    it('should verify valid signature and return JWT token', async () => {
+      // 1. Get challenge
+      const challengeRes = await request(app.getHttpServer())
+        .post('/auth/challenge')
+        .send({ address: testWallet.address });
+
+      const message = challengeRes.body.message;
+
+      // 2. Sign message
+      const signature = await testWallet.signMessage(message);
+
+      // 3. Verify signature
+      return request(app.getHttpServer())
+        .post('/auth/verify')
+        .send({ message, signature })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.token).toBeTruthy();
+          expect(res.body.address).toBe(testWallet.address.toLowerCase());
+        });
+    });
+
+    it('should reject invalid signature', async () => {
+      const challengeRes = await request(app.getHttpServer())
+        .post('/auth/challenge')
+        .send({ address: testWallet.address });
+
+      const message = challengeRes.body.message;
+      const invalidSignature =
+        '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+      return request(app.getHttpServer())
+        .post('/auth/verify')
+        .send({ message, signature: invalidSignature })
+        .expect(401);
+    });
+
+    it('should reject signature from different address', async () => {
+      const challengeRes = await request(app.getHttpServer())
+        .post('/auth/challenge')
+        .send({ address: testWallet.address });
+
+      const message = challengeRes.body.message;
+
+      // Sign with a different wallet
+      const differentWallet = Wallet.createRandom();
+      const signature = await differentWallet.signMessage(message);
+
+      return request(app.getHttpServer())
+        .post('/auth/verify')
+        .send({ message, signature })
+        .expect(401);
+    });
+
+    it('should reject if challenge already used', async () => {
+      // 1. Get challenge
+      const challengeRes = await request(app.getHttpServer())
+        .post('/auth/challenge')
+        .send({ address: testWallet.address });
+
+      const message = challengeRes.body.message;
+      const signature = await testWallet.signMessage(message);
+
+      // 2. Use the challenge once (should succeed)
+      await request(app.getHttpServer())
+        .post('/auth/verify')
+        .send({ message, signature })
+        .expect(201);
+
+      // 3. Try to use the same challenge again (should fail)
+      return request(app.getHttpServer())
+        .post('/auth/verify')
+        .send({ message, signature })
+        .expect(401);
+    });
+  });
+});
