@@ -1,10 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { verifyMessage } from 'ethers';
 import { ChallengeService } from './challenge.service';
+import { User } from '../user/entities/user.entity';
 
 export interface AuthPayload {
   address: string;
+  email?: string;
   iat: number;
 }
 
@@ -13,6 +17,8 @@ export class WalletAuthService {
   constructor(
     private challengeService: ChallengeService,
     private jwtService: JwtService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   /**
@@ -51,9 +57,15 @@ export class WalletAuthService {
       );
     }
 
-    // Issue JWT token
+    // Fetch user to get email if linked
+    const user = await this.userRepository.findOne({
+      where: { walletAddress: recoveredAddress.toLowerCase() },
+    });
+
+    // Issue JWT token with email if available
     const payload: AuthPayload = {
       address: recoveredAddress.toLowerCase(),
+      email: user?.emailVerified ? user.email : undefined,
       iat: Math.floor(Date.now() / 1000),
     };
 
