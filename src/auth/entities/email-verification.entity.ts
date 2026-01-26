@@ -4,11 +4,11 @@ import {
   Column,
   CreateDateColumn,
   Index,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity('email_verifications')
+@Entity("email_verifications")
 export class EmailVerification {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()

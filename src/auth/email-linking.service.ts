@@ -4,13 +4,13 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { randomBytes } from 'crypto';
-import { User } from '../user/entities/user.entity';
-import { EmailVerification } from './entities/email-verification.entity';
-import { EmailService } from './email.service';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { randomBytes } from "crypto";
+import { User } from "../user/entities/user.entity";
+import { EmailVerification } from "./entities/email-verification.entity";
+import { EmailService } from "./email.service";
 
 @Injectable()
 export class EmailLinkingService {
@@ -33,7 +33,7 @@ export class EmailLinkingService {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new BadRequestException('Invalid email format');
+      throw new BadRequestException("Invalid email format");
     }
 
     // Normalize addresses
@@ -45,8 +45,11 @@ export class EmailLinkingService {
       where: { email: normalizedEmail },
     });
 
-    if (existingEmailUser && existingEmailUser.walletAddress !== normalizedWallet) {
-      throw new ConflictException('Email is already linked to another wallet');
+    if (
+      existingEmailUser &&
+      existingEmailUser.walletAddress !== normalizedWallet
+    ) {
+      throw new ConflictException("Email is already linked to another wallet");
     }
 
     // Find or create user
@@ -65,11 +68,11 @@ export class EmailLinkingService {
 
     // Check if email is already verified for this wallet
     if (user.email === normalizedEmail && user.emailVerified) {
-      throw new ConflictException('Email is already verified for this wallet');
+      throw new ConflictException("Email is already verified for this wallet");
     }
 
     // Generate verification token (32 bytes = 64 hex characters)
-    const token = randomBytes(32).toString('hex');
+    const token = randomBytes(32).toString("hex");
 
     // Delete any existing verification tokens for this wallet
     await this.emailVerificationRepository.delete({
@@ -93,7 +96,7 @@ export class EmailLinkingService {
     );
 
     return {
-      message: 'Verification email sent. Please check your inbox.',
+      message: "Verification email sent. Please check your inbox.",
       previewUrl: emailResult.previewUrl,
     };
   }
@@ -112,13 +115,13 @@ export class EmailLinkingService {
     });
 
     if (!verification) {
-      throw new NotFoundException('Invalid or expired verification token');
+      throw new NotFoundException("Invalid or expired verification token");
     }
 
     // Check if token is expired
     if (new Date() > verification.expiresAt) {
       await this.emailVerificationRepository.delete({ token });
-      throw new UnauthorizedException('Verification token has expired');
+      throw new UnauthorizedException("Verification token has expired");
     }
 
     // Find user
@@ -127,7 +130,7 @@ export class EmailLinkingService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Update user with verified email
@@ -139,7 +142,7 @@ export class EmailLinkingService {
     await this.emailVerificationRepository.delete({ token });
 
     return {
-      message: 'Email successfully verified and linked to wallet',
+      message: "Email successfully verified and linked to wallet",
       walletAddress: user.walletAddress,
       email: user.email,
     };
@@ -186,7 +189,7 @@ export class EmailLinkingService {
     });
 
     if (!user || !user.email) {
-      throw new NotFoundException('No email linked to this wallet');
+      throw new NotFoundException("No email linked to this wallet");
     }
 
     // Remove email
@@ -200,7 +203,7 @@ export class EmailLinkingService {
     });
 
     return {
-      message: 'Email successfully unlinked from wallet',
+      message: "Email successfully unlinked from wallet",
     };
   }
 
