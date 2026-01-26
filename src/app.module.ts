@@ -11,6 +11,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
 import { ComputeModule } from './compute/compute.module';
 import { User } from './user/entities/user.entity';
 import { EmailVerification } from './auth/entities/email-verification.entity';
+import { WebSocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EmailVerification } from './auth/entities/email-verification.entity';
     AgentModule,
     RecommendationModule,
     ComputeModule,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
