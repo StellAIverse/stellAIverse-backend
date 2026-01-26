@@ -1,12 +1,21 @@
-import { Body, Controller, Post, Get, Delete, UseGuards, Request } from '@nestjs/common';
-import { ChallengeService } from './challenge.service';
-import { WalletAuthService } from './wallet-auth.service';
-import { EmailLinkingService } from './email-linking.service';
-import { RecoveryService } from './recovery.service';
-import { JwtAuthGuard } from './jwt.guard';
-import { LinkEmailDto } from './dto/link-email.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
-import { RequestRecoveryDto } from './dto/request-recovery.dto';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Delete,
+  UseGuards,
+  Request,
+} from "@nestjs/common";
+import { ChallengeService } from "./challenge.service";
+import { WalletAuthService } from "./wallet-auth.service";
+import { EmailLinkingService } from "./email-linking.service";
+import { RecoveryService } from "./recovery.service";
+import { JwtAuthGuard } from "./jwt.guard";
+import { LinkEmailDto } from "./dto/link-email.dto";
+import { VerifyEmailDto } from "./dto/verify-email.dto";
+import { RequestRecoveryDto } from "./dto/request-recovery.dto";
+import { Throttle } from "@nestjs/throttler";
 
 export class RequestChallengeDto {
   address: string;
@@ -17,7 +26,8 @@ export class VerifySignatureDto {
   signature: string;
 }
 
-@Controller('auth')
+@Throttle({ default: { ttl: 60000, limit: 10 } })
+@Controller("auth")
 export class AuthController {
   constructor(
     private readonly challengeService: ChallengeService,
@@ -26,18 +36,16 @@ export class AuthController {
     private readonly recoveryService: RecoveryService,
   ) {}
 
-  @Post('challenge')
+  @Post("challenge")
   requestChallenge(@Body() dto: RequestChallengeDto) {
-    const message = this.challengeService.issueChallengeForAddress(
-      dto.address,
-    );
+    const message = this.challengeService.issueChallengeForAddress(dto.address);
     return {
       message,
       address: dto.address,
     };
   }
 
-  @Post('verify')
+  @Post("verify")
   async verifySignature(@Body() dto: VerifySignatureDto) {
     const result = await this.walletAuthService.verifySignatureAndIssueToken(
       dto.message,
@@ -52,7 +60,7 @@ export class AuthController {
   // Email Linking Endpoints
 
   @UseGuards(JwtAuthGuard)
-  @Post('link-email')
+  @Post("link-email")
   async linkEmail(@Request() req, @Body() dto: LinkEmailDto) {
     const walletAddress = req.user.address;
     return this.emailLinkingService.initiateEmailLinking(
@@ -61,20 +69,20 @@ export class AuthController {
     );
   }
 
-  @Post('verify-email')
+  @Post("verify-email")
   async verifyEmail(@Body() dto: VerifyEmailDto) {
     return this.emailLinkingService.verifyEmailAndLink(dto.token);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('account-info')
+  @Get("account-info")
   async getAccountInfo(@Request() req) {
     const walletAddress = req.user.address;
     return this.emailLinkingService.getAccountInfo(walletAddress);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('unlink-email')
+  @Delete("unlink-email")
   async unlinkEmail(@Request() req) {
     const walletAddress = req.user.address;
     return this.emailLinkingService.unlinkEmail(walletAddress);
@@ -82,12 +90,12 @@ export class AuthController {
 
   // Recovery Endpoints
 
-  @Post('recovery/request')
+  @Post("recovery/request")
   async requestRecovery(@Body() dto: RequestRecoveryDto) {
     return this.recoveryService.requestRecovery(dto.email);
   }
 
-  @Post('recovery/verify')
+  @Post("recovery/verify")
   async verifyRecovery(@Body() dto: RequestRecoveryDto) {
     return this.recoveryService.verifyRecoveryAndGetChallenge(dto.email);
   }
