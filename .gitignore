@@ -69,6 +69,20 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.production.example
+!.env.secrets.template
+
+# Security - NEVER commit these
+.env.production
+.env.local
+.env.secrets
+secrets/
+*.pem
+*.key
+*.crt
+id_rsa*
+*.p12
+*.pfx
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
