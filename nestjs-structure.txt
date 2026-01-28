@@ -1,0 +1,4693 @@
+Project Structure Report - Tue Jan 27 18:52:54 WAT 2026
+================================================
+
+📁 DIRECTORY STRUCTURE:
+========================
+.
+- +- hooks
+- +- info
+- +- logs
+- - +- refs
+- - - +- heads
+- - - +- remotes
+- - - - +- origin
+- +- objects
+- - +- 01
+- - +- 02
+- - +- 04
+- - +- 07
+- - +- 08
+- - +- 0a
+- - +- 0b
+- - +- 0c
+- - +- 0d
+- - +- 0f
+- - +- 10
+- - +- 11
+- - +- 12
+- - +- 13
+- - +- 15
+- - +- 17
+- - +- 18
+- - +- 1a
+- - +- 1b
+- - +- 1c
+- - +- 20
+- - +- 23
+- - +- 27
+- - +- 28
+- - +- 2a
+- - +- 2c
+- - +- 2d
+- - +- 30
+- - +- 31
+- - +- 34
+- - +- 35
+- - +- 36
+- - +- 37
+- - +- 39
+- - +- 3b
+- - +- 3d
+- - +- 3e
+- - +- 3f
+- - +- 40
+- - +- 41
+- - +- 42
+- - +- 43
+- - +- 44
+- - +- 45
+- - +- 46
+- - +- 47
+- - +- 48
+- - +- 49
+- - +- 4a
+- - +- 4b
+- - +- 4c
+- - +- 4d
+- - +- 50
+- - +- 51
+- - +- 53
+- - +- 56
+- - +- 58
+- - +- 59
+- - +- 5a
+- - +- 5b
+- - +- 5d
+- - +- 5e
+- - +- 5f
+- - +- 60
+- - +- 61
+- - +- 62
+- - +- 63
+- - +- 65
+- - +- 66
+- - +- 67
+- - +- 6c
+- - +- 6d
+- - +- 6e
+- - +- 70
+- - +- 71
+- - +- 72
+- - +- 73
+- - +- 74
+- - +- 75
+- - +- 76
+- - +- 78
+- - +- 79
+- - +- 7a
+- - +- 7d
+- - +- 7f
+- - +- 80
+- - +- 81
+- - +- 82
+- - +- 85
+- - +- 86
+- - +- 88
+- - +- 89
+- - +- 8a
+- - +- 8d
+- - +- 90
+- - +- 91
+- - +- 92
+- - +- 93
+- - +- 94
+- - +- 96
+- - +- 97
+- - +- 99
+- - +- 9b
+- - +- 9d
+- - +- 9e
+- - +- 9f
+- - +- a0
+- - +- a1
+- - +- a2
+- - +- a3
+- - +- a4
+- - +- a5
+- - +- a6
+- - +- a7
+- - +- a8
+- - +- ab
+- - +- ac
+- - +- ad
+- - +- ae
+- - +- af
+- - +- b1
+- - +- b2
+- - +- b3
+- - +- b4
+- - +- b5
+- - +- b6
+- - +- b7
+- - +- b9
+- - +- ba
+- - +- bb
+- - +- bc
+- - +- be
+- - +- bf
+- - +- c2
+- - +- c3
+- - +- c5
+- - +- c6
+- - +- c7
+- - +- c9
+- - +- ca
+- - +- cc
+- - +- cd
+- - +- ce
+- - +- cf
+- - +- d1
+- - +- d3
+- - +- d6
+- - +- d7
+- - +- d8
+- - +- d9
+- - +- da
+- - +- db
+- - +- dd
+- - +- e0
+- - +- e1
+- - +- e2
+- - +- e6
+- - +- e9
+- - +- eb
+- - +- ed
+- - +- ee
+- - +- ef
+- - +- f0
+- - +- f1
+- - +- f3
+- - +- f5
+- - +- f6
+- - +- f7
+- - +- f8
+- - +- f9
+- - +- fb
+- - +- fc
+- - +- fd
+- - +- ff
+- - +- info
+- - +- pack
+- +- refs
+- - +- heads
+- - +- remotes
+- - - +- origin
+- - +- tags
+- +- .bin
+- +- @adraffy
+- - +- ens-normalize
+- - - +- dist
+- +- @angular-devkit
+- - +- core
+- - - +- node
+- - - - +- testing
+- - - +- node_modules
+- - - - +- rxjs
+- - - - - +- ajax
+- - - - - +- dist
+- - - - - - +- bundles
+- - - - - - +- cjs
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- esm
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- esm5
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- types
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - +- fetch
+- - - - - +- operators
+- - - - - +- src
+- - - - - - +- ajax
+- - - - - - +- fetch
+- - - - - - +- internal
+- - - - - - - +- ajax
+- - - - - - - +- observable
+- - - - - - - - +- dom
+- - - - - - - +- operators
+- - - - - - - +- scheduled
+- - - - - - - +- scheduler
+- - - - - - - +- symbol
+- - - - - - - +- testing
+- - - - - - - +- util
+- - - - - - +- operators
+- - - - - - +- testing
+- - - - - - +- webSocket
+- - - - - +- testing
+- - - - - +- webSocket
+- - - +- src
+- - - - +- json
+- - - - - +- schema
+- - - - +- logger
+- - - - +- utils
+- - - - +- virtual-fs
+- - - - - +- host
+- - - - +- workspace
+- - - - - +- json
+- - +- schematics
+- - +- schematics-cli
+- - - +- bin
+- - - +- blank
+- - - - +- project-files
+- - - - - +- src
+- - - - +- schematic-files
+- - - - - +- src
+- - - - - - +- __name@dasherize__
+- - - +- node_modules
+- - - - +- chalk
+- - - - - +- source
+- - - - - - +- vendor
+- - - - - - - +- ansi-styles
+- - - - - - - +- supports-color
+- - - - +- cli-width
+- - - - +- inquirer
+- - - - - +- lib
+- - - - - - +- objects
+- - - - - - +- prompts
+- - - - - - +- ui
+- - - - - - +- utils
+- - - - +- mute-stream
+- - - - - +- lib
+- - - - +- run-async
+- - - +- schematic
+- - - - +- files
+- - - - - +- src
+- - - - - - +- my-full-schematic
+- - - - - - - +- files
+- - - - - - +- my-other-schematic
+- - - - - - +- my-schematic
+- - - +- node_modules
+- - - - +- rxjs
+- - - - - +- ajax
+- - - - - +- dist
+- - - - - - +- bundles
+- - - - - - +- cjs
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- esm
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- esm5
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - - +- types
+- - - - - - - +- ajax
+- - - - - - - +- fetch
+- - - - - - - +- internal
+- - - - - - - - +- ajax
+- - - - - - - - +- observable
+- - - - - - - - - +- dom
+- - - - - - - - +- operators
+- - - - - - - - +- scheduled
+- - - - - - - - +- scheduler
+- - - - - - - - +- symbol
+- - - - - - - - +- testing
+- - - - - - - - +- util
+- - - - - - - +- operators
+- - - - - - - +- testing
+- - - - - - - +- webSocket
+- - - - - +- fetch
+- - - - - +- operators
+- - - - - +- src
+- - - - - - +- ajax
+- - - - - - +- fetch
+- - - - - - +- internal
+- - - - - - - +- ajax
+- - - - - - - +- observable
+- - - - - - - - +- dom
+- - - - - - - +- operators
+- - - - - - - +- scheduled
+- - - - - - - +- scheduler
+- - - - - - - +- symbol
+- - - - - - - +- testing
+- - - - - - - +- util
+- - - - - - +- operators
+- - - - - - +- testing
+- - - - - - +- webSocket
+- - - - - +- testing
+- - - - - +- webSocket
+- - - +- src
+- - - - +- engine
+- - - - +- exception
+- - - - +- formats
+- - - - +- rules
+- - - - +- sink
+- - - - +- tree
+- - - - +- workflow
+- - - +- tasks
+- - - - +- node
+- - - - +- package-manager
+- - - - +- repo-init
+- - - - +- run-schematic
+- - - +- testing
+- - - +- tools
+- - - - +- workflow
+- +- @aws
+- +- @aws-crypto
+- - +- sha256-browser
+- - - +- build
+- - - - +- main
+- - - - +- module
+- - - +- node_modules
+- - - - +- @smithy
+- - - - - +- is-array-buffer
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - - - +- util-buffer-from
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - - - +- util-utf8
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - +- src
+- - +- sha256-js
+- - - +- build
+- - - - +- main
+- - - - +- module
+- - - +- src
+- - +- supports-web-crypto
+- - - +- build
+- - - - +- main
+- - - - +- module
+- - - +- src
+- - +- util
+- - - +- build
+- - - - +- main
+- - - - +- module
+- - - +- node_modules
+- - - - +- @smithy
+- - - - - +- is-array-buffer
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - - - +- util-buffer-from
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - - - +- util-utf8
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - +- dist-types
+- - - - - - - +- ts3.4
+- - - +- src
+- +- @aws-sdk
+- - +- client-ses
+- - - +- dist-cjs
+- - - - +- auth
+- - - - +- endpoint
+- - - +- dist-es
+- - - - +- auth
+- - - - +- commands
+- - - - +- endpoint
+- - - - +- models
+- - - - +- pagination
+- - - - +- schemas
+- - - - +- waiters
+- - - +- dist-types
+- - - - +- auth
+- - - - +- commands
+- - - - +- endpoint
+- - - - +- models
+- - - - +- pagination
+- - - - +- schemas
+- - - - +- ts3.4
+- - - - - +- auth
+- - - - - +- commands
+- - - - - +- endpoint
+- - - - - +- models
+- - - - - +- pagination
+- - - - - +- schemas
+- - - - - +- waiters
+- - - - +- waiters
+- - +- client-sso
+- - - +- dist-cjs
+- - - - +- auth
+- - - - +- endpoint
+- - - +- dist-es
+- - - - +- auth
+- - - - +- commands
+- - - - +- endpoint
+- - - - +- models
+- - - - +- pagination
+- - - - +- schemas
+- - - +- dist-types
+- - - - +- auth
+- - - - +- commands
+- - - - +- endpoint
+- - - - +- models
+- - - - +- pagination
+- - - - +- schemas
+- - - - +- ts3.4
+- - - - - +- auth
+- - - - - +- commands
+- - - - - +- endpoint
+- - - - - +- models
+- - - - - +- pagination
+- - - - - +- schemas
+- - +- core
+- - - +- dist-cjs
+- - - - +- submodules
+- - - - - +- account-id-endpoint
+- - - - - +- client
+- - - - - +- httpAuthSchemes
+- - - - - +- protocols
+- - - +- dist-es
+- - - - +- submodules
+- - - - - +- account-id-endpoint
+- - - - - +- client
+- - - - - +- httpAuthSchemes
+- - - - - - +- aws_sdk
+- - - - - - +- utils
+- - - - - +- protocols
+- - - - - - +- cbor
+- - - - - - +- json
+- - - - - - - +- experimental
+- - - - - - +- query
+- - - - - - +- xml
+- - - +- dist-types
+- - - - +- submodules
+- - - - - +- account-id-endpoint
+- - - - - +- client
+- - - - - +- httpAuthSchemes
+- - - - - - +- aws_sdk
+- - - - - - +- utils
+- - - - - +- protocols
+- - - - - - +- cbor
+- - - - - - +- json
+- - - - - - - +- experimental
+- - - - - - +- query
+- - - - - - +- xml
+- - - - +- ts3.4
+- - - - - +- submodules
+- - - - - - +- account-id-endpoint
+- - - - - - +- client
+- - - - - - +- httpAuthSchemes
+- - - - - - - +- aws_sdk
+- - - - - - - +- utils
+- - - - - - +- protocols
+- - - - - - - +- cbor
+- - - - - - - +- json
+- - - - - - - - +- experimental
+- - - - - - - +- query
+- - - - - - - +- xml
+- - +- credential-provider-env
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- credential-provider-http
+- - - +- dist-cjs
+- - - - +- fromHttp
+- - - +- dist-es
+- - - - +- fromHttp
+- - - +- dist-types
+- - - - +- fromHttp
+- - - - +- ts3.4
+- - - - - +- fromHttp
+- - +- credential-provider-ini
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- credential-provider-login
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- credential-provider-node
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- runtime
+- - - +- dist-types
+- - - - +- runtime
+- - - - +- ts3.4
+- - - - - +- runtime
+- - +- credential-provider-process
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- credential-provider-sso
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- credential-provider-web-identity
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-host-header
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-logger
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-recursion-detection
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-user-agent
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- nested-clients
+- - - +- dist-cjs
+- - - - +- submodules
+- - - - - +- signin
+- - - - - - +- auth
+- - - - - - +- endpoint
+- - - - - +- sso-oidc
+- - - - - - +- auth
+- - - - - - +- endpoint
+- - - - - +- sts
+- - - - - - +- auth
+- - - - - - +- endpoint
+- - - +- dist-es
+- - - - +- submodules
+- - - - - +- signin
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - - - +- sso-oidc
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - - - +- sts
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - +- dist-types
+- - - - +- submodules
+- - - - - +- signin
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - - - +- sso-oidc
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - - - +- sts
+- - - - - - +- auth
+- - - - - - +- commands
+- - - - - - +- endpoint
+- - - - - - +- models
+- - - - - - +- schemas
+- - - - +- ts3.4
+- - - - - +- submodules
+- - - - - - +- signin
+- - - - - - - +- auth
+- - - - - - - +- commands
+- - - - - - - +- endpoint
+- - - - - - - +- models
+- - - - - - - +- schemas
+- - - - - - +- sso-oidc
+- - - - - - - +- auth
+- - - - - - - +- commands
+- - - - - - - +- endpoint
+- - - - - - - +- models
+- - - - - - - +- schemas
+- - - - - - +- sts
+- - - - - - - +- auth
+- - - - - - - +- commands
+- - - - - - - +- endpoint
+- - - - - - - +- models
+- - - - - - - +- schemas
+- - +- region-config-resolver
+- - - +- dist-cjs
+- - - - +- regionConfig
+- - - +- dist-es
+- - - - +- extensions
+- - - - +- regionConfig
+- - - +- dist-types
+- - - - +- extensions
+- - - - +- regionConfig
+- - - - +- ts3.4
+- - - - - +- extensions
+- - - - - +- regionConfig
+- - +- token-providers
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- types
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- blob
+- - - - +- extensions
+- - - - +- identity
+- - - +- dist-types
+- - - - +- blob
+- - - - +- extensions
+- - - - +- identity
+- - - - +- ts3.4
+- - - - - +- blob
+- - - - - +- extensions
+- - - - - +- identity
+- - +- util-endpoints
+- - - +- dist-cjs
+- - - - +- lib
+- - - - - +- aws
+- - - +- dist-es
+- - - - +- lib
+- - - - - +- aws
+- - - - +- types
+- - - +- dist-types
+- - - - +- lib
+- - - - - +- aws
+- - - - +- ts3.4
+- - - - - +- lib
+- - - - - - +- aws
+- - - - - +- types
+- - - - +- types
+- - - +- node_modules
+- - - - +- @aws-sdk
+- - - - - +- types
+- - - - - - +- dist-cjs
+- - - - - - +- dist-es
+- - - - - - - +- blob
+- - - - - - - +- extensions
+- - - - - - - +- identity
+- - - - - - +- dist-types
+- - - - - - - +- blob
+- - - - - - - +- extensions
+- - - - - - - +- identity
+- - - - - - - +- ts3.4
+- - - - - - - - +- blob
+- - - - - - - - +- extensions
+- - - - - - - - +- identity
+- - +- util-locate-window
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-user-agent-browser
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-user-agent-node
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- xml-builder
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- lambda-invoke-store
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- +- @babel
+- - +- code-frame
+- - - +- lib
+- - +- compat-data
+- - - +- data
+- - +- core
+- - - +- lib
+- - - - +- config
+- - - - - +- files
+- - - - - +- helpers
+- - - - - +- validation
+- - - - +- errors
+- - - - +- gensync-utils
+- - - - +- parser
+- - - - - +- util
+- - - - +- tools
+- - - - +- transformation
+- - - - - +- file
+- - - - - +- util
+- - - - +- vendor
+- - - +- node_modules
+- - - - +- .bin
+- - - - +- semver
+- - - - - +- bin
+- - - +- src
+- - - - +- config
+- - - - - +- files
+- - +- generator
+- - - +- lib
+- - - - +- generators
+- - - - +- node
+- - +- helper-compilation-targets
+- - - +- lib
+- - - +- node_modules
+- - - - +- .bin
+- - - - +- semver
+- - - - - +- bin
+- - +- helper-globals
+- - - +- data
+- - +- helper-module-imports
+- - - +- lib
+- - +- helper-module-transforms
+- - - +- lib
+- - +- helper-plugin-utils
+- - - +- lib
+- - +- helper-string-parser
+- - - +- lib
+- - +- helper-validator-identifier
+- - - +- lib
+- - +- helper-validator-option
+- - - +- lib
+- - +- helpers
+- - - +- lib
+- - - - +- helpers
+- - +- parser
+- - - +- bin
+- - - +- lib
+- - - +- typings
+- - +- plugin-syntax-async-generators
+- - - +- lib
+- - +- plugin-syntax-bigint
+- - - +- lib
+- - +- plugin-syntax-class-properties
+- - - +- lib
+- - +- plugin-syntax-class-static-block
+- - - +- lib
+- - +- plugin-syntax-import-attributes
+- - - +- lib
+- - +- plugin-syntax-import-meta
+- - - +- lib
+- - +- plugin-syntax-json-strings
+- - - +- lib
+- - +- plugin-syntax-jsx
+- - - +- lib
+- - +- plugin-syntax-logical-assignment-operators
+- - - +- lib
+- - +- plugin-syntax-nullish-coalescing-operator
+- - - +- lib
+- - +- plugin-syntax-numeric-separator
+- - - +- lib
+- - +- plugin-syntax-object-rest-spread
+- - - +- lib
+- - +- plugin-syntax-optional-catch-binding
+- - - +- lib
+- - +- plugin-syntax-optional-chaining
+- - - +- lib
+- - +- plugin-syntax-private-property-in-object
+- - - +- lib
+- - +- plugin-syntax-top-level-await
+- - - +- lib
+- - +- plugin-syntax-typescript
+- - - +- lib
+- - +- template
+- - - +- lib
+- - +- traverse
+- - - +- lib
+- - - - +- path
+- - - - - +- inference
+- - - - - +- lib
+- - - - +- scope
+- - - - - +- lib
+- - +- types
+- - - +- lib
+- - - - +- asserts
+- - - - - +- generated
+- - - - +- ast-types
+- - - - - +- generated
+- - - - +- builders
+- - - - - +- flow
+- - - - - +- generated
+- - - - - +- react
+- - - - - +- typescript
+- - - - +- clone
+- - - - +- comments
+- - - - +- constants
+- - - - - +- generated
+- - - - +- converters
+- - - - +- definitions
+- - - - +- modifications
+- - - - - +- flow
+- - - - - +- typescript
+- - - - +- retrievers
+- - - - +- traverse
+- - - - +- utils
+- - - - - +- react
+- - - - +- validators
+- - - - - +- generated
+- - - - - +- react
+- +- @bcoe
+- - +- v8-coverage
+- - - +- dist
+- - - - +- lib
+- - - - - +- _src
+- - - +- src
+- - - - +- lib
+- - - - +- test
+- +- @borewit
+- - +- text-codec
+- - - +- lib
+- +- @colors
+- - +- colors
+- - - +- examples
+- - - +- lib
+- - - - +- custom
+- - - - +- maps
+- - - - +- system
+- - - +- themes
+- +- @cspotcode
+- - +- source-map-support
+- - - +- node_modules
+- - - - +- @jridgewell
+- - - - - +- trace-mapping
+- - - - - - +- dist
+- - - - - - - +- types
+- +- @eslint
+- +- @eslint-community
+- - +- eslint-utils
+- - +- regexpp
+- - +- eslintrc
+- - - +- conf
+- - - +- dist
+- - - +- lib
+- - - - +- config-array
+- - - - +- shared
+- - - +- node_modules
+- - - - +- ajv
+- - - - - +- dist
+- - - - - +- lib
+- - - - - - +- compile
+- - - - - - +- dot
+- - - - - - +- dotjs
+- - - - - - +- refs
+- - - - - +- scripts
+- - - - +- brace-expansion
+- - - - +- json-schema-traverse
+- - - - - +- spec
+- - - - - - +- fixtures
+- - - - +- minimatch
+- - +- js
+- - - +- src
+- - - - +- configs
+- +- @grpc
+- +- @humanwhocodes
+- - +- config-array
+- - - +- node_modules
+- - - - +- brace-expansion
+- - - - +- minimatch
+- - +- module-importer
+- - - +- dist
+- - - +- src
+- - +- object-schema
+- - - +- src
+- +- @isaacs
+- - +- cliui
+- - - +- build
+- - - - +- lib
+- - - +- node_modules
+- - - - +- ansi-regex
+- - - - +- ansi-styles
+- - - - +- emoji-regex
+- - - - - +- es2015
+- - - - +- string-width
+- - - - +- strip-ansi
+- - - - +- wrap-ansi
+- +- @istanbuljs
+- - +- load-nyc-config
+- - - +- node_modules
+- - - - +- .bin
+- - - - +- argparse
+- - - - - +- lib
+- - - - - - +- action
+- - - - - - - +- append
+- - - - - - - +- store
+- - - - - - +- argument
+- - - - - - +- help
+- - - - +- find-up
+- - - - +- js-yaml
+- - - - - +- bin
+- - - - - +- dist
+- - - - - +- lib
+- - - - - - +- js-yaml
+- - - - - - - +- schema
+- - - - - - - +- type
+- - - - - - - - +- js
+- - - - +- locate-path
+- - - - +- p-limit
+- - - - +- p-locate
+- - - - +- resolve-from
+- - +- schema
+- +- @jest
+- - +- console
+- - - +- build
+- - +- core
+- - - +- build
+- - - - +- cli
+- - - - +- lib
+- - - - +- plugins
+- - +- environment
+- - - +- build
+- - +- expect
+- - +- expect-utils
+- - - +- build
+- - - +- build
+- - +- fake-timers
+- - - +- build
+- - +- globals
+- - - +- build
+- - +- reporters
+- - - +- assets
+- - - +- build
+- - - +- node_modules
+- - - - +- brace-expansion
+- - - - +- glob
+- - - - +- minimatch
+- - +- schemas
+- - - +- build
+- - +- source-map
+- - - +- build
+- - +- test-result
+- - - +- build
+- - +- test-sequencer
+- - - +- build
+- - +- transform
+- - - +- build
+- - +- types
+- - - +- build
+- +- @jridgewell
+- - +- gen-mapping
+- - - +- dist
+- - - - +- types
+- - - +- src
+- - - +- types
+- - +- remapping
+- - - +- dist
+- - - +- src
+- - - +- types
+- - +- resolve-uri
+- - - +- dist
+- - - - +- types
+- - +- source-map
+- - - +- dist
+- - - +- src
+- - - +- types
+- - +- sourcemap-codec
+- - - +- dist
+- - - +- src
+- - - +- types
+- - +- trace-mapping
+- - - +- dist
+- - - +- src
+- - - +- types
+- +- @js-sdsl
+- +- @ljharb
+- - +- through
+- - - +- .github
+- - - +- test
+- +- @lukeed
+- - +- csprng
+- - - +- browser
+- - - +- node
+- +- @nestjs
+- - +- cli
+- - - +- .circleci
+- - - +- .github
+- - - - +- ISSUE_TEMPLATE
+- - - +- .husky
+- - - +- actions
+- - - +- bin
+- - - +- commands
+- - - +- lib
+- - - - +- compiler
+- - - - - +- defaults
+- - - - - +- helpers
+- - - - - +- hooks
+- - - - - +- interfaces
+- - - - - +- plugins
+- - - - - +- swc
+- - - - +- configuration
+- - - - +- package-managers
+- - - - +- questions
+- - - - +- readers
+- - - - +- runners
+- - - - +- schematics
+- - - - +- ui
+- - - - +- utils
+- - - +- node_modules
+- - - - +- .bin
+- - - - +- es-module-lexer
+- - - - - +- dist
+- - - - - +- types
+- - - - +- eslint-scope
+- - - - - +- lib
+- - - - +- estraverse
+- - - - +- mime-db
+- - - - +- mime-types
+- - - - +- typescript
+- - - - - +- bin
+- - - - - +- lib
+- - - - - - +- cs
+- - - - - - +- de
+- - - - - - +- es
+- - - - - - +- fr
+- - - - - - +- it
+- - - - - - +- ja
+- - - - - - +- ko
+- - - - - - +- pl
+- - - - - - +- pt-br
+- - - - - - +- ru
+- - - - - - +- tr
+- - - - - - +- zh-cn
+- - - - - - +- zh-tw
+- - - - +- webpack
+- - - - - +- bin
+- - - - - +- hot
+- - - - - +- lib
+- - - - - - +- asset
+- - - - - - +- async-modules
+- - - - - - +- cache
+- - - - - - +- config
+- - - - - - +- container
+- - - - - - +- css
+- - - - - - +- debug
+- - - - - - +- dependencies
+- - - - - - +- electron
+- - - - - - +- errors
+- - - - - - +- esm
+- - - - - - +- hmr
+- - - - - - +- ids
+- - - - - - +- javascript
+- - - - - - +- json
+- - - - - - +- library
+- - - - - - +- logging
+- - - - - - +- node
+- - - - - - +- optimize
+- - - - - - +- performance
+- - - - - - +- prefetch
+- - - - - - +- rules
+- - - - - - +- runtime
+- - - - - - +- schemes
+- - - - - - +- serialization
+- - - - - - +- sharing
+- - - - - - +- stats
+- - - - - - +- util
+- - - - - - - +- hash
+- - - - - - +- wasm
+- - - - - - +- wasm-async
+- - - - - - +- wasm-sync
+- - - - - - +- web
+- - - - - - +- webworker
+- - - - - +- schemas
+- - - - - - +- plugins
+- - - - - - - +- asset
+- - - - - - - +- container
+- - - - - - - +- css
+- - - - - - - +- debug
+- - - - - - - +- ids
+- - - - - - - +- optimize
+- - - - - - - +- schemes
+- - - - - - - +- sharing
+- - - +- test
+- - - - +- lib
+- - - - - +- compiler
+- - - - - - +- hooks
+- - - - - - - +- __snapshots__
+- - - - - - - +- fixtures
+- - - - - - - - +- aliased-imports
+- - - - - - - - - +- src
+- - +- common
+- - - +- cache
+- - - - +- decorators
+- - - - +- interceptors
+- - - - +- interfaces
+- - - +- decorators
+- - - - +- core
+- - - - +- http
+- - - - +- modules
+- - - +- enums
+- - - +- exceptions
+- - - +- file-stream
+- - - - +- interfaces
+- - - +- interfaces
+- - - - +- controllers
+- - - - +- exceptions
+- - - - +- external
+- - - - +- features
+- - - - +- hooks
+- - - - +- http
+- - - - +- microservices
+- - - - +- middleware
+- - - - +- modules
+- - - - +- websockets
+- - - +- module-utils
+- - - - +- interfaces
+- - - - +- utils
+- - - +- pipes
+- - - - +- file
+- - - - - +- interfaces
+- - - +- serializer
+- - - - +- decorators
+- - - +- services
+- - - - +- utils
+- - - +- utils
+- - +- config
+- - - +- .vscode
+- - - +- dist
+- - - - +- interfaces
+- - - - +- types
+- - - - +- utils
+- - - +- node_modules
+- - - - +- dotenv
+- - - - - +- lib
+- - +- core
+- - - +- adapters
+- - - +- discovery
+- - - +- errors
+- - - - +- exceptions
+- - - +- exceptions
+- - - +- guards
+- - - +- helpers
+- - - - +- interfaces
+- - - +- hooks
+- - - - +- utils
+- - - +- injector
+- - - - +- helpers
+- - - - +- inquirer
+- - - - +- internal-core-module
+- - - - +- lazy-module-loader
+- - - - +- opaque-key-factory
+- - - - - +- interfaces
+- - - - +- topology-tree
+- - - +- inspector
+- - - - +- interfaces
+- - - +- interceptors
+- - - +- interfaces
+- - - +- middleware
+- - - +- pipes
+- - - +- repl
+- - - - +- native-functions
+- - - +- router
+- - - - +- interfaces
+- - - - +- request
+- - - - +- utils
+- - - +- services
+- - +- jwt
+- - - +- .circleci
+- - - +- .github
+- - - - +- ISSUE_TEMPLATE
+- - - +- .husky
+- - - +- dist
+- - - - +- interfaces
+- - - +- node_modules
+- - - - +- jsonwebtoken
+- - - - - +- lib
+- - - - +- jwa
+- - - - +- jws
+- - - - - +- lib
+- - +- mapped-types
+- - - +- .husky
+- - - +- dist
+- - - - +- types
+- - +- passport
+- - - +- dist
+- - - - +- interfaces
+- - - - +- passport
+- - - - +- utils
+- - +- platform-express
+- - - +- adapters
+- - - - +- utils
+- - - +- interfaces
+- - - +- multer
+- - - - +- interceptors
+- - - - +- interfaces
+- - - - +- multer
+- - - +- node_modules
+- - - - +- accepts
+- - - - +- content-disposition
+- - - - +- cookie-signature
+- - - - +- debug
+- - - - - +- node_modules
+- - - - - - +- ms
+- - - - - +- src
+- - - - +- express
+- - - - - +- lib
+- - - - - - +- middleware
+- - - - - - +- router
+- - - - +- finalhandler
+- - - - +- fresh
+- - - - +- merge-descriptors
+- - - - +- mime-db
+- - - - +- mime-types
+- - - - +- negotiator
+- - - - - +- lib
+- - - - +- path-to-regexp
+- - - - +- send
+- - - - +- serve-static
+- - +- platform-socket.io
+- - - +- adapters
+- - - +- node_modules
+- - - - +- accepts
+- - - - +- debug
+- - - - - +- src
+- - - - +- mime-db
+- - - - +- mime-types
+- - - - +- negotiator
+- - - - - +- lib
+- - - - +- socket.io
+- - - - - +- client-dist
+- - - - - +- dist
+- - +- schematics
+- - - +- dist
+- - - - +- lib
+- - - - - +- application
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - - +- src
+- - - - - - - - +- test
+- - - - - - - +- ts
+- - - - - - - - +- src
+- - - - - - - - +- test
+- - - - - +- class
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- client-app
+- - - - - - +- angular
+- - - - - - - +- files
+- - - - - - - - +- interfaces
+- - - - - - - - +- loaders
+- - - - - +- configuration
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- controller
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- decorator
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- filter
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- gateway
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- guard
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- interceptor
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- interface
+- - - - - - +- files
+- - - - - +- library
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - - +- src
+- - - - - - - +- ts
+- - - - - - - - +- src
+- - - - - +- middleware
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- module
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- pipe
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- provider
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- readers
+- - - - - +- resolver
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- resource
+- - - - - - +- files
+- - - - - - - +- ts
+- - - - - - - - +- dto
+- - - - - - - - +- entities
+- - - - - +- service
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - - +- sub-app
+- - - - - - +- files
+- - - - - - - +- js
+- - - - - - - - +- src
+- - - - - - - - +- test
+- - - - - - - +- ts
+- - - - - - - - +- src
+- - - - - - - - +- test
+- - - - - - +- workspace
+- - - - - - - +- js
+- - - - - - - +- ts
+- - - - +- utils
+- - - +- node_modules
+- - - - +- jsonc-parser
+- - - - - +- lib
+- - - - - - +- esm
+- - - - - - - +- impl
+- - - - - - +- umd
+- - - - - - - +- impl
+- - +- testing
+- - - +- interfaces
+- - - +- services
+- - +- throttler
+- - - +- dist
+- - +- typeorm
+- - - +- .husky
+- - - +- dist
+- - - - +- common
+- - - - +- exceptions
+- - - - +- interfaces
+- - +- websockets
+- - - +- adapters
+- - - +- context
+- - - +- decorators
+- - - +- enums
+- - - +- errors
+- - - +- exceptions
+- - - +- factories
+- - - +- interfaces
+- - - - +- hooks
+- - - +- utils
+- +- @noble
+- - +- curves
+- - - +- abstract
+- - - +- esm
+- - - - +- abstract
+- - - +- src
+- - - - +- abstract
+- - +- hashes
+- - - +- esm
+- - - +- src
+- +- @nodelib
+- - +- fs.scandir
+- - - +- out
+- - - - +- adapters
+- - - - +- providers
+- - - - +- types
+- - - - +- utils
+- - +- fs.stat
+- - - +- out
+- - - - +- adapters
+- - - - +- providers
+- - - - +- types
+- - +- fs.walk
+- - - +- out
+- - - - +- providers
+- - - - +- readers
+- - - - +- types
+- +- @nuxtjs
+- - +- opencollective
+- - - +- bin
+- - - +- dist
+- +- @opentelemetry
+- - +- api
+- - - +- build
+- - - - +- esm
+- - - - - +- api
+- - - - - +- baggage
+- - - - - - +- internal
+- - - - - +- common
+- - - - - +- context
+- - - - - +- diag
+- - - - - - +- internal
+- - - - - +- experimental
+- - - - - - +- trace
+- - - - - +- internal
+- - - - - +- metrics
+- - - - - +- platform
+- - - - - - +- browser
+- - - - - - +- node
+- - - - - +- propagation
+- - - - - +- trace
+- - - - - - +- internal
+- - - - +- esnext
+- - - - - +- api
+- - - - - +- baggage
+- - - - - - +- internal
+- - - - - +- common
+- - - - - +- context
+- - - - - +- diag
+- - - - - - +- internal
+- - - - - +- experimental
+- - - - - - +- trace
+- - - - - +- internal
+- - - - - +- metrics
+- - - - - +- platform
+- - - - - - +- browser
+- - - - - - +- node
+- - - - - +- propagation
+- - - - - +- trace
+- - - - - - +- internal
+- - - - +- src
+- - - - - +- api
+- - - - - +- baggage
+- - - - - - +- internal
+- - - - - +- common
+- - - - - +- context
+- - - - - +- diag
+- - - - - - +- internal
+- - - - - +- experimental
+- - - - - - +- trace
+- - - - - +- internal
+- - - - - +- metrics
+- - - - - +- platform
+- - - - - - +- browser
+- - - - - - +- node
+- - - - - +- propagation
+- - - - - +- trace
+- - - - - - +- internal
+- +- @pinojs
+- - +- redact
+- - - +- .github
+- - - - +- workflows
+- - - +- benchmarks
+- - - +- scripts
+- - - +- test
+- +- @pkgjs
+- - +- parseargs
+- - - +- examples
+- - - +- internal
+- +- @pkgr
+- - +- core
+- - - +- lib
+- +- @protobufjs
+- +- @sinclair
+- - +- typebox
+- - - +- compiler
+- - - +- errors
+- - - +- system
+- - - +- value
+- +- @sinonjs
+- - +- commons
+- - - +- lib
+- - - - +- prototypes
+- - - +- types
+- - - - +- prototypes
+- - +- fake-timers
+- - - +- src
+- +- @smithy
+- - +- abort-controller
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- config-resolver
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- endpointsConfig
+- - - - - +- utils
+- - - - +- regionConfig
+- - - - +- regionInfo
+- - - +- dist-types
+- - - - +- endpointsConfig
+- - - - - +- utils
+- - - - +- regionConfig
+- - - - +- regionInfo
+- - - - +- ts3.4
+- - - - - +- endpointsConfig
+- - - - - - +- utils
+- - - - - +- regionConfig
+- - - - - +- regionInfo
+- - +- core
+- - - +- dist-cjs
+- - - - +- submodules
+- - - - - +- cbor
+- - - - - +- event-streams
+- - - - - +- protocols
+- - - - - +- schema
+- - - - - +- serde
+- - - +- dist-es
+- - - - +- middleware-http-auth-scheme
+- - - - +- middleware-http-signing
+- - - - +- pagination
+- - - - +- request-builder
+- - - - +- submodules
+- - - - - +- cbor
+- - - - - +- event-streams
+- - - - - +- protocols
+- - - - - - +- serde
+- - - - - +- schema
+- - - - - - +- middleware
+- - - - - - +- schemas
+- - - - - +- serde
+- - - - - - +- schema-serde-lib
+- - - - - - +- value
+- - - - +- util-identity-and-auth
+- - - - - +- httpAuthSchemes
+- - - +- dist-types
+- - - - +- middleware-http-auth-scheme
+- - - - +- middleware-http-signing
+- - - - +- pagination
+- - - - +- request-builder
+- - - - +- submodules
+- - - - - +- cbor
+- - - - - +- event-streams
+- - - - - +- protocols
+- - - - - - +- serde
+- - - - - +- schema
+- - - - - - +- middleware
+- - - - - - +- schemas
+- - - - - +- serde
+- - - - - - +- schema-serde-lib
+- - - - - - +- value
+- - - - +- ts3.4
+- - - - - +- middleware-http-auth-scheme
+- - - - - +- middleware-http-signing
+- - - - - +- pagination
+- - - - - +- request-builder
+- - - - - +- submodules
+- - - - - - +- cbor
+- - - - - - +- event-streams
+- - - - - - +- protocols
+- - - - - - - +- serde
+- - - - - - +- schema
+- - - - - - - +- middleware
+- - - - - - - +- schemas
+- - - - - - +- serde
+- - - - - - - +- schema-serde-lib
+- - - - - - - +- value
+- - - - - +- util-identity-and-auth
+- - - - - - +- httpAuthSchemes
+- - - - +- util-identity-and-auth
+- - - - - +- httpAuthSchemes
+- - +- credential-provider-imds
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- config
+- - - - +- error
+- - - - +- remoteProvider
+- - - - +- utils
+- - - +- dist-types
+- - - - +- config
+- - - - +- error
+- - - - +- remoteProvider
+- - - - +- ts3.4
+- - - - - +- config
+- - - - - +- error
+- - - - - +- remoteProvider
+- - - - - +- utils
+- - - - +- utils
+- - +- fetch-http-handler
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- hash-node
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- invalid-dependency
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- is-array-buffer
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-content-length
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-endpoint
+- - - +- dist-cjs
+- - - - +- adaptors
+- - - +- dist-es
+- - - - +- adaptors
+- - - - +- service-customizations
+- - - +- dist-types
+- - - - +- adaptors
+- - - - +- service-customizations
+- - - - +- ts3.4
+- - - - - +- adaptors
+- - - - - +- service-customizations
+- - +- middleware-retry
+- - - +- dist-cjs
+- - - - +- isStreamingPayload
+- - - +- dist-es
+- - - - +- isStreamingPayload
+- - - +- dist-types
+- - - - +- isStreamingPayload
+- - - - +- ts3.4
+- - - - - +- isStreamingPayload
+- - +- middleware-serde
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- middleware-stack
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- node-config-provider
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- node-http-handler
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- stream-collector
+- - - +- dist-types
+- - - - +- stream-collector
+- - - - +- ts3.4
+- - - - - +- stream-collector
+- - +- property-provider
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- protocol-http
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- extensions
+- - - +- dist-types
+- - - - +- extensions
+- - - - +- ts3.4
+- - - - - +- extensions
+- - +- querystring-builder
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- querystring-parser
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- service-error-classification
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- shared-ini-file-loader
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- signature-v4
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- smithy-client
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- extensions
+- - - +- dist-types
+- - - - +- extensions
+- - - - +- ts3.4
+- - - - - +- extensions
+- - +- types
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- auth
+- - - - +- blob
+- - - - +- connection
+- - - - +- downlevel-ts3.4
+- - - - - +- transform
+- - - - +- endpoints
+- - - - +- extensions
+- - - - +- externals-check
+- - - - +- http
+- - - - +- identity
+- - - - +- schema
+- - - - +- streaming-payload
+- - - - +- transform
+- - - +- dist-types
+- - - - +- auth
+- - - - +- blob
+- - - - +- connection
+- - - - +- downlevel-ts3.4
+- - - - - +- transform
+- - - - +- endpoints
+- - - - +- extensions
+- - - - +- externals-check
+- - - - +- http
+- - - - +- identity
+- - - - +- schema
+- - - - +- streaming-payload
+- - - - +- transform
+- - - - +- ts3.4
+- - - - - +- auth
+- - - - - +- blob
+- - - - - +- connection
+- - - - - +- downlevel-ts3.4
+- - - - - - +- transform
+- - - - - +- endpoints
+- - - - - +- extensions
+- - - - - +- externals-check
+- - - - - +- http
+- - - - - +- identity
+- - - - - +- schema
+- - - - - +- streaming-payload
+- - - - - +- transform
+- - +- url-parser
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-base64
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-body-length-browser
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-body-length-node
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-buffer-from
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-config-provider
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-defaults-mode-browser
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-defaults-mode-node
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-endpoints
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- cache
+- - - - +- debug
+- - - - +- lib
+- - - - +- types
+- - - - +- utils
+- - - +- dist-types
+- - - - +- cache
+- - - - +- debug
+- - - - +- lib
+- - - - +- ts3.4
+- - - - - +- cache
+- - - - - +- debug
+- - - - - +- lib
+- - - - - +- types
+- - - - - +- utils
+- - - - +- types
+- - - - +- utils
+- - +- util-hex-encoding
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-middleware
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-retry
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-stream
+- - - +- dist-cjs
+- - - - +- checksum
+- - - +- dist-es
+- - - - +- blob
+- - - - +- checksum
+- - - +- dist-types
+- - - - +- blob
+- - - - +- checksum
+- - - - +- ts3.4
+- - - - - +- blob
+- - - - - +- checksum
+- - +- util-uri-escape
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-utf8
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- - +- util-waiter
+- - - +- dist-cjs
+- - - +- dist-es
+- - - - +- utils
+- - - +- dist-types
+- - - - +- ts3.4
+- - - - - +- utils
+- - - - +- utils
+- - +- uuid
+- - - +- dist-cjs
+- - - +- dist-es
+- - - +- dist-types
+- - - - +- ts3.4
+- +- @socket.io
+- - +- component-emitter
+- - - +- lib
+- - - - +- cjs
+- - - - +- esm
+- +- @sqltools
+- - +- formatter
+- - - +- lib
+- - - - +- core
+- - - - +- languages
+- - - - - +- utils
+- +- @tokenizer
+- - +- inflate
+- - - +- lib
+- - +- token
+- +- @tsconfig
+- - +- node10
+- - +- node12
+- - +- node14
+- - +- node16
+- +- @types
+- - +- babel__core
+- - +- babel__generator
+- - +- babel__template
+- - +- babel__traverse
+- - +- body-parser
+- - +- connect
+- - +- cors
+- - +- eslint
+- - +- eslint-scope
+- - - +- rules
+- - +- estree
+- - +- express
+- - +- express-serve-static-core
+- - +- graceful-fs
+- - +- http-errors
+- - +- istanbul-lib-coverage
+- - +- istanbul-lib-report
+- - +- istanbul-reports
+- - +- jest
+- - +- json-schema
+- - +- jsonwebtoken
+- - +- mime
+- - +- node
+- - - +- assert
+- - - +- compatibility
+- - - +- dns
+- - - +- fs
+- - - +- readline
+- - - +- stream
+- - - +- timers
+- - - +- ts5.6
+- - - +- web-globals
+- - +- nodemailer
+- - - +- lib
+- - - - +- addressparser
+- - - - +- base64
+- - - - +- dkim
+- - - - +- fetch
+- - - - +- json-transport
+- - - - +- mail-composer
+- - - - +- mailer
+- - - - +- mime-funcs
+- - - - +- mime-node
+- - - - +- qp
+- - - - +- sendmail-transport
+- - - - +- ses-transport
+- - - - +- shared
+- - - - +- smtp-connection
+- - - - +- smtp-pool
+- - - - +- smtp-transport
+- - - - +- stream-transport
+- - - - +- well-known
+- - - - +- xoauth2
+- - +- passport
+- - +- passport-jwt
+- - +- passport-strategy
+- - +- qs
+- - +- range-parser
+- - +- semver
+- - - +- classes
+- - - +- functions
+- - - +- internals
+- - - +- ranges
+- - +- send
+- - +- serve-static
+- - - +- node_modules
+- - - - +- @types
+- - - - - +- send
+- - +- socket.io
+- - +- stack-utils
+- - +- uuid
+- - +- validator
+- - - +- es
+- - - - +- lib
+- - - +- lib
+- - +- yargs
+- - +- yargs-parser
+- +- @typescript-eslint
+- - +- eslint-plugin
+- - - +- dist
+- - - - +- configs
+- - - - +- rules
+- - - - - +- enum-utils
+- - - - - +- naming-convention-utils
+- - - - - +- prefer-optional-chain-utils
+- - - - +- util
+- - - +- docs
+- - - - +- rules
+- - +- parser
+- - - +- dist
+- - +- scope-manager
+- - - +- dist
+- - - - +- definition
+- - - - +- lib
+- - - - +- referencer
+- - - - +- scope
+- - - - +- variable
+- - +- type-utils
+- - - +- dist
+- - +- types
+- - - +- dist
+- - - - +- generated
+- - +- typescript-estree
+- - - +- dist
+- - - - +- create-program
+- - - - +- jsx
+- - - - +- parseSettings
+- - - - +- ts-estree
+- - +- utils
+- - - +- dist
+- - - - +- ast-utils
+- - - - - +- eslint-utils
+- - - - +- eslint-utils
+- - - - +- ts-eslint
+- - - - +- ts-utils
+- - +- visitor-keys
+- - - +- dist
+- +- @ungap
+- - +- structured-clone
+- - - +- .github
+- - - - +- workflows
+- - - +- cjs
+- - - +- esm
+- +- @webassemblyjs
+- - +- ast
+- - - +- esm
+- - - - +- transform
+- - - - - +- ast-module-to-module-context
+- - - - - +- denormalize-type-references
+- - - - - +- wast-identifier-to-index
+- - - - +- types
+- - - +- lib
+- - - - +- transform
+- - - - - +- ast-module-to-module-context
+- - - - - +- denormalize-type-references
+- - - - - +- wast-identifier-to-index
+- - - - +- types
+- - - +- scripts
+- - +- floating-point-hex-parser
+- - - +- esm
+- - - +- lib
+- - +- helper-api-error
+- - - +- esm
+- - - +- lib
+- - +- helper-buffer
+- - - +- esm
+- - - +- lib
+- - +- helper-numbers
+- - - +- esm
+- - - +- lib
+- - - +- src
+- - +- helper-wasm-bytecode
+- - - +- esm
+- - - +- lib
+- - +- helper-wasm-section
+- - - +- esm
+- - - +- lib
+- - +- ieee754
+- - - +- esm
+- - - +- lib
+- - - +- src
+- - +- leb128
+- - - +- esm
+- - - +- lib
+- - +- utf8
+- - - +- esm
+- - - +- lib
+- - - +- src
+- - - +- test
+- - +- wasm-edit
+- - - +- esm
+- - - +- lib
+- - +- wasm-gen
+- - - +- esm
+- - - - +- encoder
+- - - +- lib
+- - - - +- encoder
+- - +- wasm-opt
+- - - +- esm
+- - - +- lib
+- - +- wasm-parser
+- - - +- esm
+- - - - +- types
+- - - +- lib
+- - - - +- types
+- - +- wast-printer
+- - - +- esm
+- - - +- lib
+- +- @xtuc
+- - +- ieee754
+- - - +- dist
+- - +- long
+- - - +- dist
+- - - +- src
+- +- accepts
+- +- acorn
+- +- acorn-import-phases
+- - +- src
+- +- acorn-jsx
+- +- acorn-walk
+- - +- dist
+- - +- bin
+- - +- dist
+- +- aes-js
+- - +- lib.commonjs
+- - +- lib.esm
+- - +- misc
+- - - +- basedirs
+- - - - +- lib.commonjs
+- - - - +- lib.esm
+- - +- src.ts
+- +- ajv
+- +- ajv-formats
+- - +- dist
+- - +- src
+- +- ajv-keywords
+- - +- dist
+- - - +- definitions
+- - - +- keywords
+- - +- src
+- - - +- definitions
+- - - +- keywords
+- - +- dist
+- - - +- compile
+- - - - +- codegen
+- - - - +- jtd
+- - - - +- validate
+- - - +- refs
+- - - - +- json-schema-2019-09
+- - - - - +- meta
+- - - - +- json-schema-2020-12
+- - - - - +- meta
+- - - +- runtime
+- - - +- standalone
+- - - +- types
+- - - +- vocabularies
+- - - - +- applicator
+- - - - +- core
+- - - - +- discriminator
+- - - - +- dynamic
+- - - - +- format
+- - - - +- jtd
+- - - - +- unevaluated
+- - - - +- validation
+- - +- lib
+- - - +- compile
+- - - - +- codegen
+- - - - +- jtd
+- - - - +- validate
+- - - +- refs
+- - - - +- json-schema-2019-09
+- - - - - +- meta
+- - - - +- json-schema-2020-12
+- - - - - +- meta
+- - - +- runtime
+- - - +- standalone
+- - - +- types
+- - - +- vocabularies
+- - - - +- applicator
+- - - - +- core
+- - - - +- discriminator
+- - - - +- dynamic
+- - - - +- format
+- - - - +- jtd
+- - - - +- unevaluated
+- - - - +- validation
+- +- ansi-colors
+- - +- types
+- +- ansi-escapes
+- - +- node_modules
+- - - +- type-fest
+- - - - +- source
+- - - - +- ts41
+- +- ansi-regex
+- +- ansi-styles
+- +- ansis
+- +- anymatch
+- - +- node_modules
+- - - +- picomatch
+- - - - +- lib
+- +- app-root-path
+- - +- lib
+- +- append-field
+- - +- lib
+- - +- test
+- +- arg
+- +- argparse
+- - +- lib
+- +- array-flatten
+- +- array-timsort
+- - +- src
+- +- array-union
+- +- asynckit
+- - +- lib
+- +- atomic-sleep
+- +- available-typed-arrays
+- - +- .github
+- - +- test
+- +- axios
+- - +- dist
+- - - +- browser
+- - - +- esm
+- - - +- node
+- - +- lib
+- - - +- adapters
+- - - +- cancel
+- - - +- core
+- - - +- defaults
+- - - +- env
+- - - - +- classes
+- - - +- helpers
+- - - +- platform
+- - - - +- browser
+- - - - - +- classes
+- - - - +- common
+- - - - +- node
+- - - - - +- classes
+- +- babel-jest
+- - +- build
+- +- babel-plugin-istanbul
+- - +- lib
+- - +- node_modules
+- - - +- .bin
+- - - +- istanbul-lib-instrument
+- - - - +- src
+- - - +- semver
+- - - - +- bin
+- +- babel-plugin-jest-hoist
+- - +- build
+- +- babel-preset-current-node-syntax
+- - +- .github
+- - - +- workflows
+- - +- src
+- +- babel-preset-jest
+- +- balanced-match
+- - +- .github
+- +- base64-js
+- +- base64id
+- - +- lib
+- +- baseline-browser-mapping
+- - +- dist
+- +- binary-extensions
+- +- bintrees
+- - +- dist
+- - +- examples
+- - +- lib
+- - +- test
+- - - +- perf
+- - - +- samples
+- - - +- scripts
+- +- bl
+- - +- test
+- +- body-parser
+- - +- lib
+- - - +- types
+- - +- node_modules
+- - - +- debug
+- - - - +- src
+- - - +- ms
+- +- bowser
+- - +- src
+- +- brace-expansion
+- - +- .github
+- +- braces
+- - +- lib
+- +- browserslist
+- +- bs-logger
+- - +- dist
+- - - +- logger
+- - - +- testing
+- - - +- utils
+- +- bser
+- +- buffer
+- +- buffer-equal-constant-time
+- +- buffer-from
+- +- busboy
+- - +- .github
+- - - +- workflows
+- - +- bench
+- - +- lib
+- - - +- types
+- - +- test
+- +- bytes
+- +- call-bind
+- +- call-bind-apply-helpers
+- - +- .github
+- - +- test
+- - +- .github
+- - +- test
+- +- call-bound
+- - +- .github
+- - +- test
+- +- callsites
+- +- camelcase
+- +- caniuse-lite
+- - +- data
+- - - +- features
+- - - +- regions
+- - +- dist
+- - - +- lib
+- - - +- unpacker
+- +- chalk
+- - +- source
+- +- char-regex
+- +- chardet
+- - +- encoding
+- +- chokidar
+- - +- lib
+- - +- types
+- +- chrome-trace-event
+- - +- dist
+- +- ci-info
+- +- class-transformer
+- - +- bundles
+- - +- cjs
+- - - +- constants
+- - - +- decorators
+- - - +- enums
+- - - +- interfaces
+- - - - +- decorator-options
+- - - - +- metadata
+- - - +- utils
+- - +- esm2015
+- - - +- constants
+- - - +- decorators
+- - - +- enums
+- - - +- interfaces
+- - - - +- decorator-options
+- - - - +- metadata
+- - - +- utils
+- - +- esm5
+- - - +- constants
+- - - +- decorators
+- - - +- enums
+- - - +- interfaces
+- - - - +- decorator-options
+- - - - +- metadata
+- - - +- utils
+- - +- types
+- - - +- constants
+- - - +- decorators
+- - - +- enums
+- - - +- interfaces
+- - - - +- decorator-options
+- - - - +- metadata
+- - - +- utils
+- +- class-validator
+- - +- bundles
+- - +- cjs
+- - - +- decorator
+- - - - +- array
+- - - - +- common
+- - - - +- date
+- - - - +- number
+- - - - +- object
+- - - - +- string
+- - - - +- typechecker
+- - - +- metadata
+- - - +- utils
+- - - +- validation
+- - - +- validation-schema
+- - +- esm2015
+- - - +- decorator
+- - - - +- array
+- - - - +- common
+- - - - +- date
+- - - - +- number
+- - - - +- object
+- - - - +- string
+- - - - +- typechecker
+- - - +- metadata
+- - - +- utils
+- - - +- validation
+- - - +- validation-schema
+- - +- esm5
+- - - +- decorator
+- - - - +- array
+- - - - +- common
+- - - - +- date
+- - - - +- number
+- - - - +- object
+- - - - +- string
+- - - - +- typechecker
+- - - +- metadata
+- - - +- utils
+- - - +- validation
+- - - +- validation-schema
+- - +- types
+- - - +- decorator
+- - - - +- array
+- - - - +- common
+- - - - +- date
+- - - - +- number
+- - - - +- object
+- - - - +- string
+- - - - +- typechecker
+- - - +- metadata
+- - - +- utils
+- - - +- validation
+- - - +- validation-schema
+- +- cli-cursor
+- +- cli-spinners
+- +- cli-table3
+- - +- src
+- +- cli-width
+- - +- .nyc_output
+- - - +- processinfo
+- +- cliui
+- - +- build
+- - - +- lib
+- - +- node_modules
+- - - +- wrap-ansi
+- +- clone
+- +- co
+- +- collect-v8-coverage
+- +- color-convert
+- +- color-name
+- +- colorette
+- +- combined-stream
+- - +- lib
+- +- commander
+- - +- typings
+- +- comment-json
+- - +- src
+- +- concat-map
+- - +- example
+- - +- test
+- +- concat-stream
+- +- consola
+- - +- dist
+- - +- src
+- - - +- reporters
+- - - +- utils
+- - +- types
+- +- content-disposition
+- +- content-type
+- +- convert-source-map
+- +- cookie
+- +- cookie-signature
+- +- core-util-is
+- - +- lib
+- +- cors
+- - +- lib
+- +- cosmiconfig
+- - +- dist
+- +- create-jest
+- - +- bin
+- - +- build
+- +- create-require
+- +- cross-spawn
+- - +- lib
+- - - +- util
+- +- dateformat
+- - +- lib
+- +- dayjs
+- - +- esm
+- - - +- locale
+- - - +- plugin
+- - - - +- advancedFormat
+- - - - +- arraySupport
+- - - - +- badMutable
+- - - - +- bigIntSupport
+- - - - +- buddhistEra
+- - - - +- calendar
+- - - - +- customParseFormat
+- - - - +- dayOfYear
+- - - - +- devHelper
+- - - - +- duration
+- - - - +- isBetween
+- - - - +- isLeapYear
+- - - - +- isMoment
+- - - - +- isSameOrAfter
+- - - - +- isSameOrBefore
+- - - - +- isToday
+- - - - +- isTomorrow
+- - - - +- isYesterday
+- - - - +- isoWeek
+- - - - +- isoWeeksInYear
+- - - - +- localeData
+- - - - +- localizedFormat
+- - - - +- minMax
+- - - - +- negativeYear
+- - - - +- objectSupport
+- - - - +- pluralGetSet
+- - - - +- preParsePostFormat
+- - - - +- quarterOfYear
+- - - - +- relativeTime
+- - - - +- timezone
+- - - - +- toArray
+- - - - +- toObject
+- - - - +- updateLocale
+- - - - +- utc
+- - - - +- weekOfYear
+- - - - +- weekYear
+- - - - +- weekday
+- - +- locale
+- - +- plugin
+- +- debug
+- - +- src
+- +- dedent
+- - +- dist
+- +- deep-is
+- - +- example
+- - +- test
+- +- deepmerge
+- - +- dist
+- +- defaults
+- +- define-data-property
+- - +- .github
+- - +- test
+- +- delayed-stream
+- - +- lib
+- +- depd
+- - +- lib
+- - - +- browser
+- +- destroy
+- +- detect-newline
+- +- diff
+- +- diff-sequences
+- - +- build
+- - +- dist
+- - +- lib
+- - - +- convert
+- - - +- diff
+- - - +- patch
+- - - +- util
+- +- dir-glob
+- +- doctrine
+- - +- lib
+- +- dotenv
+- +- dotenv-expand
+- - +- lib
+- - +- lib
+- +- dunder-proto
+- - +- .github
+- - +- test
+- +- eastasianwidth
+- +- ecdsa-sig-formatter
+- - +- src
+- +- ee-first
+- +- electron-to-chromium
+- +- emittery
+- +- emoji-regex
+- - +- es2015
+- +- encodeurl
+- +- end-of-stream
+- +- engine.io
+- +- engine.io-client
+- - +- build
+- - - +- cjs
+- - - - +- contrib
+- - - - +- transports
+- - - +- esm
+- - - +- esm-debug
+- - - - +- contrib
+- - - - +- transports
+- - - - +- contrib
+- - - - +- transports
+- - +- dist
+- - +- node_modules
+- - - +- ws
+- - - - +- lib
+- +- engine.io-parser
+- - +- build
+- - - +- cjs
+- - - - +- contrib
+- - - +- esm
+- - - - +- contrib
+- - +- build
+- - - +- contrib
+- - - +- parser-v3
+- - - +- transports
+- - - +- transports-uws
+- - +- node_modules
+- - - +- accepts
+- - - +- mime-db
+- - - +- mime-types
+- - - +- negotiator
+- - - - +- lib
+- - - +- ws
+- - - - +- lib
+- +- enhanced-resolve
+- - +- lib
+- - - +- util
+- +- error-ex
+- +- es-define-property
+- - +- .github
+- - +- test
+- +- es-errors
+- - +- .github
+- - +- test
+- +- es-module-lexer
+- - +- dist
+- - +- types
+- +- es-object-atoms
+- - +- .github
+- - +- test
+- +- es-set-tostringtag
+- - +- test
+- +- escalade
+- - +- dist
+- - +- sync
+- +- escape-html
+- +- escape-string-regexp
+- +- eslint
+- +- eslint-config-prettier
+- - +- bin
+- +- eslint-plugin-prettier
+- +- eslint-scope
+- - +- dist
+- - +- lib
+- +- eslint-visitor-keys
+- - +- dist
+- - +- lib
+- - +- bin
+- - +- conf
+- - +- lib
+- - - +- cli-engine
+- - - - +- formatters
+- - - +- config
+- - - +- eslint
+- - - +- linter
+- - - - +- code-path-analysis
+- - - +- rule-tester
+- - - +- rules
+- - - - +- utils
+- - - - - +- patterns
+- - - - - +- unicode
+- - - +- shared
+- - - +- source-code
+- - - - +- token-store
+- - +- messages
+- - +- node_modules
+- - - +- ajv
+- - - - +- dist
+- - - - +- lib
+- - - - - +- compile
+- - - - - +- dot
+- - - - - +- dotjs
+- - - - - +- refs
+- - - - +- scripts
+- - - +- brace-expansion
+- - - +- glob-parent
+- - - +- json-schema-traverse
+- - - - +- spec
+- - - - - +- fixtures
+- - - +- minimatch
+- +- espree
+- - +- dist
+- - +- lib
+- +- esprima
+- - +- bin
+- - +- dist
+- +- esquery
+- - +- dist
+- +- esrecurse
+- +- estraverse
+- +- esutils
+- - +- lib
+- +- etag
+- +- ethers
+- - +- dist
+- - +- lib.commonjs
+- - - +- abi
+- - - - +- coders
+- - - +- address
+- - - +- constants
+- - - +- contract
+- - - +- crypto
+- - - +- hash
+- - - +- providers
+- - - +- transaction
+- - - +- utils
+- - - +- wallet
+- - - +- wordlists
+- - - - +- generation
+- - +- lib.esm
+- - - +- abi
+- - - - +- coders
+- - - +- address
+- - - +- constants
+- - - +- contract
+- - - +- crypto
+- - - +- hash
+- - - +- providers
+- - - +- transaction
+- - - +- utils
+- - - +- wallet
+- - - +- wordlists
+- - - - +- generation
+- - +- node_modules
+- - - +- @types
+- - - - +- node
+- - - - - +- assert
+- - - - - +- dns
+- - - - - +- fs
+- - - - - +- readline
+- - - - - +- stream
+- - - - - +- timers
+- - - - - +- ts5.6
+- - - +- tslib
+- - - - +- modules
+- - - +- undici-types
+- - +- src.ts
+- - - +- abi
+- - - - +- coders
+- - - +- address
+- - - +- constants
+- - - +- contract
+- - - +- crypto
+- - - +- hash
+- - - +- providers
+- - - +- transaction
+- - - +- utils
+- - - +- wallet
+- - - +- wordlists
+- - - - +- generation
+- +- events
+- - +- .github
+- - +- tests
+- +- execa
+- - +- lib
+- - +- node_modules
+- - - +- signal-exit
+- +- exit
+- - +- lib
+- - +- test
+- - - +- fixtures
+- +- expect
+- - +- build
+- +- express
+- - +- lib
+- - +- node_modules
+- - - +- body-parser
+- - - - +- lib
+- - - - - +- types
+- - - +- iconv-lite
+- - - - +- encodings
+- - - - - +- tables
+- - - - +- lib
+- - - - - +- helpers
+- - - - +- types
+- - - +- media-typer
+- - - +- raw-body
+- - - +- type-is
+- +- external-editor
+- - +- main
+- - - +- errors
+- +- fast-copy
+- - +- dist
+- - - +- cjs
+- - - +- es
+- - - +- umd
+- +- fast-deep-equal
+- - +- es6
+- +- fast-diff
+- +- fast-glob
+- - +- out
+- - - +- managers
+- - - +- providers
+- - - - +- filters
+- - - - +- matchers
+- - - - +- transformers
+- - - +- readers
+- - - +- types
+- - - +- utils
+- +- fast-json-stable-stringify
+- - +- .github
+- - +- benchmark
+- - +- example
+- - +- test
+- +- fast-levenshtein
+- +- fast-safe-stringify
+- +- fast-xml-parser
+- - +- lib
+- - +- src
+- - - +- cli
+- - - +- v6
+- - - - +- OutputBuilders
+- - - - +- inputSource
+- - - - +- valueParsers
+- - - +- xmlbuilder
+- - - +- xmlparser
+- +- fastq
+- - +- test
+- +- fb-watchman
+- +- fflate
+- - +- esm
+- - +- lib
+- - +- umd
+- +- figures
+- - +- node_modules
+- - - +- escape-string-regexp
+- +- file-entry-cache
+- +- file-type
+- +- fill-range
+- +- finalhandler
+- +- find-up
+- +- flat-cache
+- - +- node_modules
+- - - +- .bin
+- - - +- brace-expansion
+- - - +- glob
+- - - +- minimatch
+- - - +- rimraf
+- - +- src
+- +- flatted
+- - +- cjs
+- - +- esm
+- - +- php
+- - +- python
+- - +- types
+- +- follow-redirects
+- +- for-each
+- - +- .github
+- - +- test
+- +- foreground-child
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- +- fork-ts-checker-webpack-plugin
+- - +- lib
+- - - +- formatter
+- - - - +- types
+- - - +- hooks
+- - - +- issue
+- - - +- rpc
+- - - +- typescript
+- - - - +- worker
+- - - - - +- lib
+- - - - - - +- file-system
+- - - - - - +- host
+- - - - - - +- program
+- - - +- utils
+- - - - +- async
+- - - - +- path
+- - - +- watch
+- - +- node_modules
+- - - +- brace-expansion
+- - - +- minimatch
+- +- form-data
+- - +- lib
+- - +- node_modules
+- - - +- mime-db
+- - - +- mime-types
+- +- forwarded
+- +- fresh
+- +- fs-extra
+- - +- lib
+- - - +- copy
+- - - +- empty
+- - - +- ensure
+- - - +- fs
+- - - +- json
+- - - +- mkdirs
+- - - +- move
+- - - +- output-file
+- - - +- path-exists
+- - - +- remove
+- - - +- util
+- +- fs-monkey
+- - +- docs
+- - - +- api
+- - +- lib
+- - - +- util
+- +- fs.realpath
+- +- fsevents
+- +- function-bind
+- - +- .github
+- - +- test
+- +- gensync
+- - +- test
+- +- get-caller-file
+- +- get-intrinsic
+- - +- .github
+- - +- test
+- +- get-package-type
+- +- get-proto
+- - +- .github
+- - +- test
+- +- get-stream
+- +- glob
+- +- glob-parent
+- +- glob-to-regexp
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- - +- node_modules
+- - - +- minimatch
+- - - - +- dist
+- - - - - +- commonjs
+- - - - - +- esm
+- +- globals
+- +- globby
+- +- gopd
+- - +- .github
+- - +- test
+- +- graceful-fs
+- +- graphemer
+- - +- lib
+- +- handlebars
+- - +- bin
+- - +- dist
+- - - +- amd
+- - - - +- handlebars
+- - - - - +- compiler
+- - - - - +- decorators
+- - - - - +- helpers
+- - - - - +- internal
+- - - +- cjs
+- - - - +- handlebars
+- - - - - +- compiler
+- - - - - +- decorators
+- - - - - +- helpers
+- - - - - +- internal
+- - +- lib
+- - - +- handlebars
+- - - - +- compiler
+- - - - +- decorators
+- - - - +- helpers
+- - - - +- internal
+- - +- node_modules
+- - - +- source-map
+- - - - +- dist
+- - - - +- lib
+- - +- types
+- +- has-flag
+- +- has-own-prop
+- +- has-property-descriptors
+- - +- .github
+- - +- test
+- +- has-symbols
+- - +- .github
+- - +- test
+- - - +- shams
+- +- has-tostringtag
+- - +- .github
+- - +- test
+- - - +- shams
+- +- hasown
+- - +- .github
+- +- help-me
+- - +- .github
+- - - +- workflows
+- - +- doc
+- - +- fixture
+- - - +- basic
+- - - +- dir
+- - - - +- a
+- - - +- no-ext
+- - - +- sameprefix
+- - - +- shortnames
+- +- html-escaper
+- - +- cjs
+- - +- esm
+- - +- test
+- +- http-errors
+- +- human-signals
+- - +- build
+- - - +- src
+- +- iconv-lite
+- - +- encodings
+- - - +- tables
+- - +- lib
+- +- ieee754
+- +- ignore
+- +- ignore-by-default
+- +- import-fresh
+- +- import-local
+- - +- fixtures
+- +- imurmurhash
+- +- inflight
+- +- inherits
+- +- inquirer
+- - +- lib
+- - - +- objects
+- - - +- prompts
+- - - +- ui
+- - - +- utils
+- +- ipaddr.js
+- - +- lib
+- +- is-arrayish
+- +- is-binary-path
+- +- is-callable
+- - +- .github
+- - +- test
+- +- is-core-module
+- - +- test
+- +- is-extglob
+- +- is-fullwidth-code-point
+- +- is-generator-fn
+- +- is-glob
+- +- is-interactive
+- +- is-number
+- +- is-path-inside
+- +- is-promise
+- +- is-stream
+- +- is-typed-array
+- - +- .github
+- - +- test
+- +- is-unicode-supported
+- +- isarray
+- +- isexe
+- - +- test
+- +- istanbul-lib-coverage
+- - +- lib
+- +- istanbul-lib-instrument
+- - +- src
+- +- istanbul-lib-report
+- - +- lib
+- +- istanbul-lib-source-maps
+- - +- lib
+- - +- node_modules
+- - - +- source-map
+- - - - +- dist
+- - - - +- lib
+- +- istanbul-reports
+- - +- lib
+- - - +- clover
+- - - +- cobertura
+- - - +- html
+- - - +- html-spa
+- - - - +- assets
+- - - - +- src
+- - - - +- assets
+- - - - - +- vendor
+- - - +- json
+- - - +- json-summary
+- - - +- lcov
+- - - +- lcovonly
+- - - +- none
+- - - +- teamcity
+- - - +- text
+- - - +- text-lcov
+- - - +- text-summary
+- +- iterare
+- - +- lib
+- +- jackspeak
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- +- jest
+- +- jest-changed-files
+- - +- build
+- +- jest-circus
+- - +- build
+- - - +- legacy-code-todo-rewrite
+- +- jest-cli
+- - +- bin
+- - +- build
+- +- jest-config
+- - +- build
+- - +- node_modules
+- - - +- brace-expansion
+- - - +- glob
+- - - +- minimatch
+- +- jest-diff
+- - +- build
+- +- jest-docblock
+- - +- build
+- +- jest-each
+- - +- build
+- - - +- table
+- +- jest-environment-node
+- - +- build
+- +- jest-get-type
+- - +- build
+- +- jest-haste-map
+- - +- build
+- - - +- crawlers
+- - - +- lib
+- - - +- watchers
+- +- jest-leak-detector
+- - +- build
+- +- jest-matcher-utils
+- - +- build
+- +- jest-message-util
+- - +- build
+- +- jest-mock
+- - +- build
+- +- jest-pnp-resolver
+- +- jest-regex-util
+- - +- build
+- +- jest-resolve
+- +- jest-resolve-dependencies
+- - +- build
+- - +- build
+- +- jest-runner
+- - +- build
+- +- jest-runtime
+- - +- build
+- - +- node_modules
+- - - +- brace-expansion
+- - - +- cjs-module-lexer
+- - - - +- dist
+- - - +- glob
+- - - +- minimatch
+- +- jest-snapshot
+- - +- build
+- +- jest-util
+- - +- build
+- - +- node_modules
+- - - +- picomatch
+- - - - +- lib
+- +- jest-validate
+- - +- build
+- - +- node_modules
+- - - +- camelcase
+- +- jest-watcher
+- - +- build
+- - - +- lib
+- +- jest-worker
+- - +- build
+- - - +- base
+- - - +- workers
+- - +- node_modules
+- - - +- supports-color
+- - +- bin
+- - +- build
+- +- joycon
+- - +- lib
+- - +- types
+- +- js-tokens
+- +- js-yaml
+- - +- bin
+- - +- dist
+- - +- lib
+- - - +- schema
+- - - +- type
+- +- jsesc
+- - +- bin
+- - +- man
+- +- json-buffer
+- - +- test
+- +- json-parse-even-better-errors
+- +- json-schema-traverse
+- - +- .github
+- - - +- workflows
+- - +- spec
+- - - +- fixtures
+- +- json-stable-stringify-without-jsonify
+- - +- example
+- - +- test
+- +- json5
+- - +- dist
+- - +- lib
+- +- jsonc-parser
+- - +- lib
+- - - +- esm
+- - - - +- impl
+- - - +- umd
+- - - - +- impl
+- +- jsonfile
+- +- jsonwebtoken
+- - +- lib
+- +- jwa
+- +- jws
+- - +- lib
+- +- keyv
+- - +- src
+- +- kleur
+- +- leven
+- +- levn
+- - +- lib
+- +- libphonenumber-js
+- - +- build
+- - +- build-scripts
+- - - +- helpers
+- - - +- findNumbers
+- - - +- helpers
+- - - - +- extension
+- - - +- legacy
+- - - +- tools
+- - +- bundle
+- - +- core
+- - +- es6
+- - - +- findNumbers
+- - - +- helpers
+- - - - +- extension
+- - - +- legacy
+- - - +- tools
+- - +- index.es6.exports
+- - +- max
+- - - +- exports
+- - - +- metadata
+- - +- min
+- - - +- exports
+- - - +- metadata
+- - +- mobile
+- - - +- examples
+- - - +- exports
+- - - +- metadata
+- - +- source
+- - - +- findNumbers
+- - - +- helpers
+- - - - +- extension
+- - - +- legacy
+- - - +- tools
+- +- lines-and-columns
+- - +- build
+- +- loader-runner
+- - +- lib
+- +- locate-path
+- +- lodash
+- +- lodash.includes
+- +- lodash.isboolean
+- +- lodash.isinteger
+- +- lodash.isnumber
+- +- lodash.isplainobject
+- +- lodash.isstring
+- +- lodash.memoize
+- +- lodash.merge
+- +- lodash.once
+- - +- fp
+- +- log-symbols
+- +- lru-cache
+- +- magic-string
+- - +- dist
+- +- make-dir
+- +- make-error
+- - +- dist
+- +- makeerror
+- - +- lib
+- +- math-intrinsics
+- - +- .github
+- - +- constants
+- - +- test
+- +- media-typer
+- +- memfs
+- - +- lib
+- - - +- internal
+- +- merge-descriptors
+- +- merge-stream
+- +- merge2
+- +- methods
+- +- micromatch
+- - +- node_modules
+- - - +- picomatch
+- - - - +- lib
+- +- mime
+- +- mime-db
+- +- mime-types
+- - +- src
+- +- mimic-fn
+- +- minimatch
+- - +- dist
+- - - +- cjs
+- - - +- mjs
+- +- minimist
+- - +- .github
+- - +- example
+- - +- test
+- +- minipass
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- +- mkdirp
+- - +- bin
+- +- ms
+- +- multer
+- - +- lib
+- - +- storage
+- +- mute-stream
+- +- natural-compare
+- +- negotiator
+- - +- lib
+- +- neo-async
+- +- node-abort-controller
+- - +- .github
+- - - +- workflows
+- - +- __tests__
+- +- node-emoji
+- - +- .github
+- - +- lib
+- - +- test
+- +- node-fetch
+- - +- lib
+- +- node-int64
+- +- node-releases
+- - +- data
+- - - +- processed
+- - - +- release-schedule
+- +- nodemailer
+- - +- lib
+- - - +- addressparser
+- - - +- base64
+- - - +- dkim
+- - - +- fetch
+- - - +- json-transport
+- - - +- mail-composer
+- - - +- mailer
+- - - +- mime-funcs
+- - - +- mime-node
+- - - +- punycode
+- - - +- qp
+- - - +- sendmail-transport
+- - - +- ses-transport
+- - - +- shared
+- - - +- smtp-connection
+- - - +- smtp-pool
+- - - +- smtp-transport
+- - - +- stream-transport
+- - - +- well-known
+- - - +- xoauth2
+- +- nodemon
+- - +- bin
+- - +- doc
+- - - +- cli
+- - +- lib
+- - - +- cli
+- - - +- config
+- - - +- help
+- - - +- monitor
+- - - +- rules
+- - - +- utils
+- - +- node_modules
+- - - +- brace-expansion
+- - - +- has-flag
+- - - +- minimatch
+- - - +- supports-color
+- +- normalize-path
+- +- npm-run-path
+- +- object-assign
+- +- object-hash
+- - +- dist
+- +- object-inspect
+- - +- .github
+- - +- example
+- - +- test
+- - - +- browser
+- +- on-exit-leak-free
+- - +- .github
+- - - +- workflows
+- - +- test
+- - - +- fixtures
+- +- on-finished
+- +- once
+- +- onetime
+- +- optionator
+- - +- lib
+- +- ora
+- +- os-tmpdir
+- +- p-limit
+- +- p-locate
+- +- p-try
+- +- package-json-from-dist
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- +- parent-module
+- +- parse-json
+- +- parseurl
+- +- passport
+- +- passport-jwt
+- - +- .github
+- - - +- workflows
+- - +- docs
+- - +- lib
+- - - +- helpers
+- - +- test
+- +- passport-strategy
+- - +- lib
+- - +- etc
+- - +- lib
+- - - +- errors
+- - - +- framework
+- - - +- http
+- - - +- middleware
+- - - +- strategies
+- - +- sponsors
+- +- path-exists
+- +- path-is-absolute
+- +- path-key
+- +- path-parse
+- +- path-scurry
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- - +- node_modules
+- - - +- lru-cache
+- - - - +- dist
+- - - - - +- commonjs
+- - - - - +- esm
+- +- path-to-regexp
+- +- path-type
+- +- pause
+- +- pg
+- +- pg-cloudflare
+- - +- dist
+- - +- esm
+- - +- src
+- +- pg-connection-string
+- - +- esm
+- +- pg-int8
+- +- pg-pool
+- - +- esm
+- +- pg-protocol
+- - +- dist
+- - +- esm
+- - +- src
+- - - +- testing
+- - - +- types
+- +- pg-types
+- - +- lib
+- - +- test
+- - +- esm
+- - +- lib
+- - - +- crypto
+- - - +- native
+- +- pgpass
+- - +- lib
+- +- picocolors
+- +- picomatch
+- - +- lib
+- +- pino
+- +- pino-abstract-transport
+- - +- .github
+- - - +- workflows
+- - +- .husky
+- - +- test
+- - - +- fixtures
+- - - +- types
+- +- pino-pretty
+- - +- .github
+- - - +- workflows
+- - +- docs
+- - +- help
+- - +- lib
+- - - +- utils
+- - +- node_modules
+- - - +- strip-json-comments
+- - +- test
+- - - +- example
+- - - +- types
+- +- pino-std-serializers
+- - +- .github
+- - - +- workflows
+- - +- lib
+- - +- test
+- - - +- types
+- - +- benchmarks
+- - - +- internal
+- - - +- utils
+- - +- build
+- - +- docs
+- - +- examples
+- - +- lib
+- - +- test
+- - - +- esm
+- - - +- fixtures
+- - - - +- broken-pipe
+- - - - +- eval
+- - - - - +- node_modules
+- - - - +- pretty
+- - - - +- transport
+- - - - +- ts
+- - - +- internals
+- - - +- jest
+- - - +- transport
+- - - +- types
+- +- pirates
+- - +- lib
+- +- pkg-dir
+- - +- node_modules
+- - - +- find-up
+- - - +- locate-path
+- - - +- p-limit
+- - - +- p-locate
+- +- pluralize
+- +- possible-typed-array-names
+- - +- .github
+- - +- test
+- +- postgres-array
+- +- postgres-bytea
+- +- postgres-date
+- +- postgres-interval
+- +- prelude-ls
+- - +- lib
+- +- prettier
+- +- prettier-linter-helpers
+- - +- bin
+- - +- internal
+- - +- plugins
+- +- pretty-format
+- - +- build
+- - - +- plugins
+- - - - +- lib
+- - +- node_modules
+- - - +- ansi-styles
+- +- process-warning
+- - +- .github
+- - - +- workflows
+- - +- benchmarks
+- - +- examples
+- - +- test
+- - +- types
+- +- prom-client
+- - +- lib
+- - - +- metrics
+- - - - +- helpers
+- +- prompts
+- - +- dist
+- - - +- dateparts
+- - - +- elements
+- - - +- util
+- - +- lib
+- - - +- dateparts
+- - - +- elements
+- - - +- util
+- +- proxy-addr
+- +- proxy-from-env
+- +- pstree.remy
+- - +- lib
+- - +- tests
+- - - +- fixtures
+- +- pump
+- - +- .github
+- +- punycode
+- +- pure-rand
+- - +- lib
+- - - +- distribution
+- - - - +- internals
+- - - +- esm
+- - - - +- distribution
+- - - - - +- internals
+- - - - +- generator
+- - - - +- types
+- - - - - +- distribution
+- - - - - - +- internals
+- - - - - +- generator
+- - - +- generator
+- - - +- types
+- - - - +- distribution
+- - - - - +- internals
+- - - - +- generator
+- +- qs
+- - +- .github
+- - +- dist
+- - +- lib
+- - +- test
+- +- queue-microtask
+- +- quick-format-unescaped
+- - +- .github
+- - - +- workflows
+- - +- test
+- +- randombytes
+- +- range-parser
+- +- raw-body
+- +- react-is
+- - +- cjs
+- - +- umd
+- +- readable-stream
+- - +- lib
+- - - +- internal
+- - - - +- streams
+- +- readdirp
+- - +- node_modules
+- - - +- picomatch
+- - - - +- lib
+- +- real-require
+- - +- src
+- +- reflect-metadata
+- - +- docs
+- +- repeat-string
+- +- require-directory
+- +- require-from-string
+- +- resolve
+- +- resolve-cwd
+- - +- node_modules
+- - - +- resolve-from
+- +- resolve-from
+- +- resolve.exports
+- - +- dist
+- - +- .github
+- - +- bin
+- - +- example
+- - +- lib
+- - +- test
+- - - +- dotdot
+- - - - +- abc
+- - - +- module_dir
+- - - - +- xmodules
+- - - - - +- aaa
+- - - - +- ymodules
+- - - - - +- aaa
+- - - - +- zmodules
+- - - - - +- bbb
+- - - +- node_path
+- - - - +- x
+- - - - - +- aaa
+- - - - - +- ccc
+- - - - +- y
+- - - - - +- bbb
+- - - - - +- ccc
+- - - +- pathfilter
+- - - - +- deep_ref
+- - - +- precedence
+- - - - +- aaa
+- - - - +- bbb
+- - - +- resolver
+- - - - +- baz
+- - - - +- browser_field
+- - - - +- dot_main
+- - - - +- dot_slash_main
+- - - - +- false_main
+- - - - +- incorrect_main
+- - - - +- invalid_main
+- - - - +- multirepo
+- - - - - +- packages
+- - - - - - +- package-a
+- - - - - - +- package-b
+- - - - +- nested_symlinks
+- - - - - +- mylib
+- - - - +- other_path
+- - - - - +- lib
+- - - - +- quux
+- - - - - +- foo
+- - - - +- same_names
+- - - - - +- foo
+- - - - +- symlinked
+- - - - - +- _
+- - - - - - +- node_modules
+- - - - - - +- symlink_target
+- - - - - +- package
+- - - - +- without_basedir
+- - - +- shadowed_core
+- - - - +- node_modules
+- - - - - +- util
+- +- restore-cursor
+- - +- node_modules
+- - - +- signal-exit
+- +- reusify
+- - +- .github
+- - - +- workflows
+- - +- benchmarks
+- +- rimraf
+- - +- dist
+- - - +- commonjs
+- - - +- esm
+- +- router
+- - +- lib
+- - +- node_modules
+- - - +- path-to-regexp
+- - - - +- dist
+- +- run-async
+- +- run-parallel
+- +- rxjs
+- - +- ajax
+- - +- dist
+- - - +- bundles
+- - - +- cjs
+- - - - +- ajax
+- - - - +- fetch
+- - - - +- internal
+- - - - - +- ajax
+- - - - - +- observable
+- - - - - - +- dom
+- - - - - +- operators
+- - - - - +- scheduled
+- - - - - +- scheduler
+- - - - - +- symbol
+- - - - - +- testing
+- - - - - +- util
+- - - - +- operators
+- - - - +- testing
+- - - - +- webSocket
+- - - +- esm
+- - - - +- ajax
+- - - - +- fetch
+- - - - +- internal
+- - - - - +- ajax
+- - - - - +- observable
+- - - - - - +- dom
+- - - - - +- operators
+- - - - - +- scheduled
+- - - - - +- scheduler
+- - - - - +- symbol
+- - - - - +- testing
+- - - - - +- util
+- - - - +- operators
+- - - - +- testing
+- - - - +- webSocket
+- - - +- esm5
+- - - - +- ajax
+- - - - +- fetch
+- - - - +- internal
+- - - - - +- ajax
+- - - - - +- observable
+- - - - - - +- dom
+- - - - - +- operators
+- - - - - +- scheduled
+- - - - - +- scheduler
+- - - - - +- symbol
+- - - - - +- testing
+- - - - - +- util
+- - - - +- operators
+- - - - +- testing
+- - - - +- webSocket
+- - - +- types
+- - - - +- ajax
+- - - - +- fetch
+- - - - +- internal
+- - - - - +- ajax
+- - - - - +- observable
+- - - - - - +- dom
+- - - - - +- operators
+- - - - - +- scheduled
+- - - - - +- scheduler
+- - - - - +- symbol
+- - - - - +- testing
+- - - - - +- util
+- - - - +- operators
+- - - - +- testing
+- - - - +- webSocket
+- - +- fetch
+- - +- operators
+- - +- src
+- - - +- ajax
+- - - +- fetch
+- - - +- internal
+- - - - +- ajax
+- - - - +- observable
+- - - - - +- dom
+- - - - +- operators
+- - - - +- scheduled
+- - - - +- scheduler
+- - - - +- symbol
+- - - - +- testing
+- - - - +- util
+- - - +- operators
+- - - +- testing
+- - - +- webSocket
+- - +- testing
+- - +- webSocket
+- +- safe-buffer
+- +- safe-stable-stringify
+- - +- esm
+- +- safer-buffer
+- +- schema-utils
+- - +- declarations
+- - - +- keywords
+- - - +- util
+- - +- dist
+- - - +- keywords
+- - - +- util
+- - +- node_modules
+- - - +- ajv
+- - - +- ajv-keywords
+- - - - +- keywords
+- - - - - +- dot
+- - - - - +- dotjs
+- - - - +- dist
+- - - - +- lib
+- - - - - +- compile
+- - - - - +- dot
+- - - - - +- dotjs
+- - - - - +- refs
+- - - - +- scripts
+- - - +- json-schema-traverse
+- - - - +- spec
+- - - - - +- fixtures
+- +- secure-json-parse
+- - +- .github
+- - - +- workflows
+- - +- benchmarks
+- - +- test
+- - +- types
+- +- semver
+- - +- bin
+- - +- classes
+- - +- functions
+- - +- internal
+- - +- ranges
+- +- send
+- +- serialize-javascript
+- +- serve-static
+- +- set-function-length
+- - +- .github
+- +- setprototypeof
+- - +- test
+- +- sha.js
+- - +- test
+- +- shebang-command
+- +- shebang-regex
+- +- side-channel
+- +- side-channel-list
+- - +- .github
+- - +- test
+- +- side-channel-map
+- - +- .github
+- - +- test
+- +- side-channel-weakmap
+- - +- .github
+- - +- test
+- - +- .github
+- - +- test
+- +- signal-exit
+- - +- dist
+- - - +- cjs
+- - - +- mjs
+- +- simple-update-notifier
+- - +- build
+- - +- src
+- +- sisteransi
+- - +- src
+- +- slash
+- +- socket.io
+- +- socket.io-adapter
+- - +- dist
+- - - +- contrib
+- - +- node_modules
+- - - +- ws
+- - - - +- lib
+- +- socket.io-client
+- - +- build
+- - - +- cjs
+- - - - +- contrib
+- - - +- esm
+- - - +- esm-debug
+- - - - +- contrib
+- - - - +- contrib
+- - +- dist
+- +- socket.io-parser
+- - +- build
+- - - +- cjs
+- - - +- esm
+- - - +- esm-debug
+- - +- client-dist
+- - +- dist
+- - +- node_modules
+- - - +- accepts
+- - - +- mime-db
+- - - +- mime-types
+- - - +- negotiator
+- - - - +- lib
+- +- sonic-boom
+- - +- fixtures
+- - +- test
+- - +- types
+- - - +- tests
+- +- source-map
+- +- source-map-support
+- - +- node_modules
+- - - +- source-map
+- - - - +- dist
+- - - - +- lib
+- - +- dist
+- - +- lib
+- +- split2
+- +- sprintf-js
+- - +- demo
+- - +- dist
+- - +- src
+- - +- test
+- +- sql-highlight
+- - +- lib
+- +- stack-utils
+- - +- node_modules
+- - - +- escape-string-regexp
+- +- statuses
+- +- streamsearch
+- - +- .github
+- - - +- workflows
+- - +- lib
+- - +- test
+- +- string-length
+- +- string-width
+- +- string-width-cjs
+- +- string_decoder
+- - +- lib
+- +- strip-ansi
+- +- strip-ansi-cjs
+- +- strip-bom
+- +- strip-final-newline
+- +- strip-json-comments
+- +- strnum
+- - +- .github
+- - +- .vscode
+- +- strtok3
+- - +- lib
+- - - +- stream
+- +- supports-color
+- +- supports-preserve-symlinks-flag
+- - +- .github
+- - +- test
+- +- symbol-observable
+- - +- es
+- - +- lib
+- +- synckit
+- - +- lib
+- +- tapable
+- - +- lib
+- +- tdigest
+- - +- dist
+- - +- specs
+- +- terser
+- +- terser-webpack-plugin
+- - +- dist
+- - +- node_modules
+- - - +- jest-worker
+- - - - +- build
+- - - - - +- base
+- - - - - +- workers
+- - - +- schema-utils
+- - - - +- declarations
+- - - - - +- keywords
+- - - - - +- util
+- - - - +- dist
+- - - - - +- keywords
+- - - - - +- util
+- - - +- supports-color
+- - +- types
+- - +- bin
+- - +- dist
+- - +- lib
+- - - +- compress
+- - - +- utils
+- - +- node_modules
+- - - +- commander
+- - - - +- typings
+- - - +- source-map
+- - - +- source-map-support
+- - - - +- dist
+- - - - +- lib
+- - +- tools
+- +- test-exclude
+- - +- node_modules
+- - - +- brace-expansion
+- - - +- glob
+- - - +- minimatch
+- +- text-table
+- - +- example
+- - +- test
+- +- thread-stream
+- - +- .github
+- - - +- workflows
+- - +- .husky
+- - +- lib
+- - +- test
+- - - +- dir with spaces
+- - - +- pkg
+- - - +- ts
+- +- through
+- - +- test
+- +- tmp
+- - +- lib
+- +- tmpl
+- - +- lib
+- +- to-buffer
+- - +- .github
+- +- to-regex-range
+- +- toidentifier
+- +- token-types
+- - +- lib
+- +- touch
+- - +- bin
+- +- tr46
+- - +- lib
+- +- tree-kill
+- +- ts-api-utils
+- - +- lib
+- +- ts-jest
+- - +- dist
+- - - +- cli
+- - - - +- config
+- - - - +- helpers
+- - - +- config
+- - - +- legacy
+- - - - +- compiler
+- - - - +- config
+- - - +- presets
+- - - +- transformers
+- - - +- transpilers
+- - - - +- typescript
+- - - +- utils
+- - +- node_modules
+- - - +- type-fest
+- - - - +- source
+- - - - - +- internal
+- - +- presets
+- - - +- default
+- - - +- default-esm
+- - - +- default-esm-legacy
+- - - +- default-legacy
+- - - +- js-with-babel
+- - - +- js-with-babel-esm
+- - - +- js-with-babel-esm-legacy
+- - - +- js-with-babel-legacy
+- - - +- js-with-ts
+- - - +- js-with-ts-esm
+- - - +- js-with-ts-esm-legacy
+- - - +- js-with-ts-legacy
+- +- ts-loader
+- - +- dist
+- +- ts-node
+- - +- dist
+- - +- dist-raw
+- - - +- child
+- - - +- transpilers
+- - +- esm
+- - +- node10
+- - +- node12
+- - +- node14
+- - +- node16
+- - +- register
+- - +- transpilers
+- +- tsconfig-paths
+- +- tsconfig-paths-webpack-plugin
+- - +- .github
+- - - +- workflows
+- - +- .husky
+- - +- coverage
+- - - +- lcov-report
+- - +- examples
+- - - +- referenceExample
+- - +- lib
+- - - +- __tests__
+- - +- temp
+- - +- lib
+- - - +- __tests__
+- - - - +- data
+- - +- node_modules
+- - - +- strip-bom
+- - +- src
+- - - +- __tests__
+- - - - +- data
+- +- tslib
+- - +- modules
+- +- type-check
+- - +- lib
+- +- type-detect
+- +- type-fest
+- - +- source
+- - +- ts41
+- +- type-is
+- - +- node_modules
+- - - +- mime-db
+- - - +- mime-types
+- +- typed-array-buffer
+- - +- .github
+- - +- test
+- +- typedarray
+- - +- example
+- - +- test
+- - - +- server
+- +- typeorm
+- - +- browser
+- - - +- cache
+- - - +- common
+- - - +- connection
+- - - - +- options-reader
+- - - +- data-source
+- - - +- decorator
+- - - - +- columns
+- - - - +- entity
+- - - - +- entity-view
+- - - - +- listeners
+- - - - +- options
+- - - - +- relations
+- - - - +- tree
+- - - +- driver
+- - - - +- aurora-mysql
+- - - - +- aurora-postgres
+- - - - +- better-sqlite3
+- - - - +- capacitor
+- - - - +- cockroachdb
+- - - - +- cordova
+- - - - +- expo
+- - - - - +- legacy
+- - - - +- mongodb
+- - - - +- mysql
+- - - - +- nativescript
+- - - - +- oracle
+- - - - +- postgres
+- - - - +- react-native
+- - - - +- sap
+- - - - +- spanner
+- - - - +- sqlite
+- - - - +- sqlite-abstract
+- - - - +- sqljs
+- - - - +- sqlserver
+- - - - - +- authentication
+- - - - +- types
+- - - +- entity-manager
+- - - +- entity-schema
+- - - +- error
+- - - +- find-options
+- - - - +- mongodb
+- - - - +- operator
+- - - +- logger
+- - - +- metadata
+- - - +- metadata-args
+- - - - +- types
+- - - +- metadata-builder
+- - - - +- types
+- - - +- migration
+- - - +- naming-strategy
+- - - +- persistence
+- - - - +- subject-builder
+- - - - +- tree
+- - - +- platform
+- - - +- query-builder
+- - - - +- relation-count
+- - - - +- relation-id
+- - - - +- result
+- - - - +- transformer
+- - - +- query-runner
+- - - +- repository
+- - - +- schema-builder
+- - - - +- options
+- - - - +- table
+- - - - +- util
+- - - - +- view
+- - - +- subscriber
+- - - - +- event
+- - - +- util
+- - +- cache
+- - +- commands
+- - +- common
+- - +- connection
+- - - +- options-reader
+- - +- data-source
+- - +- decorator
+- - - +- columns
+- - - +- entity
+- - - +- entity-view
+- - - +- listeners
+- - - +- options
+- - - +- relations
+- - - +- tree
+- - +- driver
+- - - +- aurora-mysql
+- - - +- aurora-postgres
+- - - +- better-sqlite3
+- - - +- capacitor
+- - - +- cockroachdb
+- - - +- cordova
+- - - +- expo
+- - - - +- legacy
+- - - +- mongodb
+- - - +- mysql
+- - - +- nativescript
+- - - +- oracle
+- - - +- postgres
+- - - +- react-native
+- - - +- sap
+- - - +- spanner
+- - - +- sqlite
+- - - +- sqlite-abstract
+- - - +- sqljs
+- - - +- sqlserver
+- - - - +- authentication
+- - - +- types
+- - +- entity-manager
+- - +- entity-schema
+- - +- error
+- - +- find-options
+- - - +- mongodb
+- - - +- operator
+- - +- logger
+- - +- metadata
+- - +- metadata-args
+- - - +- types
+- - +- metadata-builder
+- - - +- types
+- - +- migration
+- - +- naming-strategy
+- - +- node_modules
+- - - +- .bin
+- - - +- buffer
+- - - +- glob
+- - - - +- dist
+- - - - - +- commonjs
+- - - - - +- esm
+- - - +- minimatch
+- - - - +- dist
+- - - - - +- commonjs
+- - - - - +- esm
+- - - +- reflect-metadata
+- - - +- uuid
+- - - - +- dist
+- - - - - +- cjs
+- - - - - +- cjs-browser
+- - - - - +- esm
+- - - - - +- esm-browser
+- - - - - - +- bin
+- - +- persistence
+- - - +- subject-builder
+- - - +- tree
+- - +- platform
+- - +- query-builder
+- - - +- relation-count
+- - - +- relation-id
+- - - +- result
+- - - +- transformer
+- - +- query-runner
+- - +- repository
+- - +- schema-builder
+- - - +- options
+- - - +- table
+- - - +- util
+- - - +- view
+- - +- subscriber
+- - - +- event
+- - +- util
+- +- typescript
+- - +- bin
+- - +- lib
+- - - +- cs
+- - - +- de
+- - - +- es
+- - - +- fr
+- - - +- it
+- - - +- ja
+- - - +- ko
+- - - +- pl
+- - - +- pt-br
+- - - +- ru
+- - - +- tr
+- - - +- zh-cn
+- - - +- zh-tw
+- +- uglify-js
+- - +- bin
+- - +- lib
+- - +- tools
+- +- uid
+- - +- dist
+- - +- secure
+- - +- single
+- +- uint8array-extras
+- +- undefsafe
+- - +- .github
+- - - +- workflows
+- - +- lib
+- +- undici-types
+- +- universalify
+- +- unpipe
+- +- update-browserslist-db
+- +- uri-js
+- - +- dist
+- - - +- es5
+- - - +- esnext
+- - - - +- schemes
+- +- util-deprecate
+- +- utils-merge
+- +- uuid
+- - +- dist
+- - - +- bin
+- - - +- commonjs-browser
+- - - +- esm-browser
+- - - +- esm-node
+- +- v8-compile-cache-lib
+- +- v8-to-istanbul
+- - +- lib
+- +- validator
+- - +- es
+- - - +- lib
+- - - - +- util
+- - +- lib
+- - - +- util
+- +- vary
+- +- walker
+- - +- lib
+- +- watchpack
+- - +- lib
+- - +- types
+- +- wcwidth
+- - +- docs
+- - +- test
+- +- webidl-conversions
+- - +- lib
+- +- webpack
+- +- webpack-node-externals
+- +- webpack-sources
+- - +- lib
+- - - +- helpers
+- - +- bin
+- - +- hot
+- - +- lib
+- - - +- asset
+- - - +- async-modules
+- - - +- cache
+- - - +- config
+- - - +- container
+- - - +- css
+- - - +- debug
+- - - +- dependencies
+- - - +- electron
+- - - +- errors
+- - - +- esm
+- - - +- hmr
+- - - +- ids
+- - - +- javascript
+- - - +- json
+- - - +- library
+- - - +- logging
+- - - +- node
+- - - +- optimize
+- - - +- performance
+- - - +- prefetch
+- - - +- rules
+- - - +- runtime
+- - - +- schemes
+- - - +- serialization
+- - - +- sharing
+- - - +- stats
+- - - +- url
+- - - +- util
+- - - - +- hash
+- - - +- wasm
+- - - +- wasm-async
+- - - +- wasm-sync
+- - - +- web
+- - - +- webworker
+- - +- node_modules
+- - - +- eslint-scope
+- - - - +- lib
+- - - +- estraverse
+- - - +- mime-db
+- - - +- mime-types
+- - - +- schema-utils
+- - - - +- declarations
+- - - - - +- keywords
+- - - - - +- util
+- - - - +- dist
+- - - - - +- keywords
+- - - - - +- util
+- - +- schemas
+- - - +- plugins
+- - - - +- asset
+- - - - +- container
+- - - - +- css
+- - - - +- debug
+- - - - +- ids
+- - - - +- json
+- - - - +- optimize
+- - - - +- schemes
+- - - - +- sharing
+- +- whatwg-url
+- - +- lib
+- +- which
+- +- which-typed-array
+- - +- .github
+- - +- test
+- - +- bin
+- +- word-wrap
+- +- wordwrap
+- - +- example
+- - +- test
+- +- wrap-ansi
+- +- wrap-ansi-cjs
+- +- wrappy
+- +- write-file-atomic
+- - +- lib
+- - +- node_modules
+- - - +- signal-exit
+- +- ws
+- - +- lib
+- +- xmlhttprequest-ssl
+- - +- lib
+- +- xtend
+- +- y18n
+- - +- build
+- - - +- lib
+- - - - +- platform-shims
+- +- yallist
+- +- yargs
+- +- yargs-parser
+- - +- build
+- - - +- lib
+- - +- build
+- - - +- lib
+- - - - +- typings
+- - - - +- utils
+- - +- helpers
+- - +- lib
+- - - +- platform-shims
+- - +- locales
+- +- yn
+- +- yocto-queue
++- src
+- +- agent
+- - +- entities
+- +- auth
+- - +- dto
+- - +- entities
+- +- common
+- - +- guard
+- +- compute
+- - +- dto
+- - +- entities
+- +- config
+- +- examples
+- +- observability
+- +- profile
+- - +- dto
+- - +- entities
+- +- recommendation
+- - +- dto
+- +- routes
+- +- user
+- - +- dto
+- - +- entities
+- +- websocket
+- - +- gateways
+- - +- guards
+- - +- services
+- - +- types
++- test
++- test-main
+- +- auth
+- - +- dto
+- - +- entities
+- +- compute
+- - +- dto
+- - +- entities
+- +- config
+- +- observability
+- +- profile
+- - +- dto
+- +- user
+- - +- dto
+- - +- entities
+
+🔍 NESTJS MODULES ANALYSIS:
+============================
+📦 MODULES:
+  - recommendation
+  - websocket
+  - auth
+  - user
+  - agent
+  - observability
+  - app
+  - profile
+  - compute
+
+🎯 CONTROLLERS:
+  - recommendation
+  - auth
+  - user
+  - metrics
+  - profile
+  - compute
+  - app
+
+⚙️ SERVICES:
+  - recommendation
+  - subscription
+  - agent-status
+  - heartbeat
+  - challenge
+  - recovery
+  - email-linking
+  - wallet-auth
+  - email
+  - app
+  - user
+  - agent
+  - profile
+  - compute
+
+📄 DTOs:
+src/recommendation/dto/recommendation-response.dto.ts
+src/auth/dto/link-email.dto.ts
+src/auth/dto/verify-email.dto.ts
+src/auth/dto/request-recovery.dto.ts
+src/user/dto/update-user.dto.ts
+src/user/dto/create-user.dto.ts
+src/profile/dto/create-profile.dto.ts
+src/profile/dto/update-profile.dto.ts
+src/compute/dto/compute-result-response.dto.ts
+src/compute/dto/create-compute-result.dto.ts
+
+🏛️ ENTITIES/SCHEMAS:
+src/auth/entities/email-verification.entity.ts
+src/user/entities/user.entity.ts
+src/agent/entities/agent.entity.ts
+src/profile/entities/profile.entity.ts
+src/compute/entities/compute-result.entity.ts
+
+⚙️ CONFIGURATION FILES:
+========================
+  - .env
+  - .env.example
+  - config
+  - Dockerfile
+  - docker-compose.yml
+  - jest.config.js
+  - nest-cli.json
+  - package.json
+  - config
+  - config
+  - tsconfig.build.json
+  - tsconfig.build.tsbuildinfo
+  - tsconfig.json
+  - tsconfig.json.backup
+  - tsconfig.tsbuildinfo
+
+📦 DEPENDENCIES:
+=================
+Dependencies:
+  - @nestjs/common: ^10.3.0
+  - @nestjs/config: ^3.1.1
+  - @nestjs/core: ^10.3.0
+  - @nestjs/jwt: ^10.2.0
+  - @nestjs/mapped-types: *
+  - @nestjs/passport: ^10.0.3
+  - @nestjs/platform-express: ^10.3.0
+  - @nestjs/platform-socket.io: ^10.4.22
+  - @nestjs/throttler: ^6.5.0
+  - @nestjs/typeorm: ^10.0.1
+  - @nestjs/websockets: ^10.4.22
+  - axios: ^1.6.5
+  - class-transformer: ^0.5.1
+  - class-validator: ^0.14.0
+  - dotenv: ^16.3.1
+  - ethers: ^6.10.0
+  - express: ^5.2.1
+  - jsonwebtoken: ^9
+  - nodemailer: ^6.9.8
+  - passport: ^0.7.0
+  - passport-jwt: ^4.0.1
+  - pg: ^8.11.3
+  - pino: ^10.3.0
+  - prom-client: ^15.1.3
+  - reflect-metadata: ^0.1.13
+  - rimraf: ^5.0.5
+  - rxjs: ^7.8.1
+  - socket.io: ^4.8.3
+  - socket.io-client: ^4.8.3
+  - typeorm: ^0.3.19
+  - uuid: ^9.0.1
+
+Dev Dependencies:
+  - @nestjs/cli: ^10.3.2
+  - @nestjs/schematics: ^10.0.3
+  - @nestjs/testing: ^10.3.0
+  - @types/express: ^4.17.25
+  - @types/jest: ^29.5.11
+  - @types/node: ^20.19.30
+  - @types/nodemailer: ^6.4.14
+  - @types/passport-jwt: ^3.0.8
+  - @types/socket.io: ^3.0.1
+  - @types/uuid: ^9.0.7
+  - @typescript-eslint/eslint-plugin: ^6.17.0
+  - @typescript-eslint/parser: ^6.17.0
+  - eslint: ^8.56.0
+  - eslint-config-prettier: ^9.1.0
+  - eslint-plugin-prettier: ^5.1.2
+  - jest: ^29.7.0
+  - nodemon: ^3.1.11
+  - pino-pretty: ^13.1.3
+  - prettier: ^3.1.1
+  - ts-jest: ^29.1.1
+  - ts-loader: ^9.5.1
+  - ts-node: ^10.9.2
+  - tsconfig-paths: ^4.2.0
+  - typescript: ^5.9.3
+
+📜 AVAILABLE SCRIPTS:
+======================
+  - prebuild: rimraf dist
+  - build:tsc: tsc -p tsconfig.build.json
+  - build:plain-tsc: tsc --project tsconfig.json --pretty --listEmittedFiles
+  - build: nest build
+  - format: prettier --write "src/**/*.ts" "test/**/*.ts"
+  - start: nest start
+  - start:dev: nest start --watch
+  - start:debug: nest start --debug --watch
+  - start:prod: node dist/main.js
+  - lint: eslint "{src,apps,libs,test}/**/*.ts" --fix
+  - test: jest
+  - test:watch: jest --watch
+  - test:cov: jest --coverage
+  - test:debug: node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand
+  - test:e2e: jest --config ./test/jest-e2e.json
+  - build:prod: nest build --webpack
+
+🗄️ DATABASE CONNECTIONS:
+==========================
+  - Found: import { InjectRepository } from "@nestjs/typeorm";
+  - Found: import { Repository } from "typeorm";
+  - Found: import { InjectRepository } from '@nestjs/typeorm';
+  - Found: import { Repository } from 'typeorm';
+  - Found: import { TypeOrmModule } from '@nestjs/typeorm';
+
+================================================
+Report generated: nestjs-structure.txt

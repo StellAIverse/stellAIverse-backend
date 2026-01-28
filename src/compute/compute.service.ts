@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { ethers } from 'ethers';
-import { ComputeResult } from './entities/compute-result.entity';
-import { CreateComputeResultDto } from './dto/create-compute-result.dto';
+import { Injectable } from "@nestjs/common";
+import { v4 as uuidv4 } from "uuid";
+import { ethers } from "ethers";
+import { ComputeResult } from "./entities/compute-result.entity";
+import { CreateComputeResultDto } from "./dto/create-compute-result.dto";
 
 @Injectable()
 export class ComputeService {
@@ -16,10 +16,10 @@ export class ComputeService {
     try {
       // Attempt to parse as JSON and re-stringify for canonical representation
       const parsed = JSON.parse(result);
-      
+
       // Sort object keys recursively to ensure deterministic order
       const sorted = this.sortObjectKeys(parsed);
-      
+
       // Stringify with sorted keys to create canonical JSON
       return JSON.stringify(sorted);
     } catch (error) {
@@ -33,7 +33,7 @@ export class ComputeService {
    * Recursively sort object keys to ensure deterministic ordering
    */
   private sortObjectKeys(obj: any): any {
-    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+    if (obj === null || typeof obj !== "object" || Array.isArray(obj)) {
       return obj;
     }
 
