@@ -11,11 +11,14 @@ import { RecommendationModule } from "./recommendation/recommendation.module";
 import { ComputeModule } from "./compute/compute.module";
 import { User } from "./user/entities/user.entity";
 import { EmailVerification } from "./auth/entities/email-verification.entity";
+import { SignedPayload } from "./oracle/entities/signed-payload.entity";
+import { SubmissionNonce } from "./oracle/entities/submission-nonce.entity";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
+import { OracleModule } from "./oracle/oracle.module";
 
 @Module({
   imports: [
@@ -28,7 +31,7 @@ import { ObservabilityModule } from "./observability/observability.module";
       url:
         process.env.DATABASE_URL ||
         "postgresql://stellaiverse:password@localhost:5432/stellaiverse",
-      entities: [User, EmailVerification],
+      entities: [User, EmailVerification, SignedPayload, SubmissionNonce],
       synchronize: process.env.NODE_ENV !== "production", // Auto-sync in development
       logging: process.env.NODE_ENV === "development",
     }),
@@ -45,6 +48,7 @@ import { ObservabilityModule } from "./observability/observability.module";
     ComputeModule,
     WebSocketModule,
     ObservabilityModule,
+    OracleModule,
   ],
   controllers: [AppController],
   providers: [
