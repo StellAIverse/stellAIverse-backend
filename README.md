@@ -62,6 +62,8 @@ Quick start (developer)
 3. Configure environment  
    Copy `.env.example` → `.env` and populate provider keys, wallet credentials, DB connection, and runtime flags.
 
+   **⚠️ SECURITY:** Never commit `.env` files. Use `.env.example` for templates only.
+
 4. Run locally (development)  
    npm run start:dev
    - Uses Nest's hot reload; gateways and controllers available at configured ports.
@@ -75,6 +77,33 @@ Quick start (developer)
    - Lint: `npm run lint`  
    - Tests: `npm run test` / `npm run test:watch`  
    - Simulate: `npm run simulate` (local replay & sandbox mode)
+   - Security audit: `npm audit`
+
+Security
+--------
+**🔒 Security is a top priority for stellAIverse.**
+
+### Security Features
+- ✅ Helmet security headers
+- ✅ Rate limiting (100 req/min per IP)
+- ✅ JWT authentication with wallet signature verification
+- ✅ Input validation on all endpoints
+- ✅ CORS whitelist configuration
+
+### For Production Deployments
+1. Generate secrets: `npm run security:generate-secrets`
+2. Complete audit: Review `SECURITY_AUDIT.md`
+3. Enable monitoring and alerts
+
+### Reporting Security Issues
+**DO NOT** create public issues for vulnerabilities.  
+Email: **security@stellaiverse.com**
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting details.
+
+### Security Documentation
+- 🔐 [SECURITY.md](SECURITY.md) - Vulnerability reporting policy
+- 📋 [SECURITY_AUDIT.md](SECURITY_AUDIT.md) - Pre-production checklist & threat model
 
 Configuration & deployment
 --------------------------
@@ -82,6 +111,7 @@ Configuration & deployment
 - Use the simulator environment for safe, deterministic testing before enabling live on‑chain submission.
 - Run behind an API gateway for rate limiting and authentication; use TLS for all external endpoints.
 - Store signing keys in a KMS and follow key rotation practices.
+- **Security:** Complete `SECURITY_AUDIT.md` before production deployment.
 
 Operational notes
 -----------------

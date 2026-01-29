@@ -35,10 +35,36 @@ import { OracleModule } from "./oracle/oracle.module";
       synchronize: process.env.NODE_ENV !== "production", // Auto-sync in development
       logging: process.env.NODE_ENV === "development",
     }),
+    // Rate Limiting - Global protection against brute force and DoS
     ThrottlerModule.forRoot({
       throttlers: [
-        { name: "global", ttl: 60_000, limit: 120 }, // 120 req/min default
+        { name: 'global', ttl: 60_000, limit: 100 }, // 100 req/min per IP
       ],
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get('NODE_ENV') === 'production';
+        
+        if (isProduction && !configService.get('DATABASE_URL')) {
+          throw new Error('DATABASE_URL must be set in production');
+        }
+
+        return {
+          type: 'postgres',
+          url: configService.get('DATABASE_URL'),
+          entities: [User, EmailVerification],
+          synchronize: false, // NEVER use synchronize in production
+          logging: configService.get('NODE_ENV') === 'development' ? ['error', 'warn', 'schema'] : ['error'],
+          ssl: isProduction ? { rejectUnauthorized: false } : false,
+          extra: {
+            max: 20, // Maximum pool size
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 2000,
+          },
+        };
+      },
     }),
     AuthModule,
     UserModule,
@@ -53,6 +79,7 @@ import { OracleModule } from "./oracle/oracle.module";
   controllers: [AppController],
   providers: [
     AppService,
+    // Apply rate limiting globally with IP-based throttling
     {
       provide: APP_GUARD,
       useClass: ThrottlerUserIpGuard,
