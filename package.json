@@ -58,7 +58,7 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9",
     "nodemailer": "^6.9.8",
-    "openai": "^6.16.0",
+    "openai": "^6.17.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.11.3",
