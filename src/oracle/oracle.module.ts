@@ -6,6 +6,7 @@ import { OracleService } from './services/oracle.service';
 import { PayloadSigningService } from './services/payload-signing.service';
 import { NonceManagementService } from './services/nonce-management.service';
 import { SubmitterService } from './services/submitter.service';
+import { SubmissionBatchService } from './services/submission-batch.service';
 import { SignedPayload } from './entities/signed-payload.entity';
 import { SubmissionNonce } from './entities/submission-nonce.entity';
 
@@ -24,12 +25,14 @@ import { SubmissionNonce } from './entities/submission-nonce.entity';
     PayloadSigningService,
     NonceManagementService,
     SubmitterService,
+    SubmissionBatchService,
   ],
   exports: [
     OracleService,
     PayloadSigningService,
     NonceManagementService,
     SubmitterService,
+    SubmissionBatchService,
   ],
 })
 export class OracleModule {}

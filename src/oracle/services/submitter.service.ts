@@ -15,6 +15,7 @@ import {
   SignedPayload,
   PayloadStatus,
 } from '../entities/signed-payload.entity';
+import { SubmissionBatchService, FailureType } from './submission-batch.service';
 
 /**
  * Minimal ABI for Oracle contract submission
@@ -37,7 +38,9 @@ export class SubmitterService {
   private readonly submitterWallet: Wallet;
   private readonly oracleContract: Contract;
   private readonly maxRetries: number;
-  private readonly retryDelay: number;
+  private readonly initialRetryDelay: number;
+  private readonly maxRetryDelay: number;
+  private readonly backoffMultiplier: number;
   private readonly gasLimitMultiplier: number;
 
   constructor(
@@ -74,10 +77,16 @@ export class SubmitterService {
 
     // Configuration
     this.maxRetries = parseInt(
-      this.configService.get<string>('SUBMITTER_MAX_RETRIES', '3'),
+      this.configService.get<string>('SUBMITTER_MAX_RETRIES', '5'),
     );
-    this.retryDelay = parseInt(
-      this.configService.get<string>('SUBMITTER_RETRY_DELAY', '5000'),
+    this.initialRetryDelay = parseInt(
+      this.configService.get<string>('SUBMITTER_INITIAL_RETRY_DELAY', '1000'),
+    );
+    this.maxRetryDelay = parseInt(
+      this.configService.get<string>('SUBMITTER_MAX_RETRY_DELAY', '60000'),
+    );
+    this.backoffMultiplier = parseFloat(
+      this.configService.get<string>('SUBMITTER_RETRY_BACKOFF_MULTIPLIER', '2.0'),
     );
     this.gasLimitMultiplier = parseFloat(
       this.configService.get<string>('SUBMITTER_GAS_LIMIT_MULTIPLIER', '1.2'),
@@ -89,7 +98,63 @@ export class SubmitterService {
   }
 
   /**
-   * Submit a signed payload on-chain
+   * Calculate exponential backoff delay for retries
+   */
+  private calculateRetryDelay(attempt: number): number {
+    const delay =
+      this.initialRetryDelay * Math.pow(this.backoffMultiplier, attempt - 1);
+    return Math.min(delay, this.maxRetryDelay);
+  }
+
+  /**
+   * Determine if an error is retryable
+   */
+  private categorizeFailure(error: Error): FailureType {
+    const message = error.message.toLowerCase();
+
+    // Non-retryable (permanent) failures
+    const permanentPatterns = [
+      'expired',
+      'invalid signature',
+      'unauthorized',
+      'insufficient funds',
+      'nonce too low',
+      'already submitted',
+      'execution reverted',
+      'vm exception',
+    ];
+
+    for (const pattern of permanentPatterns) {
+      if (message.includes(pattern)) {
+        return FailureType.PERMANENT;
+      }
+    }
+
+    // Retryable failures
+    const retryablePatterns = [
+      'network error',
+      'timeout',
+      'econnreset',
+      'socket hang up',
+      'temporary',
+      'service unavailable',
+      'gateway error',
+      'rate limit',
+    ];
+
+    for (const pattern of retryablePatterns) {
+      if (message.includes(pattern)) {
+        return FailureType.RETRYABLE;
+      }
+    }
+
+    // Default to retryable for unknown errors (conservative approach)
+    return FailureType.RETRYABLE;
+  }
+
+  /**
+   * Submit a signed payload on-chain with retry logic
+   * Ensures idempotency by checking existing transaction hash
    */
   async submitPayload(payloadId: string): Promise<{
     transactionHash: string;
@@ -102,6 +167,42 @@ export class SubmitterService {
 
     if (!payload) {
       throw new BadRequestException(`Payload ${payloadId} not found`);
+    }
+
+    // Check for existing successful submission (idempotency check)
+    if (
+      payload.status === PayloadStatus.CONFIRMED &&
+      payload.transactionHash
+    ) {
+      this.logger.log(
+        `Payload ${payloadId} already confirmed with tx ${payload.transactionHash}, returning existing result`,
+      );
+      return {
+        transactionHash: payload.transactionHash,
+        payload,
+      };
+    }
+
+    // Allow retry of submitted but unconfirmed payloads
+    if (
+      payload.status === PayloadStatus.SUBMITTED &&
+      payload.transactionHash
+    ) {
+      this.logger.log(
+        `Payload ${payloadId} already submitted with tx ${payload.transactionHash}, continuing monitoring`,
+      );
+      // Start monitoring if not already doing so
+      this.monitorTransaction(payloadId, payload.transactionHash).catch(
+        (error) => {
+          this.logger.error(
+            `Error monitoring transaction ${payload.transactionHash}: ${error.message}`,
+          );
+        },
+      );
+      return {
+        transactionHash: payload.transactionHash,
+        payload,
+      };
     }
 
     if (payload.status !== PayloadStatus.PENDING) {
@@ -122,67 +223,101 @@ export class SubmitterService {
       throw new BadRequestException('Payload has expired');
     }
 
-    try {
-      // Estimate gas
-      const gasEstimate = await this.estimateGas(payload);
-      const gasLimit = BigInt(
-        Math.ceil(Number(gasEstimate) * this.gasLimitMultiplier),
-      );
+    // Attempt submission with retry logic
+    let lastError: Error | null = null;
 
-      this.logger.log(
-        `Submitting payload ${payloadId} with gas limit ${gasLimit}`,
-      );
-
-      // Submit transaction
-      const tx = await this.oracleContract.submitPayload(
-        payload.payloadType,
-        payload.payloadHash,
-        payload.nonce,
-        Math.floor(payload.expiresAt.getTime() / 1000),
-        JSON.stringify(payload.payload),
-        payload.signature,
-        {
-          gasLimit,
-        },
-      );
-
-      // Update payload status
-      payload.transactionHash = tx.hash;
-      payload.status = PayloadStatus.SUBMITTED;
-      payload.submittedAt = new Date();
-      payload.submissionAttempts += 1;
-      await this.payloadRepository.save(payload);
-
-      this.logger.log(
-        `Payload ${payloadId} submitted with tx hash ${tx.hash}`,
-      );
-
-      // Start monitoring in background (don't await)
-      this.monitorTransaction(payloadId, tx.hash).catch((error) => {
-        this.logger.error(
-          `Error monitoring transaction ${tx.hash}: ${error.message}`,
+    for (
+      let attempt = 1;
+      attempt <= this.maxRetries + 1;
+      attempt++
+    ) {
+      try {
+        // Estimate gas
+        const gasEstimate = await this.estimateGas(payload);
+        const gasLimit = BigInt(
+          Math.ceil(Number(gasEstimate) * this.gasLimitMultiplier),
         );
-      });
 
-      return {
-        transactionHash: tx.hash,
-        payload,
-      };
-    } catch (error) {
-      // Update payload with error
-      payload.submissionAttempts += 1;
-      payload.errorMessage = error.message;
-
-      if (payload.submissionAttempts >= this.maxRetries) {
-        payload.status = PayloadStatus.FAILED;
-        this.logger.error(
-          `Payload ${payloadId} failed after ${payload.submissionAttempts} attempts`,
+        this.logger.log(
+          `Submitting payload ${payloadId} with gas limit ${gasLimit} (attempt ${attempt})`,
         );
+
+        // Submit transaction
+        const tx = await this.oracleContract.submitPayload(
+          payload.payloadType,
+          payload.payloadHash,
+          payload.nonce,
+          Math.floor(payload.expiresAt.getTime() / 1000),
+          JSON.stringify(payload.payload),
+          payload.signature,
+          {
+            gasLimit,
+          },
+        );
+
+        // Update payload status
+        payload.transactionHash = tx.hash;
+        payload.status = PayloadStatus.SUBMITTED;
+        payload.submittedAt = new Date();
+        payload.submissionAttempts = attempt;
+        payload.errorMessage = null;
+        await this.payloadRepository.save(payload);
+
+        this.logger.log(
+          `Payload ${payloadId} submitted with tx hash ${tx.hash}`,
+        );
+
+        // Start monitoring in background (don't await)
+        this.monitorTransaction(payloadId, tx.hash).catch((error) => {
+          this.logger.error(
+            `Error monitoring transaction ${tx.hash}: ${error.message}`,
+          );
+        });
+
+        return {
+          transactionHash: tx.hash,
+          payload,
+        };
+      } catch (error: any) {
+        lastError = error;
+        const failureType = this.categorizeFailure(error);
+
+        this.logger.warn(
+          `Submission attempt ${attempt}/${this.maxRetries + 1} failed for payload ${payloadId}: ${error.message}`,
+        );
+
+        // Update payload with error
+        payload.submissionAttempts = attempt;
+        payload.errorMessage = error.message;
+
+        // Check if we should retry
+        const isLastAttempt = attempt > this.maxRetries;
+        const isPermanentFailure = failureType === FailureType.PERMANENT;
+
+        if (isLastAttempt || isPermanentFailure) {
+          // Mark as failed
+          payload.status = PayloadStatus.FAILED;
+          await this.payloadRepository.save(payload);
+
+          this.logger.error(
+            `Payload ${payloadId} failed permanently after ${attempt} attempts: ${error.message}`,
+          );
+
+          throw error;
+        }
+
+        // Calculate and wait for backoff delay
+        const delay = this.calculateRetryDelay(attempt);
+        this.logger.log(
+          `Retrying payload ${payloadId} in ${delay}ms (attempt ${attempt + 1}/${this.maxRetries + 1})`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
-
-      await this.payloadRepository.save(payload);
-      throw error;
     }
+
+    // Should not reach here, but handle edge case
+    throw lastError;
   }
 
   /**
@@ -365,12 +500,13 @@ export class SubmitterService {
   }
 
   /**
-   * Batch submit multiple payloads (more gas efficient)
+   * Batch submit multiple payloads with improved retry logic
+   * Preserves order and uses exponential backoff for failed submissions
    */
   async batchSubmitPayloads(
     payloadIds: string[],
   ): Promise<
-    Array<{ payloadId: string; transactionHash: string; success: boolean }>
+    Array<{ payloadId: string; transactionHash: string; success: boolean; errorMessage?: string }>
   > {
     const results = [];
 
@@ -384,8 +520,8 @@ export class SubmitterService {
         });
 
         // Add delay between submissions to avoid nonce issues
-        await this.sleep(1000);
-      } catch (error) {
+        await this.sleep(500);
+      } catch (error: any) {
         this.logger.error(
           `Failed to submit payload ${payloadId}: ${error.message}`,
         );
@@ -393,7 +529,58 @@ export class SubmitterService {
           payloadId,
           transactionHash: '',
           success: false,
+          errorMessage: error.message,
         });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Process batch with concurrent submissions (faster, no order guarantee)
+   */
+  async batchSubmitPayloadsConcurrent(
+    payloadIds: string[],
+    maxConcurrent: number = 5,
+  ): Promise<
+    Array<{ payloadId: string; transactionHash: string; success: boolean; errorMessage?: string }>
+  > {
+    const results: Array<{
+      payloadId: string;
+      transactionHash: string;
+      success: boolean;
+      errorMessage?: string;
+    }> = [];
+
+    // Process in chunks to control concurrency
+    for (let i = 0; i < payloadIds.length; i += maxConcurrent) {
+      const chunk = payloadIds.slice(i, i + maxConcurrent);
+      const chunkResults = await Promise.allSettled(
+        chunk.map((payloadId) => this.submitPayload(payloadId)),
+      );
+
+      chunkResults.forEach((result, index) => {
+        const payloadId = chunk[index];
+        if (result.status === 'fulfilled') {
+          results.push({
+            payloadId,
+            transactionHash: result.value.transactionHash,
+            success: true,
+          });
+        } else {
+          results.push({
+            payloadId,
+            transactionHash: '',
+            success: false,
+            errorMessage: result.reason?.message || 'Unknown error',
+          });
+        }
+      });
+
+      // Small delay between chunks
+      if (i + maxConcurrent < payloadIds.length) {
+        await this.sleep(200);
       }
     }
 
@@ -405,6 +592,57 @@ export class SubmitterService {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Get detailed submission statistics
+   */
+  async getDetailedStats(): Promise<{
+    pending: number;
+    submitted: number;
+    confirmed: number;
+    failed: number;
+    totalAttempts: number;
+    avgAttempts: number;
+    successRate: number;
+  }> {
+    const [pending, submitted, confirmed, failed] = await Promise.all([
+      this.payloadRepository.count({
+        where: { status: PayloadStatus.PENDING },
+      }),
+      this.payloadRepository.count({
+        where: { status: PayloadStatus.SUBMITTED },
+      }),
+      this.payloadRepository.count({
+        where: { status: PayloadStatus.CONFIRMED },
+      }),
+      this.payloadRepository.count({
+        where: { status: PayloadStatus.FAILED },
+      }),
+    ]);
+
+    const totalSubmissions = confirmed + failed;
+    const successRate =
+      totalSubmissions > 0 ? (confirmed / totalSubmissions) * 100 : 100;
+
+    const attemptsResult = await this.payloadRepository
+      .createQueryBuilder('payload')
+      .select('AVG(payload.submissionAttempts)', 'avg')
+      .addSelect('SUM(payload.submissionAttempts)', 'total')
+      .getRawOne();
+
+    const avgAttempts = parseFloat(attemptsResult.avg) || 0;
+    const totalAttempts = parseInt(attemptsResult.total) || 0;
+
+    return {
+      pending,
+      submitted,
+      confirmed,
+      failed,
+      totalAttempts,
+      avgAttempts: Math.round(avgAttempts * 100) / 100,
+      successRate: Math.round(successRate * 100) / 100,
+    };
   }
 
   /**
