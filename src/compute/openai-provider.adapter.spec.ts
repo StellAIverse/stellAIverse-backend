@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { OpenAIProviderAdapter } from "./openai-provider.adapter";
-import { NormalizedPrompt } from "./dto/provider.dto";
+import { NormalizedPrompt, Tool, FunctionDefinition, FunctionCall } from "./dto/provider.dto";
 import axios from "axios";
 
 jest.mock("axios");
@@ -26,7 +26,7 @@ describe("OpenAIProviderAdapter", () => {
   };
 
   // Helper to create mock OpenAI responses
-  const createMockOpenAIResponse = (content: string = "Test response") => ({
+  const createMockOpenAIResponse = (content: string = "Test response", functionCall?: any, toolCalls?: any) => ({
     id: "chatcmpl-123",
     object: "chat.completion" as const,
     created: 1677652288,
@@ -37,8 +37,10 @@ describe("OpenAIProviderAdapter", () => {
         message: {
           role: "assistant" as const,
           content,
+          ...(functionCall && { function_call: functionCall }),
+          ...(toolCalls && { tool_calls: toolCalls }),
         },
-        finish_reason: "stop" as const,
+        finish_reason: functionCall ? "function_call" : toolCalls ? "tool_calls" : "stop" as const,
       },
     ],
     usage: {
@@ -46,6 +48,32 @@ describe("OpenAIProviderAdapter", () => {
       completion_tokens: 20,
       total_tokens: 30,
     },
+  });
+
+  // Helper to create mock function definition
+  const createMockFunctionDefinition = (name: string = "test_function"): FunctionDefinition => ({
+    name,
+    description: "A test function",
+    parameters: {
+      type: "object",
+      properties: {
+        param1: { type: "string" },
+        param2: { type: "number" }
+      },
+      required: ["param1"]
+    }
+  });
+
+  // Helper to create mock tool
+  const createMockTool = (name: string = "test_function"): Tool => ({
+    type: "function",
+    function: createMockFunctionDefinition(name)
+  });
+
+  // Helper to create mock function call
+  const createMockFunctionCall = (name: string = "test_function", args: string = '{"param1": "value"}'): FunctionCall => ({
+    name,
+    arguments: args
   });
 
   beforeEach(async () => {
@@ -391,6 +419,145 @@ describe("OpenAIProviderAdapter", () => {
 
       expect(result.content).toBe("Success");
       expect(mockClient.post).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("function calling", () => {
+    it("should normalize prompt with functions", () => {
+      const functions = [createMockFunctionDefinition("get_weather")];
+      const prompt: NormalizedPrompt = {
+        messages: [{ role: "user", content: "What's the weather?" }],
+        functions,
+        functionCall: { name: "get_weather" }
+      };
+
+      const normalized = adapter.normalizePrompt(prompt);
+
+      expect(normalized.functions).toEqual(functions);
+      expect(normalized.function_call).toEqual({ name: "get_weather" });
+    });
+
+    it("should normalize prompt with tools", () => {
+      const tools = [createMockTool("get_weather")];
+      const prompt: NormalizedPrompt = {
+        messages: [{ role: "user", content: "What's the weather?" }],
+        tools,
+        toolChoice: { type: "function", function: { name: "get_weather" } }
+      };
+
+      const normalized = adapter.normalizePrompt(prompt);
+
+      expect(normalized.tools).toEqual(tools);
+      expect(normalized.tool_choice).toEqual({ type: "function", function: { name: "get_weather" } });
+    });
+
+    it("should normalize response with function call", () => {
+      const functionCall = createMockFunctionCall("get_weather", '{"city": "NYC"}');
+      const openAIResponse = createMockOpenAIResponse("", functionCall);
+
+      const normalized = adapter.normalizeResponse(openAIResponse);
+
+      expect(normalized.functionCall).toEqual(functionCall);
+      expect(normalized.finishReason).toBe("function_call");
+    });
+
+    it("should normalize response with tool calls", () => {
+      const toolCalls = [{
+        id: "call_123",
+        type: "function" as const,
+        function: createMockFunctionCall("get_weather", '{"city": "NYC"}')
+      }];
+      const openAIResponse = createMockOpenAIResponse("", undefined, toolCalls);
+
+      const normalized = adapter.normalizeResponse(openAIResponse);
+
+      expect(normalized.toolCalls).toEqual(toolCalls);
+    });
+
+    it("should handle tool role in messages", () => {
+      const prompt: NormalizedPrompt = {
+        messages: [
+          { role: "user", content: "What's the weather?" },
+          { role: "tool", content: '{"temperature": "72°F"}', toolCallId: "call_123" }
+        ]
+      };
+
+      const normalized = adapter.normalizePrompt(prompt);
+
+      expect(normalized.messages[1].role).toBe("tool");
+      expect(normalized.messages[1].tool_call_id).toBe("call_123");
+    });
+
+    it("should execute function call request successfully", async () => {
+      const functionCall = createMockFunctionCall("get_weather", '{"city": "NYC"}');
+      const mockResponse = {
+        data: createMockOpenAIResponse("", functionCall),
+      };
+
+      const mockClient = {
+        post: jest.fn().mockResolvedValue(mockResponse),
+      };
+
+      (adapter as any).client = mockClient;
+
+      const prompt: NormalizedPrompt = {
+        messages: [{ role: "user", content: "What's the weather in NYC?" }],
+        functions: [createMockFunctionDefinition("get_weather")]
+      };
+
+      const result = await adapter.execute(prompt);
+
+      expect(result.functionCall).toEqual(functionCall);
+      expect(result.finishReason).toBe("function_call");
+    });
+  });
+
+  describe("backwards compatibility", () => {
+    it("should handle prompts without function calling", () => {
+      const prompt: NormalizedPrompt = {
+        messages: [{ role: "user", content: "Hello" }],
+        temperature: 0.7
+      };
+
+      const normalized = adapter.normalizePrompt(prompt);
+
+      expect(normalized.functions).toBeUndefined();
+      expect(normalized.function_call).toBeUndefined();
+      expect(normalized.tools).toBeUndefined();
+      expect(normalized.tool_choice).toBeUndefined();
+    });
+
+    it("should handle responses without function calling", () => {
+      const openAIResponse = createMockOpenAIResponse("Hello!");
+
+      const normalized = adapter.normalizeResponse(openAIResponse);
+
+      expect(normalized.functionCall).toBeUndefined();
+      expect(normalized.toolCalls).toBeUndefined();
+      expect(normalized.content).toBe("Hello!");
+    });
+
+    it("should maintain existing API behavior", async () => {
+      const mockResponse = {
+        data: createMockOpenAIResponse("Test response"),
+      };
+
+      const mockClient = {
+        post: jest.fn().mockResolvedValue(mockResponse),
+      };
+
+      (adapter as any).client = mockClient;
+
+      const prompt: NormalizedPrompt = {
+        messages: [{ role: "user", content: "Hi" }],
+      };
+
+      const result = await adapter.execute(prompt);
+
+      expect(result.content).toBe("Test response");
+      expect(result.provider).toBe("openai");
+      expect(result.functionCall).toBeUndefined();
+      expect(result.toolCalls).toBeUndefined();
     });
   });
 

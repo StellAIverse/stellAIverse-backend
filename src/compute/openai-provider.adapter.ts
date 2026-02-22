@@ -8,6 +8,11 @@ import {
   NormalizedPrompt,
   NormalizedResponse,
   ProviderError,
+  Tool,
+  FunctionDefinition,
+  FunctionCall,
+  ToolChoice,
+  ToolCall,
 } from "./dto/provider.dto";
 
 @Injectable()
@@ -55,11 +60,30 @@ export class OpenAIProviderAdapter {
     // Build OpenAI request
     const request: OpenAIRequest = {
       model: prompt.model || "gpt-4-turbo-preview",
-      messages: prompt.messages.map((msg) => ({
-        role: this.normalizeRole(msg.role),
-        content: msg.content,
-        ...(msg.name && { name: msg.name }),
-      })),
+      messages: prompt.messages.map((msg) => {
+        const openAIMessage: any = {
+          role: this.normalizeRole(msg.role),
+          content: msg.content,
+        };
+
+        if (msg.name) {
+          openAIMessage.name = msg.name;
+        }
+
+        if (msg.toolCallId) {
+          openAIMessage.tool_call_id = msg.toolCallId;
+        }
+
+        if (msg.toolCalls) {
+          openAIMessage.tool_calls = msg.toolCalls;
+        }
+
+        if (msg.functionCall) {
+          openAIMessage.function_call = msg.functionCall;
+        }
+
+        return openAIMessage;
+      }),
     };
 
     // Add optional parameters
@@ -101,8 +125,28 @@ export class OpenAIProviderAdapter {
       request.user = prompt.user;
     }
 
+    // Add function calling support
+    if (prompt.functions && prompt.functions.length > 0) {
+      request.functions = prompt.functions;
+    }
+
+    if (prompt.functionCall) {
+      request.function_call = prompt.functionCall;
+    }
+
+    // Add tool calling support
+    if (prompt.tools && prompt.tools.length > 0) {
+      request.tools = prompt.tools;
+    }
+
+    if (prompt.toolChoice) {
+      request.tool_choice = prompt.toolChoice;
+    }
+
     this.logger.debug(
-      `Normalized prompt with ${request.messages.length} messages`,
+      `Normalized prompt with ${request.messages.length} messages` +
+      `${request.functions ? `, ${request.functions.length} functions` : ""}` +
+      `${request.tools ? `, ${request.tools.length} tools` : ""}`,
     );
     return request;
   }
@@ -110,10 +154,10 @@ export class OpenAIProviderAdapter {
   /**
    * Normalize role names to OpenAI's expected format
    */
-  private normalizeRole(role: string): "system" | "user" | "assistant" {
+  private normalizeRole(role: string): "system" | "user" | "assistant" | "tool" {
     const normalizedRole = role.toLowerCase();
-    if (["system", "user", "assistant"].includes(normalizedRole)) {
-      return normalizedRole as "system" | "user" | "assistant";
+    if (["system", "user", "assistant", "tool"].includes(normalizedRole)) {
+      return normalizedRole as "system" | "user" | "assistant" | "tool";
     }
     this.logger.warn(`Unknown role "${role}", defaulting to "user"`);
     return "user";
@@ -170,7 +214,7 @@ export class OpenAIProviderAdapter {
 
       if (
         choice.finish_reason &&
-        !["stop", "length", "content_filter", "function_call"].includes(
+        !["stop", "length", "content_filter", "function_call", "tool_calls"].includes(
           choice.finish_reason,
         )
       ) {
@@ -202,7 +246,7 @@ export class OpenAIProviderAdapter {
   normalizeResponse(response: OpenAIResponse): NormalizedResponse {
     const choice = response.choices[0];
 
-    return {
+    const normalizedResponse: NormalizedResponse = {
       id: response.id,
       provider: "openai",
       model: response.model,
@@ -219,6 +263,18 @@ export class OpenAIProviderAdapter {
       created: new Date(response.created * 1000),
       raw: response,
     };
+
+    // Add function call support
+    if (choice.message.function_call) {
+      normalizedResponse.functionCall = choice.message.function_call;
+    }
+
+    // Add tool calls support
+    if (choice.message.tool_calls) {
+      normalizedResponse.toolCalls = choice.message.tool_calls;
+    }
+
+    return normalizedResponse;
   }
 
   /**
