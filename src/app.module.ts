@@ -15,6 +15,10 @@ import { IndexedEvent } from "./indexer/entities/indexed-event.entity";
 import { IndexerModule } from "./indexer/indexer.module";
 import { SignedPayload } from "./oracle/entities/signed-payload.entity";
 import { SubmissionNonce } from "./oracle/entities/submission-nonce.entity";
+import { AuditModule } from "./audit/audit.module";
+import { AgentEvent } from "./audit/entities/agent-event.entity";
+import { OracleSubmission } from "./audit/entities/oracle-submission.entity";
+import { ComputeResult } from "./audit/entities/compute-result.entity";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
@@ -34,7 +38,7 @@ import { HealthModule } from "./health/health.module";
       url:
         process.env.DATABASE_URL ||
         "postgresql://stellaiverse:password@localhost:5432/stellaiverse",
-      entities: [User, EmailVerification, SignedPayload, SubmissionNonce],
+      entities: [User, EmailVerification, SignedPayload, SubmissionNonce, AgentEvent, OracleSubmission, ComputeResult],
       synchronize: process.env.NODE_ENV !== "production", // Auto-sync in development
       logging: process.env.NODE_ENV === "development",
     }),
@@ -57,7 +61,7 @@ import { HealthModule } from "./health/health.module";
         return {
           type: 'postgres',
           url: configService.get('DATABASE_URL'),
-          entities: [User, EmailVerification],
+          entities: [User, EmailVerification, AgentEvent, OracleSubmission, ComputeResult],
           synchronize: false, // NEVER use synchronize in production
           logging: configService.get('NODE_ENV') === 'development' ? ['error', 'warn', 'schema'] : ['error'],
           ssl: isProduction ? { rejectUnauthorized: false } : false,
@@ -78,6 +82,7 @@ import { HealthModule } from "./health/health.module";
     WebSocketModule,
     ObservabilityModule,
     IndexerModule,
+    AuditModule,
     OracleModule,
     HealthModule,
   ],
