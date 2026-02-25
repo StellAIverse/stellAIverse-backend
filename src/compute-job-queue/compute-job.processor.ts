@@ -8,11 +8,14 @@ import { Logger, Inject, Optional } from "@nestjs/common";
 import { Job } from "bull";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ComputeJobData, JobResult, QueueService } from "./queue.service";
-import { CacheJobPlugin } from '../cache/plugins/cache-job.plugin';
-import { RetryPolicyService } from './retry-policy.service';
-import { JobProvenanceService } from './services/job-provenance.service';
 import { CacheJobPlugin } from "../cache/plugins/cache-job.plugin";
 import { RetryPolicyService } from "./retry-policy.service";
+import { JobProvenanceService } from "./services/job-provenance.service";
+import {
+  jobDuration,
+  jobSuccessTotal,
+  jobFailureTotal,
+} from "../config/metrics";
 
 @Processor("compute-jobs")
 export class ComputeJobProcessor {
@@ -28,6 +31,7 @@ export class ComputeJobProcessor {
 
   @Process()
   async handleComputeJob(job: Job<ComputeJobData>): Promise<JobResult> {
+    const startTime = Date.now();
     const maxAttempts = this.retryPolicyService.getPolicy(
       job.data.type,
     ).maxAttempts;
@@ -78,6 +82,11 @@ export class ComputeJobProcessor {
             await this.provenanceService.markJobCompleted(String(job.id), cachedResult.result);
           }
 
+          // Record metrics for cached result
+          const duration = (Date.now() - startTime) / 1000;
+          jobDuration.observe({ job_type: job.data.type, status: "cached" }, duration);
+          jobSuccessTotal.inc({ job_type: job.data.type });
+
           return {
             success: true,
             data: cachedResult.result,
@@ -117,12 +126,25 @@ export class ComputeJobProcessor {
         });
       }
 
+      // Record success metrics
+      const duration = (Date.now() - startTime) / 1000;
+      jobDuration.observe({ job_type: job.data.type, status: "success" }, duration);
+      jobSuccessTotal.inc({ job_type: job.data.type });
+
       return {
         success: true,
         data: result,
       };
     } catch (error) {
       this.logger.error(`Job ${job.id} failed: ${error.message}`, error.stack);
+
+      // Record failure metrics
+      const duration = (Date.now() - startTime) / 1000;
+      jobDuration.observe({ job_type: job.data.type, status: "failed" }, duration);
+      jobFailureTotal.inc({ 
+        job_type: job.data.type, 
+        failure_reason: this.categorizeError(error) 
+      });
 
       // Determine if we should retry or move to dead letter queue
       if (this.shouldRetry(job, error)) {
@@ -380,6 +402,25 @@ export class ComputeJobProcessor {
 
     // In production, send to monitoring service (Datadog, CloudWatch, etc.)
     this.logger.debug(`Job metrics: ${JSON.stringify(metrics)}`);
+  }
+
+  /**
+   * Categorize error for metrics labeling
+   */
+  private categorizeError(error: Error): string {
+    if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+      return "timeout";
+    }
+    if (error.message.includes("network") || error.message.includes("ECONNREFUSED")) {
+      return "network";
+    }
+    if (error.message.includes("validation") || error.message.includes("required")) {
+      return "validation";
+    }
+    if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
+      return "authentication";
+    }
+    return "unknown";
   }
 
   /**

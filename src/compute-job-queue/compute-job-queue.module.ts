@@ -9,6 +9,7 @@ import { CacheModule } from "../cache/cache.module";
 import { RetryPolicyService } from "./retry-policy.service";
 import { DagModule } from "./dag/dag.module";
 import { JobProvenanceService } from "./services/job-provenance.service";
+import { QueueMetricsService } from "./services/queue-metrics.service";
 import { ProvenanceController } from "./provenance.controller";
 import { ProvenanceCacheInvalidationListener } from "./listeners/provenance-cache-invalidation.listener";
 
@@ -70,6 +71,7 @@ import { ProvenanceCacheInvalidationListener } from "./listeners/provenance-cach
     QueueHealthIndicator,
     RetryPolicyService,
     JobProvenanceService,
+    QueueMetricsService,
     ProvenanceCacheInvalidationListener,
   ],
   controllers: [ProvenanceController],

@@ -3,8 +3,8 @@ import { InjectQueue } from "@nestjs/bull";
 import { Queue, Job, JobOptions } from "bull";
 import { RetryPolicyService } from "./retry-policy.service";
 import { BatchStrategy } from "./dto/batch-job.dto";
-
 import { CacheConfigDto } from "../cache/dto/cache-config.dto";
+import { queueLength } from "../config/metrics";
 
 export interface ComputeJobData {
   type: string;
@@ -263,6 +263,14 @@ export class QueueService {
     ]);
 
     const deadLetterCount = await this.deadLetterQueue.getWaitingCount();
+
+    // Update queue length metrics
+    queueLength.set({ queue_name: "compute", state: "waiting" }, waiting);
+    queueLength.set({ queue_name: "compute", state: "active" }, active);
+    queueLength.set({ queue_name: "compute", state: "completed" }, completed);
+    queueLength.set({ queue_name: "compute", state: "failed" }, failed);
+    queueLength.set({ queue_name: "compute", state: "delayed" }, delayed);
+    queueLength.set({ queue_name: "dead_letter", state: "waiting" }, deadLetterCount);
 
     return {
       compute: { waiting, active, completed, failed, delayed },
