@@ -72,6 +72,28 @@ Quick start (developer)
    npm run build  
    npm run start:prod
 
+Docker (optimized multi-stage image)
+----------------------------------
+
+- Build the production image (uses cached dependency layer when package.json unchanged):
+   ```bash
+   DOCKER_BUILDKIT=1 docker build --target runner -t stellai-backend:latest .
+   ```
+
+- Run locally from the built image:
+   ```bash
+   docker run --rm -p 3000:3000 -e NODE_ENV=production stellai-backend:latest
+   ```
+
+- Or use the included production compose service (no source mounts):
+   ```bash
+   docker compose up --build app_prod
+   ```
+
+Notes:
+- The Dockerfile uses a multi-stage build to cache dependencies and copy only `dist` + production `node_modules` into the final image.
+- To speed up CI, enable BuildKit (`DOCKER_BUILDKIT=1`) so layer caching and mount caching work well.
+
 6. Useful commands  
    - Nest CLI: `npx nest start` / `npx nest build`  
    - Lint: `npm run lint`  
