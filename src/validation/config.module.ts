@@ -14,7 +14,7 @@ import {
   featureConfig,
   miscConfig,
 } from './configuration';
-import { validate } from './env-validator';
+import { validate } from './env-validators';
 import { ConfigService as AppConfigService } from './config.service';
 
 /**
