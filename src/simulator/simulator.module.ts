@@ -1,14 +1,14 @@
 import { Module } from "@nestjs/common";
 import { SimulatorService } from "./simulator.service";
 import { SimulatorController } from "./simulator.controller";
-import { MockProviderFactory } from "./providers/mock-provider.factory";
-import { EnvironmentConfigService } from "./config/environment-config.service";
+import { MockProviderFactory } from "./mock-provider.factory";
+import { EnvironmentConfigService } from "./enviroment-config.service";
 import { SimulationStateManager } from "./state/simulation-state.manager";
-import { AgentExecutor } from "./executors/agent.executor";
-import { MockHttpProvider } from "./providers/mock-http.provider";
-import { MockDatabaseProvider } from "./providers/mock-database.provider";
-import { MockMessageQueueProvider } from "./providers/mock-message-queue.provider";
-import { SimulationLogger } from "./logging/simulation.logger";
+import { AgentExecutor } from "./agent-executor";
+import { MockHttpProvider } from "./mock-http.provider";
+import { MockDatabaseProvider } from "./mock-database.provider";
+import { MockMessageQueueProvider } from "./mock-message-queue.provider";
+import { SimulationLogger } from "./simulation.logger";
 
 @Module({
   providers: [

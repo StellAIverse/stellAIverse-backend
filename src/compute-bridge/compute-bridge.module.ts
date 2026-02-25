@@ -5,6 +5,9 @@ import { ProviderRouterService } from "./router/provider-router.service";
 import { ProviderHealthService } from "./router/provider-health.service";
 import { CircuitBreakerService } from "./router/circuit-breaker.service";
 import { ProviderMetricsService } from "./router/provider-metrics.service";
+import { ProviderRegistry } from "./provider.registry";
+import { MockProvider } from "./providers/mock.provider";
+import { AIProviderType } from "./provider.interface";
 
 /**
  * ComputeBridge Module
@@ -20,6 +23,7 @@ import { ProviderMetricsService } from "./router/provider-metrics.service";
   controllers: [ComputeBridgeController],
   providers: [
     ComputeBridgeService,
+    ProviderRegistry,
     ProviderRouterService,
     ProviderHealthService,
     CircuitBreakerService,

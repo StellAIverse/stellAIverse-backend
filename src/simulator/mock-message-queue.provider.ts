@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import * as seedrandom from "seedrandom";
+import seedrandom = require("seedrandom");
 
 interface QueuedMessage {
   id: string;

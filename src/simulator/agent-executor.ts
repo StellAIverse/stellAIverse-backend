@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { SimulationStateManager } from "../state/simulation-state.manager";
+import { SimulationStateManager } from "./state/simulation-state.manager";
 import {
   StepResult,
   SimulationEvent,
-} from "../interfaces/simulation.interface";
-import { EnvironmentConfigService } from "../config/environment-config.service";
-import { MockProviderFactory } from "../providers/mock-provider.factory";
+} from "./simulation.interface";
+import { EnvironmentConfigService } from "./enviroment-config.service";
+import { MockProviderFactory } from "./mock-provider.factory";
 
 @Injectable()
 export class AgentExecutor {
@@ -85,7 +85,7 @@ export class AgentExecutor {
       "move",
       "interact",
     ];
-    const selectedAction = this.envConfig.randomChoice(actions);
+    const selectedAction = this.envConfig.randomChoice(actions) as string;
 
     this.logger.debug(`Agent ${agentId} selected action: ${selectedAction}`);
     return selectedAction;

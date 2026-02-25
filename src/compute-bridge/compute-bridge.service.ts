@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { IAIProvider, AIProviderType } from "./provider.interface";
+import { IAIProvider, AIProviderType, IProviderConfig } from "./provider.interface";
+import { ProviderRegistry } from "./provider.registry";
 import {
   CompletionRequestDto,
   CompletionResponseDto,
@@ -20,8 +21,11 @@ import { ComputeRequest, RoutingContext, LoadBalancingStrategy } from "./router/
 export class ComputeBridgeService implements OnModuleInit {
   private readonly logger = new Logger(ComputeBridgeService.name);
 
+  private readonly providers = new Map<AIProviderType, IAIProvider>();
+
   constructor(
-    private readonly providerRouter: ProviderRouterService
+    private readonly providerRouter: ProviderRouterService,
+    private readonly registry: ProviderRegistry,
   ) {}
 
   /**
@@ -43,10 +47,10 @@ export class ComputeBridgeService implements OnModuleInit {
     try {
       await provider.initialize(config);
       this.providers.set(config.type, provider);
-      
+
       // Register with provider router for intelligent routing
       this.providerRouter.registerProvider(provider);
-      
+
       this.logger.log(`Provider registered: ${config.type}`);
     } catch (error) {
       this.logger.error(
@@ -258,7 +262,7 @@ export class ComputeBridgeService implements OnModuleInit {
    */
   private createMockEmbeddingResponse(request: EmbeddingRequestDto, provider: AIProviderType): EmbeddingResponseDto {
     const inputs = Array.isArray(request.input) ? request.input : [request.input];
-    
+
     return {
       object: 'list',
       data: inputs.map((input, index) => ({

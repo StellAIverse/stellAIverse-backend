@@ -8,19 +8,19 @@ Provide the off‑chain infrastructure required for agents, oracles, and operato
 
 Core responsibilities
 ---------------------
-- AI compute bridge  
+- AI compute bridge
   Orchestrate calls to external AI providers (OpenAI, Grok, Llama, etc.) when an agent "thinks". Validate and normalize results, produce auditable outcomes, and submit verifiable results on‑chain.
 
-- Real‑time agent dashboard  
+- Real‑time agent dashboard
   WebSocket gateways and event streams for live agent status, progress updates, heartbeats, and telemetry used by dashboards and operator UIs.
 
-- User authentication  
+- User authentication
   Wallet signature authentication as the primary flow, with optional email linking and recovery. Traditional email/password authentication with secure bcrypt hashing. Implemented with Nest guards and strategies.
 
-- Agent discovery & recommendation engine  
+- Agent discovery & recommendation engine
   Index agent metadata, capabilities, provenance, and historical performance. Provide discovery endpoints and personalized recommendation/ranking APIs.
 
-- Price oracles & simulated environments  
+- Price oracles & simulated environments
   Provide price feeds and configurable simulation environments for safe, repeatable agent testing and rehearsal.
 
 Design principles
@@ -53,29 +53,51 @@ Technical highlights
 
 Quick start (developer)
 -----------------------
-1. Clone the repo  
+1. Clone the repo
    git clone https://github.com/StellAIverse/stellAIverse-backend.git
 
-2. Install dependencies  
+2. Install dependencies
    npm install
 
-3. Configure environment  
+3. Configure environment
    Copy `.env.example` → `.env` and populate provider keys, wallet credentials, DB connection, and runtime flags.
 
    **⚠️ SECURITY:** Never commit `.env` files. Use `.env.example` for templates only.
 
-4. Run locally (development)  
+4. Run locally (development)
    npm run start:dev
    - Uses Nest's hot reload; gateways and controllers available at configured ports.
 
-5. Build & run production  
-   npm run build  
+5. Build & run production
+   npm run build
    npm run start:prod
 
-6. Useful commands  
-   - Nest CLI: `npx nest start` / `npx nest build`  
-   - Lint: `npm run lint`  
-   - Tests: `npm run test` / `npm run test:watch`  
+Docker (optimized multi-stage image)
+----------------------------------
+
+- Build the production image (uses cached dependency layer when package.json unchanged):
+   ```bash
+   DOCKER_BUILDKIT=1 docker build --target runner -t stellai-backend:latest .
+   ```
+
+- Run locally from the built image:
+   ```bash
+   docker run --rm -p 3000:3000 -e NODE_ENV=production stellai-backend:latest
+   ```
+
+- Or use the included production compose service (no source mounts):
+   ```bash
+   docker compose up --build app_prod
+   ```
+
+Notes:
+- The Dockerfile uses a multi-stage build to cache dependencies and copy only `dist` + production `node_modules` into the final image.
+- To speed up CI, enable BuildKit (`DOCKER_BUILDKIT=1`) so layer caching and mount caching work well.
+
+6. Useful commands
+   - Nest CLI: `npx nest start` / `npx nest build`
+   - Lint: `npm run lint`
+   - Tests: `npm run test` / `npm run test:watch`
    - Simulate: `npm run simulate` (local replay & sandbox mode)
    - Security audit: `npm audit`
 
@@ -96,7 +118,7 @@ Security
 3. Enable monitoring and alerts
 
 ### Reporting Security Issues
-**DO NOT** create public issues for vulnerabilities.  
+**DO NOT** create public issues for vulnerabilities.
 Email: **security@stellaiverse.com**
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting details.

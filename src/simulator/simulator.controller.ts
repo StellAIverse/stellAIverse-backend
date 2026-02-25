@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { SimulatorService } from "./simulator.service";
-import { SimulationConfig } from "./interfaces/simulation.interface";
+import { SimulationConfig } from "./simulation.interface";
 
 @Controller("simulator")
 export class SimulatorController {

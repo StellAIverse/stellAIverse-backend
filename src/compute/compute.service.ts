@@ -63,13 +63,12 @@ export class ComputeService {
     const hash = this.generateHash(normalizedResult);
     const metadata = dto.metadata ? JSON.parse(dto.metadata) : undefined;
 
-    const computeResult = new ComputeResult(
-      uuidv4(),
-      originalResult,
-      normalizedResult,
-      hash,
-      metadata,
-    );
+    const computeResult = new ComputeResult();
+    computeResult.id = uuidv4();
+    computeResult.originalResult = originalResult;
+    computeResult.normalizedResult = normalizedResult;
+    computeResult.hash = hash;
+    computeResult.metadata = metadata ?? null;
 
     // Store in memory for now
     this.computeResults.set(computeResult.id, computeResult);

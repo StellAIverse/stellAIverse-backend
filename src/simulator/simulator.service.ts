@@ -1,12 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { EnvironmentConfigService } from "./config/environment-config.service";
+import { EnvironmentConfigService } from "./enviroment-config.service";
 import { SimulationStateManager } from "./state/simulation-state.manager";
-import { AgentExecutor } from "./executors/agent.executor";
+import { AgentExecutor } from "./agent-executor";
 import {
   SimulationConfig,
   SimulationResult,
-} from "./interfaces/simulation.interface";
-import { MockProviderFactory } from "./providers/mock-provider.factory";
+} from "./simulation.interface";
+import { MockProviderFactory } from "./mock-provider.factory";
 
 @Injectable()
 export class SimulatorService {

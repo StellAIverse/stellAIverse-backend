@@ -13,6 +13,7 @@ import { WalletAuthService } from "./wallet-auth.service";
 import { EmailLinkingService } from "./email-linking.service";
 import { RecoveryService } from "./recovery.service";
 import { JwtAuthGuard } from "./jwt.guard";
+import { AuthService } from "./auth.service";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import { LinkEmailDto } from "./dto/link-email.dto";
 import { VerifyEmailDto } from "./dto/verify-email.dto";
@@ -60,36 +61,36 @@ export class AuthController {
   ) {}
 
   @Post("challenge")
-  @ApiOperation({ 
-    summary: "Request Authentication Challenge", 
+  @ApiOperation({
+    summary: "Request Authentication Challenge",
     description: "Request a challenge message to sign for wallet authentication",
     operationId: "requestChallenge"
   })
   @ApiBody({ type: RequestChallengeDto })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: "Challenge issued successfully",
     schema: {
       type: "object",
       properties: {
-        message: { 
-          type: "string", 
-          example: "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z" 
+        message: {
+          type: "string",
+          example: "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z"
         },
-        address: { 
-          type: "string", 
-          example: "0x1234567890abcdef1234567890abcdef1234567890" 
+        address: {
+          type: "string",
+          example: "0x1234567890abcdef1234567890abcdef1234567890"
         }
       }
     }
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: "Invalid wallet address format" 
+  @ApiResponse({
+    status: 400,
+    description: "Invalid wallet address format"
   })
-  @ApiResponse({ 
-    status: 429, 
-    description: "Too many requests" 
+  @ApiResponse({
+    status: 429,
+    description: "Too many requests"
   })
   requestChallenge(@Body() dto: RequestChallengeDto) {
     const message = this.challengeService.issueChallengeForAddress(dto.address);
