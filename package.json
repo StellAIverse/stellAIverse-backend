@@ -58,7 +58,7 @@
     "@opentelemetry/sdk-node": "^0.211.0",
     "@opentelemetry/sdk-trace-base": "^2.5.0",
     "@types/bcrypt": "^6.0.0",
-    "axios": "^1.13.4",
+    "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "bull": "^4.16.5",
     "class-sanitizer": "^1.0.1",
