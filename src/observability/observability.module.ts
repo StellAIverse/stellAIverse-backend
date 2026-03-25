@@ -7,6 +7,9 @@ import { ObservabilityMiddleware } from "./observability.middleware";
 })
 export class ObservabilityModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ObservabilityMiddleware).forRoutes("*");
+    consumer
+      .apply(ObservabilityMiddleware)
+      .exclude("metrics") // ❗ avoid self-instrumentation noise
+      .forRoutes("*");
   }
 }
