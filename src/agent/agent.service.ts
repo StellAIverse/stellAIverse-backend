@@ -1,8 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { Agent } from "./entities/agent.entity";
+import { AgentTelemetryService } from "../websocket/agent-telemetry.service";
+import { AgentTelemetryGateway } from "../websocket/agent-telemetry.gateway";
 
 @Injectable()
 export class AgentService {
+  constructor(
+    private readonly telemetryService: AgentTelemetryService,
+    private readonly telemetryGateway: AgentTelemetryGateway,
+  ) {}
+
   private readonly agents: Agent[] = [
     {
       id: "1",
@@ -58,4 +65,37 @@ export class AgentService {
   findOne(id: string): Agent {
     return this.agents.find((agent) => agent.id === id);
   }
+
+  // --- Telemetry Methods ---
+
+  emitHeartbeat(agentId: string, data?: any) {
+    this.telemetryGateway.broadcastTelemetry({
+      agentId,
+      type: "heartbeat",
+      severity: "info",
+      data: data || { status: "active" },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  updateStatus(agentId: string, status: string, details?: any) {
+    this.telemetryGateway.broadcastTelemetry({
+      agentId,
+      type: "status_update",
+      severity: "info",
+      data: { status, details },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  reportError(agentId: string, error: string, severity: "warning" | "error" | "critical" = "error") {
+    this.telemetryGateway.broadcastTelemetry({
+      agentId,
+      type: "error",
+      severity,
+      data: { error },
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
+
