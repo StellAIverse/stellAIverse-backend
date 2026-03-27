@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from "typeorm";
+import { ProvenanceRecord } from "../../audit/entities/provenance-record.entity";
 
 export enum UserRole {
   USER = "user",
@@ -47,4 +49,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /**
+   * Provenance records associated with this user
+   */
+  @OneToMany(() => ProvenanceRecord, (provenance) => provenance.user)
+  provenanceRecords: ProvenanceRecord[];
 }
