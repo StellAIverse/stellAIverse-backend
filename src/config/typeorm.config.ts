@@ -9,6 +9,10 @@ import { OracleSubmission } from '../audit/entities/oracle-submission.entity';
 import { ComputeResult } from '../audit/entities/compute-result.entity';
 import { RecommendationFeedback } from '../recommendation/entities/recommendation-feedback.entity';
 import { RecommendationInteraction } from '../recommendation/entities/recommendation-interaction.entity';
+import { Referral } from '../referral/entities/referral.entity';
+import { ReferralEvent } from '../referral/entities/referral-event.entity';
+import { Notification } from '../notification/entities/notification.entity';
+import { NotificationPreferences } from '../notification/entities/notification-preferences.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -24,6 +28,10 @@ export default new DataSource({
     ComputeResult,
     RecommendationFeedback,
     RecommendationInteraction,
+    Referral,
+    ReferralEvent,
+    Notification,
+    NotificationPreferences,
   ],
   migrations: [`${__dirname}/../migrations/*{.ts,.js}`],
   synchronize: false, // Never use synchronize in production
