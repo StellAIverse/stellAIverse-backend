@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { ProvenanceRecord } from "../../audit/entities/provenance-record.entity";
+import { Wallet } from "../../auth/entities/wallet.entity";
 
 export enum UserRole {
   USER = "user",
@@ -55,4 +56,10 @@ export class User {
    */
   @OneToMany(() => ProvenanceRecord, (provenance) => provenance.user)
   provenanceRecords: ProvenanceRecord[];
+
+  /**
+   * Wallets linked to this user account
+   */
+  @OneToMany(() => Wallet, (wallet) => wallet.user)
+  wallets: Wallet[];
 }

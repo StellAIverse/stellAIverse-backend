@@ -6,12 +6,16 @@ import {
   Delete,
   UseGuards,
   Request,
+  Param,
+  Query,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiProperty } from "@nestjs/swagger";
 import { ChallengeService } from "./challenge.service";
 import { WalletAuthService } from "./wallet-auth.service";
 import { EmailLinkingService } from "./email-linking.service";
 import { RecoveryService } from "./recovery.service";
+import { SessionRecoveryService } from "./session-recovery.service";
+import { DelegationService, DelegationPermission } from "./delegation.service";
 import { JwtAuthGuard } from "./jwt.guard";
 import { AuthService } from "./auth.service";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
@@ -58,6 +62,8 @@ export class AuthController {
     private readonly walletAuthService: WalletAuthService,
     private readonly emailLinkingService: EmailLinkingService,
     private readonly recoveryService: RecoveryService,
+    private readonly sessionRecoveryService: SessionRecoveryService,
+    private readonly delegationService: DelegationService,
   ) {}
 
   @Post("challenge")
@@ -163,12 +169,14 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post("link-wallet")
   async linkWallet(@Request() req, @Body() dto: LinkWalletDto) {
-    const currentWalletAddress = req.user.address;
+    const userId = req.user.sub || req.user.id;
     return this.walletAuthService.linkWallet(
-      currentWalletAddress,
+      userId,
       dto.walletAddress,
       dto.message,
       dto.signature,
+      dto.walletName,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
     );
   }
 
@@ -176,17 +184,179 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post("unlink-wallet")
   async unlinkWallet(@Request() req, @Body() dto: UnlinkWalletDto) {
-    const currentWalletAddress = req.user.address;
+    const userId = req.user.sub || req.user.id;
     return this.walletAuthService.unlinkWallet(
-      currentWalletAddress,
-      dto.walletAddress,
+      userId,
+      dto.walletId,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("wallets")
+  async getUserWallets(@Request() req) {
+    const userId = req.user.sub || req.user.id;
+    return this.walletAuthService.getUserWallets(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("wallets/:walletId")
+  async getWallet(@Param('walletId') walletId: string, @Request() req) {
+    const userId = req.user.sub || req.user.id;
+    return this.walletAuthService.getWallet(walletId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("wallets/:walletId/set-primary")
+  async setPrimaryWallet(@Param('walletId') walletId: string, @Request() req) {
+    const userId = req.user.sub || req.user.id;
+    return this.walletAuthService.setPrimaryWallet(walletId, userId);
   }
 
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Post("recover-wallet")
   async recoverWallet(@Body() dto: RecoverWalletDto) {
     return this.walletAuthService.recoverWallet(dto.email, dto.recoveryToken);
+  }
+
+  // Advanced Session Recovery Endpoints
+
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Post("recovery/backup-code/initiate")
+  async initiateBackupCodeRecovery(
+    @Body() dto: { walletAddress: string; backupCode: string },
+    @Request() req,
+  ) {
+    return this.sessionRecoveryService.initiateBackupCodeRecovery(
+      dto.walletAddress,
+      dto.backupCode,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Post("recovery/email/initiate")
+  async initiateEmailRecovery(
+    @Body() dto: { email: string },
+    @Request() req,
+  ) {
+    return this.sessionRecoveryService.initiateEmailRecovery(
+      dto.email,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Post("recovery/email/verify")
+  async verifyEmailRecoveryCode(
+    @Body() dto: { sessionId: string; code: string },
+    @Request() req,
+  ) {
+    return this.sessionRecoveryService.verifyEmailRecoveryCode(
+      dto.sessionId,
+      dto.code,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @Post("recovery/complete")
+  async completeRecovery(
+    @Body() dto: { sessionId: string; message: string; signature: string },
+  ) {
+    return this.sessionRecoveryService.completeRecovery(
+      dto.sessionId,
+      dto.message,
+      dto.signature,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("recovery/status/:walletId")
+  async getRecoveryStatus(@Param('walletId') walletId: string, @Request() req) {
+    const userId = req.user.sub || req.user.id;
+    return this.sessionRecoveryService.getRecoveryStatus(walletId, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("recovery/backup-code/generate")
+  async generateBackupCodes(
+    @Body() dto: { walletId: string },
+    @Request() req,
+  ) {
+    const userId = req.user.sub || req.user.id;
+    return this.sessionRecoveryService.generateBackupCodes(dto.walletId, userId);
+  }
+
+  // Delegation Endpoints
+
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Post("delegation/request")
+  async requestDelegation(
+    @Body() dto: {
+      delegatorWalletId: string;
+      delegateAddress: string;
+      permissions: DelegationPermission[];
+      expiresAt: string;
+    },
+    @Request() req,
+  ) {
+    const userId = req.user.sub || req.user.id;
+    return this.delegationService.requestDelegation(
+      userId,
+      {
+        delegatorWalletId: dto.delegatorWalletId,
+        delegateAddress: dto.delegateAddress,
+        permissions: dto.permissions,
+        expiresAt: new Date(dto.expiresAt),
+      },
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("delegation/complete")
+  async completeDelegation(
+    @Body() dto: { delegateWalletId: string; signature: string },
+    @Request() req,
+  ) {
+    const userId = req.user.sub || req.user.id;
+    return this.delegationService.completeDelegation(
+      userId,
+      dto.delegateWalletId,
+      dto.signature,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("delegation/:delegationId/revoke")
+  async revokeDelegation(
+    @Param('delegationId') delegationId: string,
+    @Request() req,
+  ) {
+    const userId = req.user.sub || req.user.id;
+    return this.delegationService.revokeDelegation(
+      userId,
+      delegationId,
+      { ip: req.ip, userAgent: req.headers['user-agent'] },
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("delegations")
+  async getUserDelegations(@Request() req) {
+    const userId = req.user.sub || req.user.id;
+    return this.delegationService.getUserDelegations(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("delegations/wallet/:walletId")
+  async getWalletDelegations(
+    @Param('walletId') walletId: string,
+    @Request() req,
+  ) {
+    const userId = req.user.sub || req.user.id;
+    return this.delegationService.getWalletDelegations(walletId, userId);
   }
 
   // Admin Endpoints (RBAC protected)

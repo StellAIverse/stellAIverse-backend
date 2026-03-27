@@ -28,6 +28,7 @@ import { SubmissionNonce } from "./oracle/entities/submission-nonce.entity";
 import { AgentEvent } from "./audit/entities/agent-event.entity";
 import { ComputeResult } from "./audit/entities/compute-result.entity";
 import { ProvenanceRecord } from "./audit/entities/provenance-record.entity";
+import { Wallet } from "./auth/entities/wallet.entity";
 
 import { QuotaGuard } from "./common/guard/quota.guard";
 import { SubmissionVerifierService } from "./oracle/submission-verifier.service";
@@ -63,6 +64,7 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             AgentEvent,
             ComputeResult,
             ProvenanceRecord,
+            Wallet,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],

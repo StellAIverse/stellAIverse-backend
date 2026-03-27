@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  NotFoundException,
+  Logger,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -10,6 +12,7 @@ import { Repository } from "typeorm";
 import { verifyMessage } from "ethers";
 import { ChallengeService } from "./challenge.service";
 import { User } from "../user/entities/user.entity";
+import { Wallet, WalletStatus, WalletType } from "./entities/wallet.entity";
 
 export interface AuthPayload {
   address: string;
@@ -21,11 +24,15 @@ export interface AuthPayload {
 
 @Injectable()
 export class WalletAuthService {
+  private readonly logger = new Logger(WalletAuthService.name);
+
   constructor(
     private challengeService: ChallengeService,
     private jwtService: JwtService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Wallet)
+    private walletRepository: Repository<Wallet>,
   ) {}
 
   /**
@@ -97,17 +104,18 @@ export class WalletAuthService {
   }
 
   /**
-   * Link a new wallet to an existing user account
+   * Link a new wallet to an existing user account (Multi-wallet support)
    * Requires authentication and signature verification
    */
   async linkWallet(
-    currentWalletAddress: string,
+    currentUserId: string,
     newWalletAddress: string,
     message: string,
     signature: string,
-  ): Promise<{ message: string; walletAddress: string }> {
-    // Normalize addresses
-    const normalizedCurrent = currentWalletAddress.toLowerCase();
+    walletName?: string,
+    clientInfo?: { ip?: string; userAgent?: string },
+  ): Promise<{ message: string; walletId: string; walletAddress: string; type: WalletType }> {
+    // Normalize address
     const normalizedNew = newWalletAddress.toLowerCase();
 
     // Verify the signature for the new wallet
@@ -136,75 +144,190 @@ export class WalletAuthService {
       );
     }
 
-    // Check if new wallet is already in use
-    const existingUser = await this.userRepository.findOne({
-      where: { walletAddress: normalizedNew },
+    // Check if wallet is already linked to any user
+    const existingWallet = await this.walletRepository.findOne({
+      where: { address: normalizedNew },
     });
 
-    if (existingUser) {
+    if (existingWallet) {
+      if (existingWallet.userId === currentUserId) {
+        throw new ConflictException("This wallet is already linked to your account");
+      }
       throw new ConflictException(
         "This wallet address is already linked to another account",
       );
     }
 
-    // Get current user
-    const currentUser = await this.userRepository.findOne({
-      where: { walletAddress: normalizedCurrent },
+    // Get user's existing wallets to determine type
+    const existingWallets = await this.walletRepository.find({
+      where: { userId: currentUserId },
     });
 
-    if (!currentUser) {
-      throw new BadRequestException("Current user not found");
+    const isFirstWallet = existingWallets.length === 0;
+    const walletType = isFirstWallet ? WalletType.PRIMARY : WalletType.SECONDARY;
+
+    // Create new wallet record
+    const wallet = this.walletRepository.create({
+      address: normalizedNew,
+      userId: currentUserId,
+      type: walletType,
+      status: WalletStatus.ACTIVE,
+      isPrimary: isFirstWallet,
+      name: walletName || `Wallet ${existingWallets.length + 1}`,
+      verificationSignature: signature,
+      verificationChallenge: message,
+      verifiedAt: new Date(),
+      linkedIp: clientInfo?.ip,
+      linkedUserAgent: clientInfo?.userAgent,
+    });
+
+    await this.walletRepository.save(wallet);
+
+    // If this is the first wallet, update user's primary wallet address
+    if (isFirstWallet) {
+      await this.userRepository.update(
+        { id: currentUserId },
+        { walletAddress: normalizedNew },
+      );
     }
 
-    // Update user's wallet address
-    currentUser.walletAddress = normalizedNew;
-    await this.userRepository.save(currentUser);
+    this.logger.log(`Wallet linked: ${normalizedNew} for user ${currentUserId}`);
 
     return {
       message: "Wallet successfully linked",
+      walletId: wallet.id,
       walletAddress: normalizedNew,
+      type: wallet.type,
     };
   }
 
   /**
-   * Unlink a wallet from user account
-   * Requires authentication and email verification
+   * Get all wallets for a user
    */
-  async unlinkWallet(
-    currentWalletAddress: string,
-    walletToUnlink: string,
-  ): Promise<{ message: string }> {
-    const normalizedCurrent = currentWalletAddress.toLowerCase();
-    const normalizedUnlink = walletToUnlink.toLowerCase();
+  async getUserWallets(userId: string): Promise<Wallet[]> {
+    return this.walletRepository.find({
+      where: { userId },
+      order: { isPrimary: 'DESC', createdAt: 'ASC' },
+    });
+  }
 
-    // Verify addresses match
-    if (normalizedCurrent !== normalizedUnlink) {
-      throw new BadRequestException(
-        "You can only unlink your own wallet address",
-      );
-    }
-
-    // Get user
-    const user = await this.userRepository.findOne({
-      where: { walletAddress: normalizedCurrent },
+  /**
+   * Get a specific wallet for a user
+   */
+  async getWallet(walletId: string, userId: string): Promise<Wallet> {
+    const wallet = await this.walletRepository.findOne({
+      where: { id: walletId, userId },
     });
 
-    if (!user) {
-      throw new BadRequestException("User not found");
+    if (!wallet) {
+      throw new NotFoundException("Wallet not found");
     }
 
-    // Require email verification before unlinking
-    if (!user.emailVerified || !user.email) {
-      throw new BadRequestException(
-        "Email must be verified before unlinking wallet. This ensures account recovery.",
-      );
+    return wallet;
+  }
+
+  /**
+   * Set a wallet as primary
+   */
+  async setPrimaryWallet(
+    walletId: string,
+    userId: string,
+  ): Promise<{ message: string; walletId: string }> {
+    const wallet = await this.walletRepository.findOne({
+      where: { id: walletId, userId },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException("Wallet not found");
     }
 
-    // For safety, we don't actually delete the wallet but mark it for recovery
-    // In a production system, you might want to implement a grace period
+    if (wallet.status !== WalletStatus.ACTIVE) {
+      throw new BadRequestException("Wallet must be active to set as primary");
+    }
+
+    // Unset current primary
+    await this.walletRepository.update(
+      { userId, isPrimary: true },
+      { isPrimary: false },
+    );
+
+    // Set new primary
+    wallet.isPrimary = true;
+    wallet.type = WalletType.PRIMARY;
+    await this.walletRepository.save(wallet);
+
+    // Update user's primary wallet address
+    await this.userRepository.update(
+      { id: userId },
+      { walletAddress: wallet.address },
+    );
+
     return {
-      message:
-        "Wallet unlink requested. Please use email recovery to regain access.",
+      message: "Primary wallet updated",
+      walletId: wallet.id,
+    };
+  }
+
+  /**
+   * Unlink a wallet from user account (Multi-wallet support)
+   * Requires authentication and prevents unlinking the last wallet without recovery setup
+   */
+  async unlinkWallet(
+    userId: string,
+    walletId: string,
+  ): Promise<{ message: string; walletId: string }> {
+    // Get wallet to unlink
+    const wallet = await this.walletRepository.findOne({
+      where: { id: walletId, userId },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException("Wallet not found");
+    }
+
+    // Get user's active wallets
+    const activeWallets = await this.walletRepository.find({
+      where: { userId, status: WalletStatus.ACTIVE },
+    });
+
+    // Prevent unlinking the last active wallet without recovery setup
+    if (activeWallets.length === 1) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user?.emailVerified) {
+        throw new BadRequestException(
+          "Cannot unlink your only wallet without verified email for recovery",
+        );
+      }
+    }
+
+    // Mark wallet as unlinked
+    wallet.status = WalletStatus.UNLINKED;
+    await this.walletRepository.save(wallet);
+
+    // If this was the primary wallet, set a new primary
+    if (wallet.isPrimary) {
+      const remainingWallet = await this.walletRepository.findOne({
+        where: { userId, status: WalletStatus.ACTIVE, id: walletId },
+        order: { createdAt: 'ASC' },
+      });
+
+      if (remainingWallet) {
+        remainingWallet.isPrimary = true;
+        remainingWallet.type = WalletType.PRIMARY;
+        await this.walletRepository.save(remainingWallet);
+
+        await this.userRepository.update(
+          { id: userId },
+          { walletAddress: remainingWallet.address },
+        );
+      }
+    }
+
+    this.logger.log(`Wallet unlinked: ${wallet.address} for user ${userId}`);
+
+    return {
+      message: "Wallet successfully unlinked",
+      walletId: wallet.id,
     };
   }
 
