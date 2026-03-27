@@ -7,6 +7,8 @@ import { SubmissionNonce } from '../oracle/entities/submission-nonce.entity';
 import { AgentEvent } from '../audit/entities/agent-event.entity';
 import { OracleSubmission } from '../audit/entities/oracle-submission.entity';
 import { ComputeResult } from '../audit/entities/compute-result.entity';
+import { RecommendationFeedback } from '../recommendation/entities/recommendation-feedback.entity';
+import { RecommendationInteraction } from '../recommendation/entities/recommendation-interaction.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -20,6 +22,8 @@ export default new DataSource({
     AgentEvent,
     OracleSubmission,
     ComputeResult,
+    RecommendationFeedback,
+    RecommendationInteraction,
   ],
   migrations: [`${__dirname}/../migrations/*{.ts,.js}`],
   synchronize: false, // Never use synchronize in production
