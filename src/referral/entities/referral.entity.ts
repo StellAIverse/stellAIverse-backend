@@ -7,51 +7,34 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 
 /**
- * Referral code status enum
+ * Status of a referral
  */
 export enum ReferralStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPENDED = 'suspended',
-  EXPIRED = 'expired',
+  PENDING = 'pending', // Invite sent but not yet registered
+  REGISTERED = 'registered', // Referee has registered
+  ACTIVE = 'active', // Referee is actively using the platform
+  REWARDED = 'rewarded', // Reward has been distributed
 }
 
 /**
- * Referral relationship type
- */
-export enum ReferralRelationship {
-  REFERRER = 'referrer',
-  REFERRED = 'referred',
-}
-
-/**
- * Entity for managing referral codes and tracking referrals
- * Includes security fields for abuse prevention and compliance
+ * Referral relationship between users
  */
 @Entity('referrals')
-@Index(['referralCode'])
-@Index(['referrerId'])
-@Index(['referredId'])
+@Index(['referrerId', 'refereeId'], { unique: true })
+@Index(['refereeEmail'])
 @Index(['status'])
 @Index(['createdAt'])
-@Index(['ipAddress', 'deviceFingerprint'])
 export class Referral {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**
-   * Unique referral code generated for the referrer
-   */
-  @Column({ type: 'varchar', length: 16, unique: true })
-  @Index()
-  referralCode: string;
-
-  /**
-   * User ID of the referrer (person who created the referral)
+   * User who sent the referral invite
    */
   @Column({ type: 'uuid' })
   @Index()
@@ -65,137 +48,82 @@ export class Referral {
   referrer: User;
 
   /**
-   * User ID of the referred user (person who used the referral)
+   * User who was referred (nullable until registration)
    */
   @Column({ type: 'uuid', nullable: true })
   @Index()
-  referredId: string | null;
+  refereeId: string | null;
 
   /**
-   * Reference to the referred user entity
+   * Reference to the referee user entity
    */
-  @ManyToOne(() => User, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'referredId' })
-  referred: User;
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'refereeId' })
+  referee?: User | null;
 
   /**
-   * Referral status (active, inactive, suspended, expired)
+   * Email of the referee (used before registration)
+   */
+  @Column({ type: 'varchar' })
+  @Index()
+  refereeEmail: string;
+
+  /**
+   * Unique referral code/token
+   */
+  @Column({ type: 'varchar', unique: true })
+  @Index()
+  referralCode: string;
+
+  /**
+   * Status of the referral
    */
   @Column({
     type: 'enum',
     enum: ReferralStatus,
-    default: ReferralStatus.ACTIVE,
+    default: ReferralStatus.PENDING,
   })
   status: ReferralStatus;
 
   /**
-   * IP address of the referrer when creating the referral code
-   */
-  @Column({ type: 'varchar', length: 45, nullable: true })
-  @Index()
-  ipAddress: string | null;
-
-  /**
-   * Device fingerprint of the referrer when creating the referral
-   */
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  @Index()
-  deviceFingerprint: string | null;
-
-  /**
-   * IP address of the referred user when using the referral
-   */
-  @Column({ type: 'varchar', length: 45, nullable: true })
-  referredIpAddress: string | null;
-
-  /**
-   * Device fingerprint of the referred user when using the referral
-   */
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  referredDeviceFingerprint: string | null;
-
-  /**
-   * User agent string of the referred user
+   * Custom message from referrer (optional)
    */
   @Column({ type: 'text', nullable: true })
-  referredUserAgent: string | null;
+  message?: string;
 
   /**
-   * Whether the referral has been claimed (referred user signed up)
-   */
-  @Column({ default: false })
-  claimed: boolean;
-
-  /**
-   * Timestamp when the referral was claimed
-   */
-  @Column({ type: 'timestamp', nullable: true })
-  claimedAt: Date | null;
-
-  /**
-   * Reward amount earned from this referral
-   */
-  @Column({ type: 'decimal', precision: 18, scale: 8, default: 0 })
-  rewardAmount: number;
-
-  /**
-   * Whether the reward has been paid out
-   */
-  @Column({ default: false })
-  rewardPaid: boolean;
-
-  /**
-   * Timestamp when the reward was paid out
-   */
-  @Column({ type: 'timestamp', nullable: true })
-  rewardPaidAt: Date | null;
-
-  /**
-   * Number of successful referrals made by this referrer
-   */
-  @Column({ default: 0 })
-  successfulReferrals: number;
-
-  /**
-   * Reason for suspension (if status is SUSPENDED)
-   */
-  @Column({ type: 'text', nullable: true })
-  suspensionReason: string | null;
-
-  /**
-   * Admin user ID who suspended this referral
-   */
-  @Column({ type: 'uuid', nullable: true })
-  suspendedBy: string | null;
-
-  /**
-   * Timestamp when the referral was suspended
-   */
-  @Column({ type: 'timestamp', nullable: true })
-  suspendedAt: Date | null;
-
-  /**
-   * Abuse flags triggered for this referral
+   * Metadata about the referral (source, campaign, etc.)
    */
   @Column({ type: 'jsonb', nullable: true })
-  abuseFlags: string[] | null;
+  metadata?: Record<string, any>;
 
   /**
-   * Additional metadata for security tracking
-   */
-  @Column({ type: 'jsonb', nullable: true })
-  securityMetadata: Record<string, unknown> | null;
-
-  /**
-   * Referral expiration date
+   * When the referral was registered (null until registration)
    */
   @Column({ type: 'timestamp', nullable: true })
-  @Index()
-  expiresAt: Date | null;
+  registeredAt?: Date;
 
+  /**
+   * When the referral was rewarded (null until reward)
+   */
+  @Column({ type: 'timestamp', nullable: true })
+  rewardedAt?: Date;
+
+  /**
+   * Creation timestamp
+   */
   @CreateDateColumn()
   createdAt: Date;
 
+  /**
+   * Last update timestamp
+   */
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /**
+   * Events related to this referral
+   */
+  @OneToMany(() => ReferralEvent, (event) => event.referral)
+  events: ReferralEvent[];
 }
