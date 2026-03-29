@@ -21,7 +21,10 @@ import { QuotaModule } from "./quota/quota.module";
 import { ReferralModule } from "./referral/referral.module";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
-import { ReferralModule } from "./referral/referral.module";
+import { CrossChainModule } from "./cross-chain/cross-chain.module";
+import { PricePredictionModule } from "./price-prediction/price-prediction.module";
+import { RiskManagementModule } from "./risk-management/risk-management.module";
+import { SocialTradingModule } from "./social-trading/social-trading.module";
 
 import { User } from "./user/entities/user.entity";
 import { EmailVerification } from "./auth/entities/email-verification.entity";
@@ -102,6 +105,10 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
     HealthModule,
     QuotaModule,
     ReferralModule,
+    CrossChainModule,
+    PricePredictionModule,
+    RiskManagementModule,
+    SocialTradingModule,
   ],
 
   controllers: [AppController],
