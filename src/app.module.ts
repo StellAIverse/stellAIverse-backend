@@ -22,6 +22,7 @@ import { ReferralModule } from "./referral/referral.module";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
 import { PortfolioModule } from "./portfolio/portfolio.module";
+import { DeFiModule } from "./defi/defi.module";
 
 import { User } from "./user/entities/user.entity";
 import { EmailVerification } from "./auth/entities/email-verification.entity";
@@ -41,6 +42,13 @@ import { OptimizationHistory } from "./portfolio/entities/optimization-history.e
 import { RebalancingEvent } from "./portfolio/entities/rebalancing-event.entity";
 import { PerformanceMetric } from "./portfolio/entities/performance-metric.entity";
 import { BacktestResult } from "./portfolio/entities/backtest-result.entity";
+
+// DeFi entities
+import { DeFiPosition } from "./defi/entities/defi-position.entity";
+import { DeFiYieldRecord } from "./defi/entities/defi-yield-record.entity";
+import { DeFiTransaction } from "./defi/entities/defi-transaction.entity";
+import { DeFiYieldStrategy } from "./defi/entities/defi-yield-strategy.entity";
+import { DeFiRiskAssessment } from "./defi/entities/defi-risk-assessment.entity";
 
 import { QuotaGuard } from "./common/guard/quota.guard";
 import { SubmissionVerifierService } from "./oracle/submission-verifier.service";
@@ -86,6 +94,11 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             RebalancingEvent,
             PerformanceMetric,
             BacktestResult,
+            DeFiPosition,
+            DeFiYieldRecord,
+            DeFiTransaction,
+            DeFiYieldStrategy,
+            DeFiRiskAssessment,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],
@@ -111,6 +124,7 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
     ComputeModule,
     WebSocketModule,
     PortfolioModule,
+    DeFiModule,
     ObservabilityModule,
     IndexerModule,
     AuditModule,
