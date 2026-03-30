@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
+import { Injectable, Logger } from "@nestjs/common";
+import * as fs from "fs/promises";
+import * as path from "path";
+import * as crypto from "crypto";
+import { EventEmitter } from "events";
 import {
   ISimulationEnvironment,
   EnvironmentMetadata,
@@ -17,12 +17,12 @@ import {
   EnvironmentInstanceState,
   EnvironmentStatus,
   AuditLogEntry,
-} from './environment.interface';
-import { EnvironmentRegistryService } from './environment-registry.service';
+} from "./environment.interface";
+import { EnvironmentRegistryService } from "./environment-registry.service";
 
 /**
  * Service for dynamically loading and managing simulation environments
- * 
+ *
  * Features:
  * - Dynamic loading from disk or remote sources
  * - Hot-reloading without restarting the backend
@@ -32,19 +32,20 @@ import { EnvironmentRegistryService } from './environment-registry.service';
 @Injectable()
 export class EnvironmentLoaderService extends EventEmitter {
   private readonly logger = new Logger(EnvironmentLoaderService.name);
-  
+
   /** Map of file paths to their watch handles */
   private watchers = new Map<string, ReturnType<typeof setInterval>>();
-  
+
   /** Map of file paths to their last known hash */
   private fileHashes = new Map<string, string>();
-  
+
   /** Base directory for environment modules */
   private environmentsDir: string;
 
   constructor(private readonly registry: EnvironmentRegistryService) {
     super();
-    this.environmentsDir = process.env.SIMULATION_ENV_DIR || './simulation-environments';
+    this.environmentsDir =
+      process.env.SIMULATION_ENV_DIR || "./simulation-environments";
   }
 
   /**
@@ -52,37 +53,40 @@ export class EnvironmentLoaderService extends EventEmitter {
    */
   async loadFromPath(
     filePath: string,
-    options: Omit<EnvironmentLoadOptions, 'path'> = {},
+    options: Omit<EnvironmentLoadOptions, "path"> = {},
   ): Promise<LoadedEnvironment> {
     this.logger.log(`Loading environment from: ${filePath}`);
 
     try {
       // Resolve absolute path
       const absolutePath = path.resolve(filePath);
-      
+
       // Check if file exists
       await fs.access(absolutePath);
-      
+
       // Calculate file hash for change detection
       const hash = await this.calculateFileHash(absolutePath);
-      
+
       // Clear require cache to enable reloading
       this.clearRequireCache(absolutePath);
-      
+
       // Dynamically import the module
       const module = await import(absolutePath);
-      
+
       // Extract factory function
-      const factory = module.default || module.createEnvironment || module.environmentFactory;
-      
-      if (typeof factory !== 'function') {
-        throw new Error(`Module at ${filePath} does not export a valid environment factory`);
+      const factory =
+        module.default || module.createEnvironment || module.environmentFactory;
+
+      if (typeof factory !== "function") {
+        throw new Error(
+          `Module at ${filePath} does not export a valid environment factory`,
+        );
       }
 
       // Create instance to get metadata
       const tempInstance = factory();
       const metadata = tempInstance.getMetadata();
-      
+
       // Validate metadata
       this.validateMetadata(metadata);
 
@@ -103,8 +107,10 @@ export class EnvironmentLoaderService extends EventEmitter {
         this.setupHotReload(absolutePath, options);
       }
 
-      this.emit('environmentLoaded', loadedEnv);
-      this.logger.log(`Successfully loaded environment: ${metadata.name} v${metadata.version}`);
+      this.emit("environmentLoaded", loadedEnv);
+      this.logger.log(
+        `Successfully loaded environment: ${metadata.name} v${metadata.version}`,
+      );
 
       return loadedEnv;
     } catch (error) {
@@ -116,9 +122,11 @@ export class EnvironmentLoaderService extends EventEmitter {
   /**
    * Load an environment from a remote URL
    */
-  async loadFromRemote(options: EnvironmentLoadOptions): Promise<LoadedEnvironment> {
+  async loadFromRemote(
+    options: EnvironmentLoadOptions,
+  ): Promise<LoadedEnvironment> {
     if (!options.remoteUrl) {
-      throw new Error('Remote URL is required');
+      throw new Error("Remote URL is required");
     }
 
     this.logger.log(`Loading environment from remote: ${options.remoteUrl}`);
@@ -126,7 +134,9 @@ export class EnvironmentLoaderService extends EventEmitter {
     try {
       // Download the module
       const response = await fetch(options.remoteUrl, {
-        headers: options.authToken ? { 'Authorization': `Bearer ${options.authToken}` } : {},
+        headers: options.authToken
+          ? { Authorization: `Bearer ${options.authToken}` }
+          : {},
       });
 
       if (!response.ok) {
@@ -134,15 +144,15 @@ export class EnvironmentLoaderService extends EventEmitter {
       }
 
       const code = await response.text();
-      
+
       // Save to temporary file
-      const tempDir = path.join(process.cwd(), 'temp', 'environments');
+      const tempDir = path.join(process.cwd(), "temp", "environments");
       await fs.mkdir(tempDir, { recursive: true });
-      
+
       const fileName = `remote-env-${Date.now()}.js`;
       const tempPath = path.join(tempDir, fileName);
-      
-      await fs.writeFile(tempPath, code, 'utf-8');
+
+      await fs.writeFile(tempPath, code, "utf-8");
 
       // Load from the temp file
       return this.loadFromPath(tempPath, { ...options, hotReload: false });
@@ -159,17 +169,23 @@ export class EnvironmentLoaderService extends EventEmitter {
     this.logger.log(`Loading environments from directory: ${dirPath}`);
 
     const loaded: LoadedEnvironment[] = [];
-    
+
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
-        if (entry.isFile() && (entry.name.endsWith('.js') || entry.name.endsWith('.ts'))) {
+        if (
+          entry.isFile() &&
+          (entry.name.endsWith(".js") || entry.name.endsWith(".ts"))
+        ) {
           try {
             const env = await this.loadFromPath(path.join(dirPath, entry.name));
             loaded.push(env);
           } catch (error) {
-            this.logger.warn(`Skipping invalid environment file ${entry.name}:`, error.message);
+            this.logger.warn(
+              `Skipping invalid environment file ${entry.name}:`,
+              error.message,
+            );
           }
         }
       }
@@ -187,7 +203,7 @@ export class EnvironmentLoaderService extends EventEmitter {
    */
   async unloadEnvironment(id: string, version: string): Promise<boolean> {
     const key = `${id}@${version}`;
-    
+
     // Stop any watchers
     const env = this.registry.getEnvironment(id, version);
     if (env && this.watchers.has(env.path)) {
@@ -206,14 +222,17 @@ export class EnvironmentLoaderService extends EventEmitter {
           this.registry.removeInstance(instance.instanceId);
         }
       } catch (error) {
-        this.logger.error(`Error tearing down instance ${instance.instanceId}:`, error);
+        this.logger.error(
+          `Error tearing down instance ${instance.instanceId}:`,
+          error,
+        );
       }
     }
 
     const result = this.registry.unregisterEnvironment(id, version);
-    
+
     if (result) {
-      this.emit('environmentUnloaded', { id, version });
+      this.emit("environmentUnloaded", { id, version });
       this.logger.log(`Unloaded environment: ${id} v${version}`);
     }
 
@@ -223,7 +242,10 @@ export class EnvironmentLoaderService extends EventEmitter {
   /**
    * Reload an environment (hot-reload)
    */
-  async reloadEnvironment(id: string, version: string): Promise<LoadedEnvironment> {
+  async reloadEnvironment(
+    id: string,
+    version: string,
+  ): Promise<LoadedEnvironment> {
     this.logger.log(`Reloading environment: ${id} v${version}`);
 
     const existing = this.registry.getEnvironment(id, version);
@@ -242,7 +264,7 @@ export class EnvironmentLoaderService extends EventEmitter {
       hotReload: hadHotReload,
     });
 
-    this.emit('environmentReloaded', reloaded);
+    this.emit("environmentReloaded", reloaded);
     this.logger.log(`Successfully reloaded environment: ${id} v${version}`);
 
     return reloaded;
@@ -258,7 +280,7 @@ export class EnvironmentLoaderService extends EventEmitter {
     }
 
     this.setupHotReload(env.path, { watchPatterns });
-    
+
     // Update the loaded environment
     const updatedEnv = { ...env, hotReloadEnabled: true };
     this.registry.registerEnvironment(updatedEnv);
@@ -293,10 +315,13 @@ export class EnvironmentLoaderService extends EventEmitter {
     config: EnvironmentInitConfig,
   ): Promise<{ instanceId: string; result: EnvironmentInitResult }> {
     // Create instance
-    const { instanceId, environment } = await this.registry.createInstance(environmentId, version);
+    const { instanceId, environment } = await this.registry.createInstance(
+      environmentId,
+      version,
+    );
 
     // Update status
-    this.registry.updateInstanceState(instanceId, { 
+    this.registry.updateInstanceState(instanceId, {
       status: EnvironmentStatus.INITIALIZING,
       config,
     });
@@ -306,8 +331,10 @@ export class EnvironmentLoaderService extends EventEmitter {
       const result = await environment.init(config);
 
       // Update status based on result
-      const newStatus = result.success ? EnvironmentStatus.READY : EnvironmentStatus.ERROR;
-      this.registry.updateInstanceState(instanceId, { 
+      const newStatus = result.success
+        ? EnvironmentStatus.READY
+        : EnvironmentStatus.ERROR;
+      this.registry.updateInstanceState(instanceId, {
         status: newStatus,
         state: result.state,
       });
@@ -317,26 +344,28 @@ export class EnvironmentLoaderService extends EventEmitter {
         instanceId,
         environmentId,
         version,
-        action: 'init',
+        action: "init",
         input: config,
         output: result,
-        actor: 'system',
+        actor: "system",
       });
 
       return { instanceId, result };
     } catch (error) {
       // Update status to error
-      this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.ERROR });
+      this.registry.updateInstanceState(instanceId, {
+        status: EnvironmentStatus.ERROR,
+      });
 
       // Add audit entry for error
       this.registry.addAuditEntry({
         instanceId,
         environmentId,
         version,
-        action: 'error',
+        action: "error",
         input: config,
         error: error.message,
-        actor: 'system',
+        actor: "system",
       });
 
       throw error;
@@ -357,20 +386,29 @@ export class EnvironmentLoaderService extends EventEmitter {
 
     const { environment, state } = instance;
 
-    if (state.status !== EnvironmentStatus.READY && state.status !== EnvironmentStatus.PAUSED) {
-      throw new Error(`Instance ${instanceId} is not ready to run (status: ${state.status})`);
+    if (
+      state.status !== EnvironmentStatus.READY &&
+      state.status !== EnvironmentStatus.PAUSED
+    ) {
+      throw new Error(
+        `Instance ${instanceId} is not ready to run (status: ${state.status})`,
+      );
     }
 
     // Update status
-    this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.RUNNING });
+    this.registry.updateInstanceState(instanceId, {
+      status: EnvironmentStatus.RUNNING,
+    });
 
     try {
       // Run the simulation
       const result = await environment.run(config);
 
       // Update status based on result
-      const newStatus = result.success ? EnvironmentStatus.COMPLETED : EnvironmentStatus.ERROR;
-      this.registry.updateInstanceState(instanceId, { 
+      const newStatus = result.success
+        ? EnvironmentStatus.COMPLETED
+        : EnvironmentStatus.ERROR;
+      this.registry.updateInstanceState(instanceId, {
         status: newStatus,
         state: result.finalState,
         currentStep: result.steps,
@@ -381,26 +419,28 @@ export class EnvironmentLoaderService extends EventEmitter {
         instanceId,
         environmentId: state.metadata.id,
         version: state.metadata.version,
-        action: 'run',
+        action: "run",
         input: config,
         output: result,
-        actor: 'system',
+        actor: "system",
       });
 
       return result;
     } catch (error) {
       // Update status to error
-      this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.ERROR });
+      this.registry.updateInstanceState(instanceId, {
+        status: EnvironmentStatus.ERROR,
+      });
 
       // Add audit entry for error
       this.registry.addAuditEntry({
         instanceId,
         environmentId: state.metadata.id,
         version: state.metadata.version,
-        action: 'error',
+        action: "error",
         input: config,
         error: error.message,
-        actor: 'system',
+        actor: "system",
       });
 
       throw error;
@@ -410,7 +450,9 @@ export class EnvironmentLoaderService extends EventEmitter {
   /**
    * Teardown an environment instance
    */
-  async teardownInstance(instanceId: string): Promise<EnvironmentTeardownResult> {
+  async teardownInstance(
+    instanceId: string,
+  ): Promise<EnvironmentTeardownResult> {
     const instance = this.registry.getInstance(instanceId);
     if (!instance) {
       throw new Error(`Instance ${instanceId} not found`);
@@ -419,22 +461,26 @@ export class EnvironmentLoaderService extends EventEmitter {
     const { environment, state } = instance;
 
     // Update status
-    this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.TEARING_DOWN });
+    this.registry.updateInstanceState(instanceId, {
+      status: EnvironmentStatus.TEARING_DOWN,
+    });
 
     try {
       const result = await environment.teardown();
 
       // Update status
-      this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.DESTROYED });
+      this.registry.updateInstanceState(instanceId, {
+        status: EnvironmentStatus.DESTROYED,
+      });
 
       // Add audit entry
       this.registry.addAuditEntry({
         instanceId,
         environmentId: state.metadata.id,
         version: state.metadata.version,
-        action: 'teardown',
+        action: "teardown",
         output: result,
-        actor: 'system',
+        actor: "system",
       });
 
       // Remove from registry
@@ -443,16 +489,18 @@ export class EnvironmentLoaderService extends EventEmitter {
       return result;
     } catch (error) {
       // Update status to error
-      this.registry.updateInstanceState(instanceId, { status: EnvironmentStatus.ERROR });
+      this.registry.updateInstanceState(instanceId, {
+        status: EnvironmentStatus.ERROR,
+      });
 
       // Add audit entry for error
       this.registry.addAuditEntry({
         instanceId,
         environmentId: state.metadata.id,
         version: state.metadata.version,
-        action: 'error',
+        action: "error",
         error: error.message,
-        actor: 'system',
+        actor: "system",
       });
 
       throw error;
@@ -462,7 +510,9 @@ export class EnvironmentLoaderService extends EventEmitter {
   /**
    * Get audit logs for an instance or environment
    */
-  getAuditLogs(options?: Parameters<EnvironmentRegistryService['getAuditLog']>[0]): AuditLogEntry[] {
+  getAuditLogs(
+    options?: Parameters<EnvironmentRegistryService["getAuditLog"]>[0],
+  ): AuditLogEntry[] {
     return this.registry.getAuditLog(options);
   }
 
@@ -470,14 +520,17 @@ export class EnvironmentLoaderService extends EventEmitter {
    * Calculate file hash for change detection
    */
   private async calculateFileHash(filePath: string): Promise<string> {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return crypto.createHash('sha256').update(content).digest('hex');
+    const content = await fs.readFile(filePath, "utf-8");
+    return crypto.createHash("sha256").update(content).digest("hex");
   }
 
   /**
    * Setup hot-reload watching for a file
    */
-  private setupHotReload(filePath: string, options: EnvironmentLoadOptions): void {
+  private setupHotReload(
+    filePath: string,
+    options: EnvironmentLoadOptions,
+  ): void {
     // Clear existing watcher
     if (this.watchers.has(filePath)) {
       clearInterval(this.watchers.get(filePath));
@@ -491,15 +544,21 @@ export class EnvironmentLoaderService extends EventEmitter {
 
         if (oldHash && oldHash !== newHash) {
           this.logger.log(`File changed detected: ${filePath}`);
-          
+
           // Find the environment
           for (const env of this.registry.getAllEnvironments()) {
             if (env.path === filePath) {
               try {
-                await this.reloadEnvironment(env.metadata.id, env.metadata.version);
-                this.emit('hotReload', env);
+                await this.reloadEnvironment(
+                  env.metadata.id,
+                  env.metadata.version,
+                );
+                this.emit("hotReload", env);
               } catch (error) {
-                this.logger.error(`Hot-reload failed for ${env.metadata.id}:`, error);
+                this.logger.error(
+                  `Hot-reload failed for ${env.metadata.id}:`,
+                  error,
+                );
               }
               break;
             }
@@ -521,7 +580,7 @@ export class EnvironmentLoaderService extends EventEmitter {
    */
   private clearRequireCache(modulePath: string): void {
     const resolvedPath = require.resolve(modulePath);
-    
+
     // Remove from cache
     if (require.cache[resolvedPath]) {
       delete require.cache[resolvedPath];
@@ -529,7 +588,7 @@ export class EnvironmentLoaderService extends EventEmitter {
 
     // Also clear any children
     for (const key in require.cache) {
-      if (require.cache[key]?.children?.some(c => c.id === resolvedPath)) {
+      if (require.cache[key]?.children?.some((c) => c.id === resolvedPath)) {
         delete require.cache[key];
       }
     }
@@ -540,19 +599,21 @@ export class EnvironmentLoaderService extends EventEmitter {
    */
   private validateMetadata(metadata: EnvironmentMetadata): void {
     if (!metadata.id) {
-      throw new Error('Environment metadata must include an id');
+      throw new Error("Environment metadata must include an id");
     }
     if (!metadata.name) {
-      throw new Error('Environment metadata must include a name');
+      throw new Error("Environment metadata must include a name");
     }
     if (!metadata.version) {
-      throw new Error('Environment metadata must include a version');
+      throw new Error("Environment metadata must include a version");
     }
-    
+
     // Validate semantic version format
     const versionRegex = /^\d+\.\d+\.\d+$/;
     if (!versionRegex.test(metadata.version)) {
-      throw new Error(`Invalid version format: ${metadata.version}. Expected: x.x.x`);
+      throw new Error(
+        `Invalid version format: ${metadata.version}. Expected: x.x.x`,
+      );
     }
   }
 

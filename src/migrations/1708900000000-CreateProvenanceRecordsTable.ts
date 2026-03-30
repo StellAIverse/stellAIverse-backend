@@ -1,124 +1,130 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from "typeorm";
 
 export class CreateProvenanceRecordsTable1708900000000 implements MigrationInterface {
-  name = 'CreateProvenanceRecordsTable1708900000000';
+  name = "CreateProvenanceRecordsTable1708900000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create provenance_records table
     await queryRunner.createTable(
       new Table({
-        name: 'provenance_records',
+        name: "provenance_records",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
             isGenerated: true,
-            generationStrategy: 'uuid',
+            generationStrategy: "uuid",
           },
           {
-            name: 'agentId',
-            type: 'varchar',
-            length: '36',
+            name: "agentId",
+            type: "varchar",
+            length: "36",
             isNullable: false,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'action',
-            type: 'varchar',
-            enum: ['request_received', 'provider_call', 'result_normalization', 'submission', 'error'],
+            name: "action",
+            type: "varchar",
+            enum: [
+              "request_received",
+              "provider_call",
+              "result_normalization",
+              "submission",
+              "error",
+            ],
             isNullable: false,
           },
           {
-            name: 'input',
-            type: 'jsonb',
+            name: "input",
+            type: "jsonb",
             isNullable: false,
           },
           {
-            name: 'output',
-            type: 'jsonb',
+            name: "output",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'provider',
-            type: 'varchar',
-            length: '100',
+            name: "provider",
+            type: "varchar",
+            length: "100",
             isNullable: true,
           },
           {
-            name: 'providerModel',
-            type: 'varchar',
-            length: '100',
+            name: "providerModel",
+            type: "varchar",
+            length: "100",
             isNullable: true,
           },
           {
-            name: 'status',
-            type: 'varchar',
-            enum: ['pending', 'success', 'failed'],
+            name: "status",
+            type: "varchar",
+            enum: ["pending", "success", "failed"],
             default: "'pending'",
             isNullable: false,
           },
           {
-            name: 'error',
-            type: 'text',
+            name: "error",
+            type: "text",
             isNullable: true,
           },
           {
-            name: 'onChainTxHash',
-            type: 'varchar',
-            length: '66',
+            name: "onChainTxHash",
+            type: "varchar",
+            length: "66",
             isNullable: true,
           },
           {
-            name: 'signature',
-            type: 'varchar',
-            length: '132',
+            name: "signature",
+            type: "varchar",
+            length: "132",
             isNullable: false,
           },
           {
-            name: 'recordHash',
-            type: 'varchar',
-            length: '66',
+            name: "recordHash",
+            type: "varchar",
+            length: "66",
             isNullable: false,
           },
           {
-            name: 'processingDurationMs',
-            type: 'integer',
+            name: "processingDurationMs",
+            type: "integer",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "createdAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
           {
-            name: 'clientIp',
-            type: 'varchar',
-            length: '45',
+            name: "clientIp",
+            type: "varchar",
+            length: "45",
             isNullable: true,
           },
           {
-            name: 'userAgent',
-            type: 'text',
+            name: "userAgent",
+            type: "text",
             isNullable: true,
           },
         ],
         foreignKeys: [
           {
-            columnNames: ['userId'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
-            onDelete: 'SET NULL',
+            columnNames: ["userId"],
+            referencedTableName: "users",
+            referencedColumnNames: ["id"],
+            onDelete: "SET NULL",
           },
         ],
       }),
@@ -127,66 +133,66 @@ export class CreateProvenanceRecordsTable1708900000000 implements MigrationInter
 
     // Create indexes for provenance_records
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_AGENT_ID_CREATED_AT',
-        columnNames: ['agentId', 'createdAt'],
+        name: "IDX_PROVENANCE_AGENT_ID_CREATED_AT",
+        columnNames: ["agentId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_USER_ID_CREATED_AT',
-        columnNames: ['userId', 'createdAt'],
+        name: "IDX_PROVENANCE_USER_ID_CREATED_AT",
+        columnNames: ["userId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_STATUS_CREATED_AT',
-        columnNames: ['status', 'createdAt'],
+        name: "IDX_PROVENANCE_STATUS_CREATED_AT",
+        columnNames: ["status", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_ACTION_CREATED_AT',
-        columnNames: ['action', 'createdAt'],
+        name: "IDX_PROVENANCE_ACTION_CREATED_AT",
+        columnNames: ["action", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_ON_CHAIN_TX_HASH',
-        columnNames: ['onChainTxHash'],
+        name: "IDX_PROVENANCE_ON_CHAIN_TX_HASH",
+        columnNames: ["onChainTxHash"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_AGENT_ID',
-        columnNames: ['agentId'],
+        name: "IDX_PROVENANCE_AGENT_ID",
+        columnNames: ["agentId"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_USER_ID',
-        columnNames: ['userId'],
+        name: "IDX_PROVENANCE_USER_ID",
+        columnNames: ["userId"],
       }),
     );
 
     await queryRunner.createIndex(
-      'provenance_records',
+      "provenance_records",
       new TableIndex({
-        name: 'IDX_PROVENANCE_CREATED_AT',
-        columnNames: ['createdAt'],
+        name: "IDX_PROVENANCE_CREATED_AT",
+        columnNames: ["createdAt"],
       }),
     );
 
@@ -234,16 +240,37 @@ export class CreateProvenanceRecordsTable1708900000000 implements MigrationInter
     `);
 
     // Drop indexes
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_CREATED_AT');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_USER_ID');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_AGENT_ID');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_ON_CHAIN_TX_HASH');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_ACTION_CREATED_AT');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_STATUS_CREATED_AT');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_USER_ID_CREATED_AT');
-    await queryRunner.dropIndex('provenance_records', 'IDX_PROVENANCE_AGENT_ID_CREATED_AT');
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_CREATED_AT",
+    );
+    await queryRunner.dropIndex("provenance_records", "IDX_PROVENANCE_USER_ID");
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_AGENT_ID",
+    );
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_ON_CHAIN_TX_HASH",
+    );
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_ACTION_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_STATUS_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_USER_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "provenance_records",
+      "IDX_PROVENANCE_AGENT_ID_CREATED_AT",
+    );
 
     // Drop table
-    await queryRunner.dropTable('provenance_records', true);
+    await queryRunner.dropTable("provenance_records", true);
   }
 }

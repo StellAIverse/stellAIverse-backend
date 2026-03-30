@@ -47,13 +47,13 @@ import { OrchestrationController } from "./orchestration/orchestration.controlle
     ProviderHealthService,
     CircuitBreakerService,
     ProviderMetricsService,
-    
+
     // Provider adapters
     MockProvider,
     OpenAIProvider,
     AnthropicProvider,
     GoogleProvider,
-    
+
     // Orchestration services
     MultiProviderOrchestrationService,
     ConsensusService,
@@ -66,13 +66,13 @@ import { OrchestrationController } from "./orchestration/orchestration.controlle
     ProviderHealthService,
     CircuitBreakerService,
     ProviderMetricsService,
-    
+
     // Export orchestration services
     MultiProviderOrchestrationService,
     ConsensusService,
     ResponseNormalizerService,
     AuditService,
-    
+
     // Export provider adapters
     OpenAIProvider,
     AnthropicProvider,
@@ -90,17 +90,15 @@ export class ComputeBridgeModule implements OnModuleInit {
 
   async onModuleInit() {
     // Register MockProvider with default config
-    await this.registry.register(
-      AIProviderType.CUSTOM,
-      this.mockProvider,
-      {
-        type: AIProviderType.CUSTOM,
-        apiKey: "mock-key",
-      },
+    await this.registry.register(AIProviderType.CUSTOM, this.mockProvider, {
+      type: AIProviderType.CUSTOM,
+      apiKey: "mock-key",
+    });
+
+    this.logger.log(
+      "ComputeBridge module initialized with multi-provider orchestration",
     );
-    
-    this.logger.log("ComputeBridge module initialized with multi-provider orchestration");
   }
-  
+
   private readonly logger = console;
 }

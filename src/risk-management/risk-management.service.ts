@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import {
   RiskConfigDto,
   PortfolioRiskDto,
   RiskAlertDto,
   PositionSizeDto,
-} from './dto/risk.dto';
+} from "./dto/risk.dto";
 
 interface Position {
   asset: string;
@@ -30,19 +30,33 @@ export class RiskManagementService {
     return this.riskConfigs.get(userId) ?? null;
   }
 
-  async calculatePortfolioRisk(userId: string, positions: Position[]): Promise<PortfolioRiskDto> {
+  async calculatePortfolioRisk(
+    userId: string,
+    positions: Position[],
+  ): Promise<PortfolioRiskDto> {
     const totalValue = positions.reduce((sum, p) => sum + p.value, 0);
     const weights = positions.map((p) => p.value / totalValue);
-    const portfolioVolatility = this.calculatePortfolioVolatility(positions, weights);
+    const portfolioVolatility = this.calculatePortfolioVolatility(
+      positions,
+      weights,
+    );
 
     const var95 = this.calculateVaR(totalValue, portfolioVolatility, 1.645);
     const var99 = this.calculateVaR(totalValue, portfolioVolatility, 2.326);
     const cvar95 = var95 * 1.25; // Simplified CVaR approximation
-    const sharpeRatio = this.calculateSharpeRatio(positions, portfolioVolatility);
+    const sharpeRatio = this.calculateSharpeRatio(
+      positions,
+      portfolioVolatility,
+    );
     const maxDrawdown = this.calculateMaxDrawdown(positions);
     const currentDrawdown = this.calculateCurrentDrawdown(positions);
     const diversificationScore = this.calculateDiversificationScore(weights);
-    const riskScore = this.calculateRiskScore(var95, totalValue, maxDrawdown, diversificationScore);
+    const riskScore = this.calculateRiskScore(
+      var95,
+      totalValue,
+      maxDrawdown,
+      diversificationScore,
+    );
 
     const alerts = this.generateAlerts(userId, positions, {
       var95,
@@ -82,8 +96,13 @@ export class RiskManagementService {
     const avgLoss = 0.02;
     const kellyFraction = winRate / avgLoss - (1 - winRate) / avgWin;
 
-    const volatilityAdjusted = (riskTolerance * dto.portfolioValue) / dto.volatility;
-    const recommendedSize = Math.min(volatilityAdjusted, maxPositionSize, dto.portfolioValue * kellyFraction);
+    const volatilityAdjusted =
+      (riskTolerance * dto.portfolioValue) / dto.volatility;
+    const recommendedSize = Math.min(
+      volatilityAdjusted,
+      maxPositionSize,
+      dto.portfolioValue * kellyFraction,
+    );
 
     return {
       recommendedSize: Math.max(0, recommendedSize),
@@ -92,40 +111,63 @@ export class RiskManagementService {
     };
   }
 
-  checkStopLoss(userId: string, asset: string, entryPrice: number, currentPrice: number): boolean {
+  checkStopLoss(
+    userId: string,
+    asset: string,
+    entryPrice: number,
+    currentPrice: number,
+  ): boolean {
     const config = this.riskConfigs.get(userId);
     if (!config) return false;
     const loss = (entryPrice - currentPrice) / entryPrice;
     return loss >= config.stopLossPercentage / 100;
   }
 
-  checkTakeProfit(userId: string, asset: string, entryPrice: number, currentPrice: number): boolean {
+  checkTakeProfit(
+    userId: string,
+    asset: string,
+    entryPrice: number,
+    currentPrice: number,
+  ): boolean {
     const config = this.riskConfigs.get(userId);
     if (!config) return false;
     const gain = (currentPrice - entryPrice) / entryPrice;
     return gain >= config.takeProfitPercentage / 100;
   }
 
-  private calculateVaR(totalValue: number, volatility: number, zScore: number): number {
+  private calculateVaR(
+    totalValue: number,
+    volatility: number,
+    zScore: number,
+  ): number {
     return totalValue * volatility * zScore;
   }
 
-  private calculatePortfolioVolatility(positions: Position[], weights: number[]): number {
+  private calculatePortfolioVolatility(
+    positions: Position[],
+    weights: number[],
+  ): number {
     // Simplified: weighted average volatility (ignores correlations)
     return positions.reduce((sum, p, i) => sum + weights[i] * p.volatility, 0);
   }
 
-  private calculateSharpeRatio(positions: Position[], volatility: number): number {
+  private calculateSharpeRatio(
+    positions: Position[],
+    volatility: number,
+  ): number {
     const riskFreeRate = 0.05;
-    const avgReturn = positions.reduce((sum, p) => {
-      return sum + (p.currentPrice - p.entryPrice) / p.entryPrice;
-    }, 0) / Math.max(positions.length, 1);
+    const avgReturn =
+      positions.reduce((sum, p) => {
+        return sum + (p.currentPrice - p.entryPrice) / p.entryPrice;
+      }, 0) / Math.max(positions.length, 1);
     return volatility > 0 ? (avgReturn - riskFreeRate) / volatility : 0;
   }
 
   private calculateMaxDrawdown(positions: Position[]): number {
     if (!positions.length) return 0;
-    const losses = positions.map((p) => Math.max(0, (p.entryPrice - p.currentPrice) / p.entryPrice));
+    const losses = positions.map((p) =>
+      Math.max(0, (p.entryPrice - p.currentPrice) / p.entryPrice),
+    );
     return Math.max(...losses);
   }
 
@@ -147,21 +189,29 @@ export class RiskManagementService {
     diversification: number,
   ): number {
     const varRatio = totalValue > 0 ? var95 / totalValue : 0;
-    return Math.min(100, (varRatio * 50 + maxDrawdown * 30 + (1 - diversification) * 20));
+    return Math.min(
+      100,
+      varRatio * 50 + maxDrawdown * 30 + (1 - diversification) * 20,
+    );
   }
 
   private generateAlerts(
     userId: string,
     positions: Position[],
-    metrics: { var95: number; maxDrawdown: number; currentDrawdown: number; diversificationScore: number },
+    metrics: {
+      var95: number;
+      maxDrawdown: number;
+      currentDrawdown: number;
+      diversificationScore: number;
+    },
   ): RiskAlertDto[] {
     const alerts: RiskAlertDto[] = [];
     const config = this.riskConfigs.get(userId);
 
     if (metrics.currentDrawdown > 0.1) {
       alerts.push({
-        type: 'drawdown',
-        severity: metrics.currentDrawdown > 0.2 ? 'critical' : 'high',
+        type: "drawdown",
+        severity: metrics.currentDrawdown > 0.2 ? "critical" : "high",
         message: `Portfolio drawdown of ${(metrics.currentDrawdown * 100).toFixed(1)}% detected`,
         threshold: 0.1,
         currentValue: metrics.currentDrawdown,
@@ -171,9 +221,9 @@ export class RiskManagementService {
 
     if (metrics.diversificationScore < 0.3) {
       alerts.push({
-        type: 'concentration',
-        severity: 'medium',
-        message: 'Portfolio is highly concentrated. Consider diversifying.',
+        type: "concentration",
+        severity: "medium",
+        message: "Portfolio is highly concentrated. Consider diversifying.",
         threshold: 0.3,
         currentValue: metrics.diversificationScore,
         triggeredAt: new Date(),
@@ -182,14 +232,24 @@ export class RiskManagementService {
 
     if (config) {
       for (const position of positions) {
-        if (this.checkStopLoss(userId, position.asset, position.entryPrice, position.currentPrice)) {
+        if (
+          this.checkStopLoss(
+            userId,
+            position.asset,
+            position.entryPrice,
+            position.currentPrice,
+          )
+        ) {
           alerts.push({
-            type: 'stop_loss',
-            severity: 'high',
+            type: "stop_loss",
+            severity: "high",
             message: `Stop-loss triggered for ${position.asset}`,
             asset: position.asset,
             threshold: config.stopLossPercentage,
-            currentValue: ((position.entryPrice - position.currentPrice) / position.entryPrice) * 100,
+            currentValue:
+              ((position.entryPrice - position.currentPrice) /
+                position.entryPrice) *
+              100,
             triggeredAt: new Date(),
           });
         }

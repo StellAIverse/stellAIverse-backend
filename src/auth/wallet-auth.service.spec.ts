@@ -24,10 +24,10 @@ describe("WalletAuthService", () => {
   let verifyMessage: jest.Mock;
 
   const mockUser: User = {
-    id: '123',
+    id: "123",
     username: null,
-    walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    email: 'test@example.com',
+    walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
+    email: "test@example.com",
     password: null,
     emailVerified: true,
     role: UserRole.USER,

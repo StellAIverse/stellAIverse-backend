@@ -7,10 +7,7 @@ import { RewardController } from "./reward.controller";
 import { AuditModule } from "../audit/audit.module";
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ReferralReward, User]),
-    AuditModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ReferralReward, User]), AuditModule],
   controllers: [RewardController],
   providers: [RewardService],
   exports: [RewardService],

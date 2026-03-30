@@ -1,16 +1,20 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Portfolio } from '../entities/portfolio.entity';
-import { PortfolioAsset } from '../entities/portfolio-asset.entity';
-import { OptimizationHistory, OptimizationMethod, OptimizationStatus } from '../entities/optimization-history.entity';
-import { RiskProfile } from '../entities/risk-profile.entity';
-import { CreatePortfolioDto, UpdatePortfolioDto } from '../dto/portfolio.dto';
-import { CreateOptimizationDto } from '../dto/optimization.dto';
-import { PortfolioStatus } from '../entities/portfolio.entity';
-import { ModernPortfolioTheory } from '../algorithms/modern-portfolio-theory';
-import { BlackLittermanModel } from '../algorithms/black-litterman';
-import { ConstraintOptimizer } from '../algorithms/constraint-optimizer';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Portfolio } from "../entities/portfolio.entity";
+import { PortfolioAsset } from "../entities/portfolio-asset.entity";
+import {
+  OptimizationHistory,
+  OptimizationMethod,
+  OptimizationStatus,
+} from "../entities/optimization-history.entity";
+import { RiskProfile } from "../entities/risk-profile.entity";
+import { CreatePortfolioDto, UpdatePortfolioDto } from "../dto/portfolio.dto";
+import { CreateOptimizationDto } from "../dto/optimization.dto";
+import { PortfolioStatus } from "../entities/portfolio.entity";
+import { ModernPortfolioTheory } from "../algorithms/modern-portfolio-theory";
+import { BlackLittermanModel } from "../algorithms/black-litterman";
+import { ConstraintOptimizer } from "../algorithms/constraint-optimizer";
 
 @Injectable()
 export class PortfolioService {
@@ -51,11 +55,11 @@ export class PortfolioService {
   async getPortfolio(portfolioId: string): Promise<Portfolio> {
     const portfolio = await this.portfolioRepository.findOne({
       where: { id: portfolioId },
-      relations: ['assets', 'optimizationHistory', 'performanceMetrics'],
+      relations: ["assets", "optimizationHistory", "performanceMetrics"],
     });
 
     if (!portfolio) {
-      throw new BadRequestException('Portfolio not found');
+      throw new BadRequestException("Portfolio not found");
     }
 
     return portfolio;
@@ -67,8 +71,8 @@ export class PortfolioService {
   async getUserPortfolios(userId: string): Promise<Portfolio[]> {
     return this.portfolioRepository.find({
       where: { userId },
-      relations: ['assets', 'performanceMetrics'],
-      order: { createdAt: 'DESC' },
+      relations: ["assets", "performanceMetrics"],
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -142,7 +146,7 @@ export class PortfolioService {
     });
 
     if (!asset) {
-      throw new BadRequestException('Asset not found');
+      throw new BadRequestException("Asset not found");
     }
 
     asset.currentPrice = currentPrice;
@@ -176,8 +180,7 @@ export class PortfolioService {
     const allocation: Record<string, number> = {};
 
     for (const asset of assets) {
-      const percentage =
-        totalValue > 0 ? (asset.value / totalValue) * 100 : 0;
+      const percentage = totalValue > 0 ? (asset.value / totalValue) * 100 : 0;
       asset.allocationPercentage = percentage;
       allocation[asset.ticker] = percentage;
     }
@@ -201,9 +204,7 @@ export class PortfolioService {
     });
 
     if (assets.length === 0) {
-      throw new BadRequestException(
-        'Portfolio has no assets to optimize',
-      );
+      throw new BadRequestException("Portfolio has no assets to optimize");
     }
 
     // Create optimization history record
@@ -220,101 +221,82 @@ export class PortfolioService {
 
     try {
       // Prepare data
-      const expectedReturns = assets.map(
-        (a) => a.expectedReturn || 0.07,
-      );
-      const volatilities = assets.map(
-        (a) => a.volatility || 0.15,
-      );
+      const expectedReturns = assets.map((a) => a.expectedReturn || 0.07);
+      const volatilities = assets.map((a) => a.volatility || 0.15);
 
       // Simple correlation matrix (could be enhanced with historical data)
-      const correlationMatrix = this.generateCorrelationMatrix(
-        assets.length,
-      );
+      const correlationMatrix = this.generateCorrelationMatrix(assets.length);
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
       let suggestedWeights: number[] = [];
 
       // Run optimization based on method
       switch (dto.method) {
         case OptimizationMethod.MEAN_VARIANCE:
-          suggestedWeights =
-            ModernPortfolioTheory.meanVarianceOptimization(
-              expectedReturns,
-              covarianceMatrix,
-            );
+          suggestedWeights = ModernPortfolioTheory.meanVarianceOptimization(
+            expectedReturns,
+            covarianceMatrix,
+          );
           break;
 
         case OptimizationMethod.MIN_VARIANCE:
           suggestedWeights =
-            ModernPortfolioTheory.minVarianceOptimization(
-              covarianceMatrix,
-            );
+            ModernPortfolioTheory.minVarianceOptimization(covarianceMatrix);
           break;
 
         case OptimizationMethod.RISK_PARITY:
           suggestedWeights =
-            ModernPortfolioTheory.riskParityOptimization(
-              covarianceMatrix,
-            );
+            ModernPortfolioTheory.riskParityOptimization(covarianceMatrix);
           break;
 
         case OptimizationMethod.MAX_SHARPE:
-          suggestedWeights =
-            ModernPortfolioTheory.meanVarianceOptimization(
-              expectedReturns,
-              covarianceMatrix,
-              {},
-              0.02,
-            );
+          suggestedWeights = ModernPortfolioTheory.meanVarianceOptimization(
+            expectedReturns,
+            covarianceMatrix,
+            {},
+            0.02,
+          );
           break;
 
         default:
-          suggestedWeights = new Array(assets.length).fill(
-            1 / assets.length,
-          );
+          suggestedWeights = new Array(assets.length).fill(1 / assets.length);
       }
 
       // Build allocation
       const suggestedAllocation: Record<string, number> = {};
       for (let i = 0; i < assets.length; i++) {
-        suggestedAllocation[assets[i].ticker] =
-          suggestedWeights[i] * 100;
+        suggestedAllocation[assets[i].ticker] = suggestedWeights[i] * 100;
         assets[i].suggestedAllocation = suggestedWeights[i] * 100;
       }
 
       // Calculate metrics
-      const metrics =
-        ModernPortfolioTheory.calculatePortfolioMetrics(
-          suggestedWeights,
-          expectedReturns,
-          covarianceMatrix,
-        );
+      const metrics = ModernPortfolioTheory.calculatePortfolioMetrics(
+        suggestedWeights,
+        expectedReturns,
+        covarianceMatrix,
+      );
 
       // Calculate improvement score
-      let currentReturn = 0;
-      let currentVolatility = 0;
+      const currentReturn = 0;
+      const currentVolatility = 0;
 
       const currentWeights = assets.map(
         (a) => (a.allocationPercentage || 0) / 100,
       );
 
-      const currentMetrics =
-        ModernPortfolioTheory.calculatePortfolioMetrics(
-          currentWeights,
-          expectedReturns,
-          covarianceMatrix,
-        );
+      const currentMetrics = ModernPortfolioTheory.calculatePortfolioMetrics(
+        currentWeights,
+        expectedReturns,
+        covarianceMatrix,
+      );
 
       const improvementScore =
         currentMetrics.volatility > 0
-          ? ((currentMetrics.volatility -
-              metrics.volatility) /
+          ? ((currentMetrics.volatility - metrics.volatility) /
               currentMetrics.volatility) *
             100
           : 0;
@@ -333,15 +315,11 @@ export class PortfolioService {
       // Save suggested allocation to assets
       await this.portfolioAssetRepository.save(assets);
 
-      this.logger.log(
-        `Optimization completed for portfolio ${portfolioId}`,
-      );
+      this.logger.log(`Optimization completed for portfolio ${portfolioId}`);
 
       return result;
     } catch (error) {
-      this.logger.error(
-        `Optimization failed: ${error.message}`,
-      );
+      this.logger.error(`Optimization failed: ${error.message}`);
       result.status = OptimizationStatus.FAILED;
       result.errorMessage = error.message;
       await this.optimizationRepository.save(result);
@@ -382,9 +360,7 @@ export class PortfolioService {
     });
 
     if (!optimization) {
-      throw new BadRequestException(
-        'Optimization not found',
-      );
+      throw new BadRequestException("Optimization not found");
     }
 
     optimization.status = OptimizationStatus.APPROVED;
@@ -396,26 +372,19 @@ export class PortfolioService {
   /**
    * Implement optimization (apply to portfolio)
    */
-  async implementOptimization(
-    optimizationId: string,
-  ): Promise<Portfolio> {
+  async implementOptimization(optimizationId: string): Promise<Portfolio> {
     const optimization = await this.optimizationRepository.findOne({
       where: { id: optimizationId },
     });
 
     if (!optimization) {
-      throw new BadRequestException(
-        'Optimization not found',
-      );
+      throw new BadRequestException("Optimization not found");
     }
 
-    const portfolio = await this.getPortfolio(
-      optimization.portfolioId,
-    );
+    const portfolio = await this.getPortfolio(optimization.portfolioId);
 
     // Apply suggested allocation
-    portfolio.targetAllocation =
-      optimization.suggestedAllocation;
+    portfolio.targetAllocation = optimization.suggestedAllocation;
     portfolio.lastRebalanceDate = new Date();
 
     optimization.status = OptimizationStatus.IMPLEMENTED;
@@ -435,7 +404,7 @@ export class PortfolioService {
   ): Promise<OptimizationHistory[]> {
     return this.optimizationRepository.find({
       where: { portfolioId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }

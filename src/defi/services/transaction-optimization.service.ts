@@ -1,14 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DeFiTransaction, TransactionStatus } from '../entities/defi-transaction.entity';
-import { DeFiPosition } from '../entities/defi-position.entity';
-import { ProtocolRegistry } from '../protocols/protocol-registry';
-import { TransactionData, SimulationResult, GasEstimate } from '../protocols/protocol-adapter.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  DeFiTransaction,
+  TransactionStatus,
+} from "../entities/defi-transaction.entity";
+import { DeFiPosition } from "../entities/defi-position.entity";
+import { ProtocolRegistry } from "../protocols/protocol-registry";
+import {
+  TransactionData,
+  SimulationResult,
+  GasEstimate,
+} from "../protocols/protocol-adapter.interface";
 
 @Injectable()
 export class TransactionOptimizationService {
-  private logger = new Logger('TransactionOptimizationService');
+  private logger = new Logger("TransactionOptimizationService");
 
   private gasMultipliers = {
     legacy: 1.0,
@@ -39,13 +46,13 @@ export class TransactionOptimizationService {
       where: { id: transactionId },
     });
 
-    if (!transaction) throw new Error('Transaction not found');
+    if (!transaction) throw new Error("Transaction not found");
 
     const position = await this.positionRepository.findOne({
       where: { id: transaction.position_id },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const adapter = this.protocolRegistry.getAdapter(position.protocol as any);
 
@@ -53,13 +60,15 @@ export class TransactionOptimizationService {
       to: position.contract_address,
       from: position.wallet_address,
       value: transaction.amount_in.toString(),
-      data: transaction.encoded_data?.data || '',
+      data: transaction.encoded_data?.data || "",
     };
 
     try {
       const result = await adapter.simulateTransaction(txData);
 
-      transaction.status = result.success ? TransactionStatus.SIMULATED : TransactionStatus.FAILED;
+      transaction.status = result.success
+        ? TransactionStatus.SIMULATED
+        : TransactionStatus.FAILED;
       transaction.simulation_results = {
         success: result.success,
         outputAmount: result.outputAmount,
@@ -75,7 +84,10 @@ export class TransactionOptimizationService {
 
       return result;
     } catch (error) {
-      this.logger.error(`Simulation failed for transaction ${transactionId}`, error);
+      this.logger.error(
+        `Simulation failed for transaction ${transactionId}`,
+        error,
+      );
       transaction.status = TransactionStatus.FAILED;
       transaction.error_message = error.message;
       await this.transactionRepository.save(transaction);
@@ -86,18 +98,21 @@ export class TransactionOptimizationService {
   /**
    * Estimate gas costs and optimize for network conditions
    */
-  async estimateAndOptimizeGas(transactionId: string, priorityLevel: 'LOW' | 'STANDARD' | 'FAST' | 'URGENT' = 'STANDARD'): Promise<GasOptimizationResult> {
+  async estimateAndOptimizeGas(
+    transactionId: string,
+    priorityLevel: "LOW" | "STANDARD" | "FAST" | "URGENT" = "STANDARD",
+  ): Promise<GasOptimizationResult> {
     const transaction = await this.transactionRepository.findOne({
       where: { id: transactionId },
     });
 
-    if (!transaction) throw new Error('Transaction not found');
+    if (!transaction) throw new Error("Transaction not found");
 
     const position = await this.positionRepository.findOne({
       where: { id: transaction.position_id },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const adapter = this.protocolRegistry.getAdapter(position.protocol as any);
 
@@ -105,50 +120,57 @@ export class TransactionOptimizationService {
       to: position.contract_address,
       from: position.wallet_address,
       value: transaction.amount_in.toString(),
-      data: transaction.encoded_data?.data || '',
+      data: transaction.encoded_data?.data || "",
     };
 
     try {
       const baseEstimate = await adapter.estimateGas(txData);
 
       // Get network conditions
-      const networkConditions = await this.getNetworkConditions(transaction.network);
+      const networkConditions = await this.getNetworkConditions(
+        transaction.network,
+      );
 
       // Calculate optimized gas parameters
       const priorityMultiplier = this.priorityLevels[priorityLevel] || 1;
-      const transmissionMethod = this.selectTransmissionMethod(baseEstimate, networkConditions);
+      const transmissionMethod = this.selectTransmissionMethod(
+        baseEstimate,
+        networkConditions,
+      );
       const methodMultiplier = this.gasMultipliers[transmissionMethod];
 
-      const optimizedGasPrice = parseFloat(baseEstimate.gasPrice) * priorityMultiplier;
-      const optimizedCost = baseEstimate.gas * optimizedGasPrice * methodMultiplier;
+      const optimizedGasPrice =
+        parseFloat(baseEstimate.gasPrice) * priorityMultiplier;
+      const optimizedCost =
+        baseEstimate.gas * optimizedGasPrice * methodMultiplier;
 
       // Calculate MEV protection upcharge if using flashbots
       let mevProtectionCost = 0;
-      if (transmissionMethod === 'flashbots') {
+      if (transmissionMethod === "flashbots") {
         mevProtectionCost = optimizedCost * 0.02; // 2% premium
       }
 
       const alternatives = [
         {
-          method: 'legacy',
+          method: "legacy",
           gasPrice: parseFloat(baseEstimate.gasPrice),
           totalCost: baseEstimate.gas * parseFloat(baseEstimate.gasPrice),
-          estimatedTime: '2-5 minutes',
-          riskLevel: 'MEDIUM',
+          estimatedTime: "2-5 minutes",
+          riskLevel: "MEDIUM",
         },
         {
-          method: 'eip1559',
+          method: "eip1559",
           gasPrice: optimizedGasPrice,
           totalCost: optimizedCost,
-          estimatedTime: '30-60 seconds',
-          riskLevel: 'LOW',
+          estimatedTime: "30-60 seconds",
+          riskLevel: "LOW",
         },
         {
-          method: 'flashbots',
+          method: "flashbots",
           gasPrice: optimizedGasPrice,
           totalCost: optimizedCost + mevProtectionCost,
-          estimatedTime: '5-15 seconds',
-          riskLevel: 'VERY_LOW',
+          estimatedTime: "5-15 seconds",
+          riskLevel: "VERY_LOW",
           mevProtected: true,
         },
       ];
@@ -162,7 +184,8 @@ export class TransactionOptimizationService {
         priorityLevel,
         baseGasPrice: baseEstimate.gasPrice,
         optimizedGasPrice,
-        estimatedTime: alternatives.find((a) => a.method === transmissionMethod)?.estimatedTime,
+        estimatedTime: alternatives.find((a) => a.method === transmissionMethod)
+          ?.estimatedTime,
       };
 
       await this.transactionRepository.save(transaction);
@@ -174,18 +197,28 @@ export class TransactionOptimizationService {
           method: transmissionMethod,
           gasPrice: optimizedGasPrice,
           totalCost: optimizedCost + mevProtectionCost,
-          costUSD: (optimizedCost + mevProtectionCost) * networkConditions.ethPriceUSD,
-          estimatedTime: alternatives.find((a) => a.method === transmissionMethod)?.estimatedTime,
+          costUSD:
+            (optimizedCost + mevProtectionCost) * networkConditions.ethPriceUSD,
+          estimatedTime: alternatives.find(
+            (a) => a.method === transmissionMethod,
+          )?.estimatedTime,
         },
         alternatives,
         networkConditions,
         savings: {
-          vs_standard: baseEstimate.costUSD - (optimizedCost * networkConditions.ethPriceUSD),
-          vs_urgent: baseEstimate.costUSD * 1.5 - ((optimizedCost + mevProtectionCost) * networkConditions.ethPriceUSD),
+          vs_standard:
+            baseEstimate.costUSD -
+            optimizedCost * networkConditions.ethPriceUSD,
+          vs_urgent:
+            baseEstimate.costUSD * 1.5 -
+            (optimizedCost + mevProtectionCost) * networkConditions.ethPriceUSD,
         },
       };
     } catch (error) {
-      this.logger.error(`Gas estimation failed for transaction ${transactionId}`, error);
+      this.logger.error(
+        `Gas estimation failed for transaction ${transactionId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -193,12 +226,14 @@ export class TransactionOptimizationService {
   /**
    * Bundle multiple transactions for better gas efficiency
    */
-  async bundleTransactions(transactionIds: string[]): Promise<TransactionBundleResult> {
+  async bundleTransactions(
+    transactionIds: string[],
+  ): Promise<TransactionBundleResult> {
     const transactions = await this.transactionRepository.find({
       where: { id: { $in: transactionIds } as any },
     });
 
-    if (transactions.length === 0) throw new Error('No transactions found');
+    if (transactions.length === 0) throw new Error("No transactions found");
 
     // Calculate individual costs
     let totalCost = 0;
@@ -229,7 +264,7 @@ export class TransactionOptimizationService {
       savings,
       savingsPercent: (savings / individuatCost) * 100,
       breakdown,
-      recommendation: savings > 20 ? 'RECOMMENDED' : 'NOT_RECOMMENDED',
+      recommendation: savings > 20 ? "RECOMMENDED" : "NOT_RECOMMENDED",
     };
   }
 
@@ -241,13 +276,18 @@ export class TransactionOptimizationService {
       where: { id: positionId },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const adapter = this.protocolRegistry.getAdapter(position.protocol as any);
 
     try {
       // Create withdrawal transaction
-      const withdrawalTx = await adapter.withdraw(position.wallet_address, position.token_symbol, position.current_amount, 'ethereum');
+      const withdrawalTx = await adapter.withdraw(
+        position.wallet_address,
+        position.token_symbol,
+        position.current_amount,
+        "ethereum",
+      );
 
       // Estimate gas
       const gasEstimate = await adapter.estimateGas(withdrawalTx);
@@ -258,11 +298,17 @@ export class TransactionOptimizationService {
       // If position has borrowing, create repayment transaction
       let repaymentTx = null;
       if (position.borrowed_amount && position.borrowed_amount > 0) {
-        repaymentTx = await adapter.repay(position.wallet_address, position.token_symbol, position.borrowed_amount, 'ethereum');
+        repaymentTx = await adapter.repay(
+          position.wallet_address,
+          position.token_symbol,
+          position.borrowed_amount,
+          "ethereum",
+        );
       }
 
       // Calculate total costs
-      const totalGasCost = gasEstimate.costUSD + (repaymentTx ? gasEstimate.costUSD : 0);
+      const totalGasCost =
+        gasEstimate.costUSD + (repaymentTx ? gasEstimate.costUSD : 0);
       const expectedRecovery = position.current_amount - totalGasCost;
 
       return {
@@ -270,7 +316,7 @@ export class TransactionOptimizationService {
         plan: [
           {
             step: 1,
-            action: 'Withdraw',
+            action: "Withdraw",
             amount: position.current_amount,
             token: position.token_symbol,
             gasCost: gasEstimate.costUSD,
@@ -280,7 +326,7 @@ export class TransactionOptimizationService {
             ? [
                 {
                   step: 2,
-                  action: 'Repay',
+                  action: "Repay",
                   amount: position.borrowed_amount,
                   token: position.token_symbol,
                   gasCost: gasEstimate.costUSD,
@@ -291,15 +337,18 @@ export class TransactionOptimizationService {
         ],
         totalGasCost,
         expectedRecovery,
-        timeToExecution: '10-30 seconds',
+        timeToExecution: "10-30 seconds",
         riskFactors: [
-          'Price movement during execution',
-          'Slippage on DEX routes',
-          'Network congestion',
+          "Price movement during execution",
+          "Slippage on DEX routes",
+          "Network congestion",
         ],
       };
     } catch (error) {
-      this.logger.error(`Emergency exit optimization failed for position ${positionId}`, error);
+      this.logger.error(
+        `Emergency exit optimization failed for position ${positionId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -307,15 +356,21 @@ export class TransactionOptimizationService {
   /**
    * Batch transaction optimization - find patterns and optimize
    */
-  async optimizeBatchTransactions(userId: string): Promise<BatchOptimizationResult> {
+  async optimizeBatchTransactions(
+    userId: string,
+  ): Promise<BatchOptimizationResult> {
     const positions = await this.positionRepository.find({
       where: { user_id: userId },
-      relations: ['transactions'],
+      relations: ["transactions"],
     });
 
     const pendingTransactions = positions
       .flatMap((p) => p.transactions || [])
-      .filter((t) => t.status === TransactionStatus.PENDING || t.status === TransactionStatus.SIMULATED);
+      .filter(
+        (t) =>
+          t.status === TransactionStatus.PENDING ||
+          t.status === TransactionStatus.SIMULATED,
+      );
 
     if (pendingTransactions.length === 0) {
       return {
@@ -337,8 +392,10 @@ export class TransactionOptimizationService {
     for (const network in byNetwork) {
       const txs = byNetwork[network];
       if (txs.length > 1) {
-        const bundleResult = await this.bundleTransactions(txs.map((t) => t.id));
-        if (bundleResult.recommendation === 'RECOMMENDED') {
+        const bundleResult = await this.bundleTransactions(
+          txs.map((t) => t.id),
+        );
+        if (bundleResult.recommendation === "RECOMMENDED") {
           recommendations.push({
             network,
             bundleCount: txs.length,
@@ -353,13 +410,18 @@ export class TransactionOptimizationService {
       totalTransactions: pendingTransactions.length,
       hasBundlingOpportunity: recommendations.length > 0,
       recommendations,
-      estimatedTotalSavings: recommendations.reduce((sum, r) => sum + r.potentialSavings, 0),
+      estimatedTotalSavings: recommendations.reduce(
+        (sum, r) => sum + r.potentialSavings,
+        0,
+      ),
     };
   }
 
   // Helper methods
 
-  private async getNetworkConditions(network: string = 'ethereum'): Promise<NetworkConditions> {
+  private async getNetworkConditions(
+    network: string = "ethereum",
+  ): Promise<NetworkConditions> {
     // In production, would fetch from gas price oracle
     return {
       network,
@@ -369,23 +431,26 @@ export class TransactionOptimizationService {
       fastGasPrice: 75,
       urgentGasPrice: 150,
       ethPriceUSD: 2500,
-      networkCongestion: 'moderate',
+      networkCongestion: "moderate",
       avgBlockTime: 12,
     };
   }
 
-  private selectTransmissionMethod(estimate: GasEstimate, network: NetworkConditions): 'legacy' | 'eip1559' | 'flashbots' {
+  private selectTransmissionMethod(
+    estimate: GasEstimate,
+    network: NetworkConditions,
+  ): "legacy" | "eip1559" | "flashbots" {
     // Use EIP1559 if available and network supports it
     if (network.baseFeePerGas) {
-      return 'eip1559';
+      return "eip1559";
     }
 
     // Use Flashbots for large transactions or high slippage risk
     if (parseFloat(estimate.totalCost) > 1) {
-      return 'flashbots';
+      return "flashbots";
     }
 
-    return 'legacy';
+    return "legacy";
   }
 }
 
@@ -421,7 +486,7 @@ export interface TransactionBundleResult {
   savings: number;
   savingsPercent: number;
   breakdown: any[];
-  recommendation: 'RECOMMENDED' | 'NOT_RECOMMENDED';
+  recommendation: "RECOMMENDED" | "NOT_RECOMMENDED";
 }
 
 export interface EmergencyExitPlan {
@@ -455,6 +520,6 @@ export interface NetworkConditions {
   fastGasPrice: number;
   urgentGasPrice: number;
   ethPriceUSD: number;
-  networkCongestion: 'low' | 'moderate' | 'high';
+  networkCongestion: "low" | "moderate" | "high";
   avgBlockTime: number;
 }

@@ -10,7 +10,11 @@ import {
 import { Server, Socket } from "socket.io";
 import { UseGuards, Logger } from "@nestjs/common";
 import { WebSocketAuthGuard } from "./guards/websocket-auth.guard";
-import { AgentTelemetryService, TelemetryEvent, TelemetryFilter } from "./agent-telemetry.service";
+import {
+  AgentTelemetryService,
+  TelemetryEvent,
+  TelemetryFilter,
+} from "./agent-telemetry.service";
 import { UserRole } from "../user/entities/user.entity";
 import { UserService } from "../user/user.service";
 
@@ -44,7 +48,7 @@ export class AgentTelemetryGateway
   async handleConnection(client: AuthenticatedSocket) {
     this.logger.log(`Client connected to telemetry: ${client.id}`);
     client.filters = new Map();
-    
+
     // Welcome message
     client.emit("telemetry:welcome", {
       message: "Connected to Real-Time Agent Telemetry Gateway",
@@ -72,28 +76,32 @@ export class AgentTelemetryGateway
       }
 
       // Enforce RBAC: only authorized users can subscribe to telemetry
-      const isAuthorized = 
-        client.role === UserRole.ADMIN || 
-        client.role === UserRole.OPERATOR;
+      const isAuthorized =
+        client.role === UserRole.ADMIN || client.role === UserRole.OPERATOR;
 
       if (!isAuthorized) {
-        this.logger.warn(`Unauthorized telemetry subscription attempt from user ${client.userId} with role ${client.role}`);
+        this.logger.warn(
+          `Unauthorized telemetry subscription attempt from user ${client.userId} with role ${client.role}`,
+        );
         return {
           success: false,
-          message: "Unauthorized: Insufficient permissions for telemetry access",
+          message:
+            "Unauthorized: Insufficient permissions for telemetry access",
         };
       }
-      
+
       const subscriptionId = filter.agentId || "all";
       client.filters.set(subscriptionId, filter);
-      
+
       if (filter.agentId) {
         client.join(`telemetry:agent:${filter.agentId}`);
       } else {
         client.join("telemetry:all");
       }
 
-      this.logger.log(`Client ${client.id} subscribed to telemetry: ${subscriptionId}`);
+      this.logger.log(
+        `Client ${client.id} subscribed to telemetry: ${subscriptionId}`,
+      );
 
       return {
         success: true,
@@ -116,14 +124,16 @@ export class AgentTelemetryGateway
   ) {
     const subscriptionId = data.agentId || "all";
     client.filters.delete(subscriptionId);
-    
+
     if (data.agentId) {
       client.leave(`telemetry:agent:${data.agentId}`);
     } else {
       client.leave("telemetry:all");
     }
 
-    this.logger.log(`Client ${client.id} unsubscribed from telemetry: ${subscriptionId}`);
+    this.logger.log(
+      `Client ${client.id} unsubscribed from telemetry: ${subscriptionId}`,
+    );
 
     return {
       success: true,
@@ -136,23 +146,31 @@ export class AgentTelemetryGateway
    */
   broadcastTelemetry(event: TelemetryEvent) {
     const processedEvent = this.telemetryService.processTelemetry(event);
-    
+
     // Broadcast to global subscribers
     this.server.to("telemetry:all").sockets?.forEach((socket: Socket) => {
       const authSocket = socket as unknown as AuthenticatedSocket;
       const globalFilter = authSocket.filters?.get("all");
-      if (globalFilter && this.telemetryService.matchesFilter(processedEvent, globalFilter)) {
+      if (
+        globalFilter &&
+        this.telemetryService.matchesFilter(processedEvent, globalFilter)
+      ) {
         authSocket.emit("telemetry:event", processedEvent);
       }
     });
 
     // Broadcast to agent-specific subscribers
-    this.server.to(`telemetry:agent:${event.agentId}`).sockets?.forEach((socket: Socket) => {
-      const authSocket = socket as unknown as AuthenticatedSocket;
-      const agentFilter = authSocket.filters?.get(event.agentId);
-      if (agentFilter && this.telemetryService.matchesFilter(processedEvent, agentFilter)) {
-        authSocket.emit("telemetry:event", processedEvent);
-      }
-    });
+    this.server
+      .to(`telemetry:agent:${event.agentId}`)
+      .sockets?.forEach((socket: Socket) => {
+        const authSocket = socket as unknown as AuthenticatedSocket;
+        const agentFilter = authSocket.filters?.get(event.agentId);
+        if (
+          agentFilter &&
+          this.telemetryService.matchesFilter(processedEvent, agentFilter)
+        ) {
+          authSocket.emit("telemetry:event", processedEvent);
+        }
+      });
   }
 }

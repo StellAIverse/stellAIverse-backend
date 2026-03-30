@@ -5,8 +5,8 @@ import {
   IsDateString,
   IsEnum,
   IsArray,
-} from 'class-validator';
-import { BacktestStatus } from '../entities/backtest-result.entity';
+} from "class-validator";
+import { BacktestStatus } from "../entities/backtest-result.entity";
 
 export class CreateBacktestDto {
   @IsString()

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import {
   PredictionRequestDto,
   PredictionResponseDto,
@@ -6,20 +6,65 @@ import {
   ModelMetricsDto,
   BacktestRequestDto,
   Timeframe,
-} from './dto/prediction.dto';
+} from "./dto/prediction.dto";
 
 @Injectable()
 export class PricePredictionService {
   private readonly logger = new Logger(PricePredictionService.name);
 
-  private readonly MODEL_VERSION = '1.0.0';
+  private readonly MODEL_VERSION = "1.0.0";
 
   private readonly SUPPORTED_SYMBOLS = [
-    'BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'XRP', 'DOT', 'AVAX', 'MATIC', 'LINK',
-    'UNI', 'ATOM', 'LTC', 'BCH', 'ALGO', 'VET', 'FIL', 'TRX', 'ETC', 'XLM',
-    'THETA', 'AAVE', 'EOS', 'MKR', 'COMP', 'SNX', 'YFI', 'SUSHI', 'CRV', 'BAL',
-    'ZEC', 'DASH', 'XMR', 'NEO', 'WAVES', 'IOTA', 'ONT', 'ZIL', 'ICX', 'QTUM',
-    'OMG', 'BAT', 'ZRX', 'KNC', 'REN', 'BAND', 'STORJ', 'GRT', 'SKL', 'NMR',
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "ADA",
+    "XRP",
+    "DOT",
+    "AVAX",
+    "MATIC",
+    "LINK",
+    "UNI",
+    "ATOM",
+    "LTC",
+    "BCH",
+    "ALGO",
+    "VET",
+    "FIL",
+    "TRX",
+    "ETC",
+    "XLM",
+    "THETA",
+    "AAVE",
+    "EOS",
+    "MKR",
+    "COMP",
+    "SNX",
+    "YFI",
+    "SUSHI",
+    "CRV",
+    "BAL",
+    "ZEC",
+    "DASH",
+    "XMR",
+    "NEO",
+    "WAVES",
+    "IOTA",
+    "ONT",
+    "ZIL",
+    "ICX",
+    "QTUM",
+    "OMG",
+    "BAT",
+    "ZRX",
+    "KNC",
+    "REN",
+    "BAND",
+    "STORJ",
+    "GRT",
+    "SKL",
+    "NMR",
   ];
 
   async predict(dto: PredictionRequestDto): Promise<PredictionResponseDto> {
@@ -27,10 +72,16 @@ export class PricePredictionService {
     const periods = dto.periods ?? 10;
     const currentPrice = this.getMockCurrentPrice(symbol);
 
-    const predictions = this.generatePredictions(currentPrice, dto.timeframe, periods);
+    const predictions = this.generatePredictions(
+      currentPrice,
+      dto.timeframe,
+      periods,
+    );
     const confidence = this.calculateModelConfidence(symbol, dto.timeframe);
 
-    this.logger.log(`Generated ${periods} predictions for ${symbol} on ${dto.timeframe}`);
+    this.logger.log(
+      `Generated ${periods} predictions for ${symbol} on ${dto.timeframe}`,
+    );
 
     return {
       symbol,
@@ -67,7 +118,8 @@ export class PricePredictionService {
     period: { start: Date; end: Date };
   }> {
     const totalPredictions = Math.floor(
-      (dto.endTimestamp - dto.startTimestamp) / this.getTimeframeMs(dto.timeframe),
+      (dto.endTimestamp - dto.startTimestamp) /
+        this.getTimeframeMs(dto.timeframe),
     );
     const correctDirections = Math.floor(totalPredictions * 0.65);
 
@@ -123,17 +175,28 @@ export class PricePredictionService {
 
   private getMockCurrentPrice(symbol: string): number {
     const prices: Record<string, number> = {
-      BTC: 65000, ETH: 3200, BNB: 420, SOL: 145, ADA: 0.45,
-      XRP: 0.52, DOT: 7.2, AVAX: 35, MATIC: 0.85, LINK: 14,
+      BTC: 65000,
+      ETH: 3200,
+      BNB: 420,
+      SOL: 145,
+      ADA: 0.45,
+      XRP: 0.52,
+      DOT: 7.2,
+      AVAX: 35,
+      MATIC: 0.85,
+      LINK: 14,
     };
     return prices[symbol] ?? 1.0;
   }
 
-  private calculateModelConfidence(symbol: string, timeframe: Timeframe): number {
+  private calculateModelConfidence(
+    symbol: string,
+    timeframe: Timeframe,
+  ): number {
     const timeframeConfidence: Record<Timeframe, number> = {
       [Timeframe.ONE_MIN]: 0.55,
       [Timeframe.FIVE_MIN]: 0.62,
-      [Timeframe.ONE_HOUR]: 0.70,
+      [Timeframe.ONE_HOUR]: 0.7,
       [Timeframe.ONE_DAY]: 0.75,
     };
     return timeframeConfidence[timeframe] ?? 0.65;

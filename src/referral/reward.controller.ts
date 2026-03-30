@@ -10,7 +10,9 @@ export class RewardController {
   constructor(private readonly rewardService: RewardService) {}
 
   @Get()
-  async getMyRewards(@CurrentUser("id") userId: string): Promise<ReferralReward[]> {
+  async getMyRewards(
+    @CurrentUser("id") userId: string,
+  ): Promise<ReferralReward[]> {
     return this.rewardService.getRewardsForUser(userId);
   }
 }

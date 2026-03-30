@@ -1,4 +1,4 @@
-import { IsOptional, IsNumber, IsDateString } from 'class-validator';
+import { IsOptional, IsNumber, IsDateString } from "class-validator";
 
 export class GetPerformanceMetricsDto {
   @IsOptional()

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import {
   ISimulationEnvironment,
   EnvironmentMetadata,
@@ -6,11 +6,11 @@ import {
   EnvironmentInstanceState,
   EnvironmentStatus,
   AuditLogEntry,
-} from './environment.interface';
+} from "./environment.interface";
 
 /**
  * Service for managing registered simulation environments and their instances
- * 
+ *
  * Handles:
  * - Environment registration and versioning
  * - Instance lifecycle management
@@ -20,19 +20,22 @@ import {
 @Injectable()
 export class EnvironmentRegistryService implements OnModuleDestroy {
   private readonly logger = new Logger(EnvironmentRegistryService.name);
-  
+
   /** Map of environment ID + version -> LoadedEnvironment */
   private environments = new Map<string, LoadedEnvironment>();
-  
+
   /** Map of instance ID -> EnvironmentInstanceState and instance */
-  private instances = new Map<string, {
-    state: EnvironmentInstanceState;
-    environment: ISimulationEnvironment;
-  }>();
-  
+  private instances = new Map<
+    string,
+    {
+      state: EnvironmentInstanceState;
+      environment: ISimulationEnvironment;
+    }
+  >();
+
   /** Audit log for all environment activities */
   private auditLog: AuditLogEntry[] = [];
-  
+
   /** Counter for generating instance IDs */
   private instanceCounter = 0;
 
@@ -40,14 +43,19 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    * Register a loaded environment
    */
   registerEnvironment(loadedEnv: LoadedEnvironment): void {
-    const key = this.getEnvironmentKey(loadedEnv.metadata.id, loadedEnv.metadata.version);
-    
+    const key = this.getEnvironmentKey(
+      loadedEnv.metadata.id,
+      loadedEnv.metadata.version,
+    );
+
     if (this.environments.has(key)) {
       this.logger.warn(`Environment ${key} already registered. Overwriting.`);
     }
-    
+
     this.environments.set(key, loadedEnv);
-    this.logger.log(`Registered environment: ${loadedEnv.metadata.name} v${loadedEnv.metadata.version}`);
+    this.logger.log(
+      `Registered environment: ${loadedEnv.metadata.name} v${loadedEnv.metadata.version}`,
+    );
   }
 
   /**
@@ -56,11 +64,11 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
   unregisterEnvironment(id: string, version: string): boolean {
     const key = this.getEnvironmentKey(id, version);
     const existed = this.environments.delete(key);
-    
+
     if (existed) {
       this.logger.log(`Unregistered environment: ${id} v${version}`);
     }
-    
+
     return existed;
   }
 
@@ -83,7 +91,7 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    * Get all versions of a specific environment
    */
   getEnvironmentVersions(id: string): LoadedEnvironment[] {
-    return this.getAllEnvironments().filter(env => env.metadata.id === id);
+    return this.getAllEnvironments().filter((env) => env.metadata.id === id);
   }
 
   /**
@@ -91,15 +99,19 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    */
   listAvailableEnvironments(): EnvironmentMetadata[] {
     const latestVersions = new Map<string, LoadedEnvironment>();
-    
+
     for (const env of this.environments.values()) {
       const existing = latestVersions.get(env.metadata.id);
-      if (!existing || this.compareVersions(env.metadata.version, existing.metadata.version) > 0) {
+      if (
+        !existing ||
+        this.compareVersions(env.metadata.version, existing.metadata.version) >
+          0
+      ) {
         latestVersions.set(env.metadata.id, env);
       }
     }
-    
-    return Array.from(latestVersions.values()).map(env => env.metadata);
+
+    return Array.from(latestVersions.values()).map((env) => env.metadata);
   }
 
   /**
@@ -110,14 +122,14 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
     version: string,
   ): Promise<{ instanceId: string; environment: ISimulationEnvironment }> {
     const loadedEnv = this.getEnvironment(environmentId, version);
-    
+
     if (!loadedEnv) {
       throw new Error(`Environment ${environmentId} v${version} not found`);
     }
 
     const instanceId = this.generateInstanceId();
     const environment = loadedEnv.factory();
-    
+
     const instanceState: EnvironmentInstanceState = {
       instanceId,
       metadata: loadedEnv.metadata,
@@ -127,23 +139,32 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
     };
 
     this.instances.set(instanceId, { state: instanceState, environment });
-    
-    this.logger.log(`Created instance ${instanceId} for environment ${environmentId} v${version}`);
-    
+
+    this.logger.log(
+      `Created instance ${instanceId} for environment ${environmentId} v${version}`,
+    );
+
     return { instanceId, environment };
   }
 
   /**
    * Get an instance by ID
    */
-  getInstance(instanceId: string): { state: EnvironmentInstanceState; environment: ISimulationEnvironment } | undefined {
+  getInstance(
+    instanceId: string,
+  ):
+    | { state: EnvironmentInstanceState; environment: ISimulationEnvironment }
+    | undefined {
     return this.instances.get(instanceId);
   }
 
   /**
    * Update instance state
    */
-  updateInstanceState(instanceId: string, updates: Partial<EnvironmentInstanceState>): void {
+  updateInstanceState(
+    instanceId: string,
+    updates: Partial<EnvironmentInstanceState>,
+  ): void {
     const instance = this.instances.get(instanceId);
     if (instance) {
       Object.assign(instance.state, updates);
@@ -166,14 +187,17 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    * Get all active instances
    */
   getAllInstances(): EnvironmentInstanceState[] {
-    return Array.from(this.instances.values()).map(i => i.state);
+    return Array.from(this.instances.values()).map((i) => i.state);
   }
 
   /**
    * Get instances for a specific environment
    */
-  getInstancesForEnvironment(environmentId: string, version?: string): EnvironmentInstanceState[] {
-    return this.getAllInstances().filter(instance => {
+  getInstancesForEnvironment(
+    environmentId: string,
+    version?: string,
+  ): EnvironmentInstanceState[] {
+    return this.getAllInstances().filter((instance) => {
       if (instance.metadata.id !== environmentId) return false;
       if (version && instance.metadata.version !== version) return false;
       return true;
@@ -183,15 +207,17 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
   /**
    * Add audit log entry
    */
-  addAuditEntry(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): void {
+  addAuditEntry(entry: Omit<AuditLogEntry, "id" | "timestamp">): void {
     const fullEntry: AuditLogEntry = {
       ...entry,
       id: this.generateAuditId(),
       timestamp: Date.now(),
     };
-    
+
     this.auditLog.push(fullEntry);
-    this.logger.debug(`Audit: ${entry.action} on ${entry.environmentId} v${entry.version}`);
+    this.logger.debug(
+      `Audit: ${entry.action} on ${entry.environmentId} v${entry.version}`,
+    );
   }
 
   /**
@@ -207,33 +233,35 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
     limit?: number;
   }): AuditLogEntry[] {
     let entries = [...this.auditLog];
-    
+
     if (options?.instanceId) {
-      entries = entries.filter(e => e.instanceId === options.instanceId);
+      entries = entries.filter((e) => e.instanceId === options.instanceId);
     }
     if (options?.environmentId) {
-      entries = entries.filter(e => e.environmentId === options.environmentId);
+      entries = entries.filter(
+        (e) => e.environmentId === options.environmentId,
+      );
     }
     if (options?.version) {
-      entries = entries.filter(e => e.version === options.version);
+      entries = entries.filter((e) => e.version === options.version);
     }
     if (options?.action) {
-      entries = entries.filter(e => e.action === options.action);
+      entries = entries.filter((e) => e.action === options.action);
     }
     if (options?.startTime) {
-      entries = entries.filter(e => e.timestamp >= options.startTime!);
+      entries = entries.filter((e) => e.timestamp >= options.startTime!);
     }
     if (options?.endTime) {
-      entries = entries.filter(e => e.timestamp <= options.endTime!);
+      entries = entries.filter((e) => e.timestamp <= options.endTime!);
     }
-    
+
     // Sort by timestamp descending (newest first)
     entries.sort((a, b) => b.timestamp - a.timestamp);
-    
+
     if (options?.limit) {
       entries = entries.slice(0, options.limit);
     }
-    
+
     return entries;
   }
 
@@ -249,7 +277,7 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    */
   clearAuditLog(): void {
     this.auditLog = [];
-    this.logger.warn('Audit log cleared');
+    this.logger.warn("Audit log cleared");
   }
 
   /**
@@ -262,12 +290,12 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
     auditLogEntries: number;
   } {
     const instancesByStatus: Record<string, number> = {};
-    
+
     for (const instance of this.instances.values()) {
       const status = instance.state.status;
       instancesByStatus[status] = (instancesByStatus[status] || 0) + 1;
     }
-    
+
     return {
       totalEnvironments: this.environments.size,
       totalInstances: this.instances.size,
@@ -280,13 +308,15 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    * Cleanup on module destroy
    */
   async onModuleDestroy(): Promise<void> {
-    this.logger.log('Cleaning up environment registry...');
-    
+    this.logger.log("Cleaning up environment registry...");
+
     // Teardown all active instances
     for (const [instanceId, { environment, state }] of this.instances) {
       try {
-        if (state.status !== EnvironmentStatus.DESTROYED && 
-            state.status !== EnvironmentStatus.TEARING_DOWN) {
+        if (
+          state.status !== EnvironmentStatus.DESTROYED &&
+          state.status !== EnvironmentStatus.TEARING_DOWN
+        ) {
           this.logger.log(`Tearing down instance: ${instanceId}`);
           await environment.teardown();
         }
@@ -294,7 +324,7 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
         this.logger.error(`Error tearing down instance ${instanceId}:`, error);
       }
     }
-    
+
     this.instances.clear();
     this.environments.clear();
   }
@@ -325,17 +355,17 @@ export class EnvironmentRegistryService implements OnModuleDestroy {
    * @returns positive if v1 > v2, negative if v1 < v2, 0 if equal
    */
   private compareVersions(v1: string, v2: string): number {
-    const parts1 = v1.split('.').map(Number);
-    const parts2 = v2.split('.').map(Number);
-    
+    const parts1 = v1.split(".").map(Number);
+    const parts2 = v2.split(".").map(Number);
+
     for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
       const p1 = parts1[i] || 0;
       const p2 = parts2[i] || 0;
-      
+
       if (p1 > p2) return 1;
       if (p1 < p2) return -1;
     }
-    
+
     return 0;
   }
 }

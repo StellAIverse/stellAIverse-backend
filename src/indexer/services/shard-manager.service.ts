@@ -13,7 +13,7 @@ export class ShardManagerService implements IShardManager {
 
   constructor(private readonly configService: ConfigService) {
     this.shardCount = this.configService.get<number>("INDEXER_SHARD_COUNT", 4);
-    
+
     // Initialize Redis client for distributed coordination
     this.redis = new Redis({
       host: this.configService.get<string>("REDIS_HOST", "localhost"),
@@ -53,16 +53,27 @@ export class ShardManagerService implements IShardManager {
   /**
    * Assign a shard to a specific instance with distributed locking
    */
-  async assignShardToInstance(shardId: string, instanceId: number): Promise<void> {
+  async assignShardToInstance(
+    shardId: string,
+    instanceId: number,
+  ): Promise<void> {
     const lockKey = `${this.shardKeyPrefix}${shardId}:lock`;
     const shardKey = `${this.shardKeyPrefix}${shardId}`;
     const instanceKey = `${this.instanceKeyPrefix}${instanceId}`;
 
     // Try to acquire lock with 30-second TTL
-    const lockAcquired = await this.redis.set(lockKey, String(instanceId), "EX", 30, "NX");
-    
+    const lockAcquired = await this.redis.set(
+      lockKey,
+      String(instanceId),
+      "EX",
+      30,
+      "NX",
+    );
+
     if (!lockAcquired) {
-      throw new Error(`Shard ${shardId} is already assigned to another instance`);
+      throw new Error(
+        `Shard ${shardId} is already assigned to another instance`,
+      );
     }
 
     try {
@@ -135,28 +146,37 @@ export class ShardManagerService implements IShardManager {
 
     // Filter unassigned or inactive shards
     const unassignedShards = allShards.filter(
-      (s) => !s.isActive || !activeInstances.includes(s.instanceId)
+      (s) => !s.isActive || !activeInstances.includes(s.instanceId),
     );
 
     // Distribute unassigned shards evenly
     for (let i = 0; i < unassignedShards.length; i++) {
       const instanceId = activeInstances[i % activeInstances.length];
       try {
-        await this.assignShardToInstance(unassignedShards[i].shardId, instanceId);
+        await this.assignShardToInstance(
+          unassignedShards[i].shardId,
+          instanceId,
+        );
       } catch (error) {
         this.logger.error(
-          `Failed to assign shard ${unassignedShards[i].shardId}: ${error.message}`
+          `Failed to assign shard ${unassignedShards[i].shardId}: ${error.message}`,
         );
       }
     }
 
-    this.logger.log(`Rebalanced ${unassignedShards.length} shards across ${activeInstances.length} instances`);
+    this.logger.log(
+      `Rebalanced ${unassignedShards.length} shards across ${activeInstances.length} instances`,
+    );
   }
 
   /**
    * Register an instance as active with heartbeat
    */
-  async registerInstance(instanceId: number, host: string, port: number): Promise<void> {
+  async registerInstance(
+    instanceId: number,
+    host: string,
+    port: number,
+  ): Promise<void> {
     const instanceKey = `${this.instanceKeyPrefix}${instanceId}`;
     const instanceData = {
       id: instanceId,
@@ -188,7 +208,9 @@ export class ShardManagerService implements IShardManager {
    * Get all active instances
    */
   async getActiveInstances(): Promise<number[]> {
-    const instanceKeys = await this.redis.keys(`${this.instanceKeyPrefix}[0-9]*`);
+    const instanceKeys = await this.redis.keys(
+      `${this.instanceKeyPrefix}[0-9]*`,
+    );
     const instances: number[] = [];
 
     for (const key of instanceKeys) {
@@ -230,7 +252,9 @@ export class ShardManagerService implements IShardManager {
       await this.redis.setex(shardKey, 3600, JSON.stringify(shardConfig));
     }
 
-    this.logger.log(`Initialized ${this.shardCount} shards for blocks ${startBlock}-${endBlock}`);
+    this.logger.log(
+      `Initialized ${this.shardCount} shards for blocks ${startBlock}-${endBlock}`,
+    );
   }
 
   /**
@@ -245,7 +269,11 @@ export class ShardManagerService implements IShardManager {
   /**
    * Extend shard lock to prevent expiration during processing
    */
-  async extendShardLock(shardId: string, instanceId: number, ttlSeconds: number = 30): Promise<void> {
+  async extendShardLock(
+    shardId: string,
+    instanceId: number,
+    ttlSeconds: number = 30,
+  ): Promise<void> {
     const lockKey = `${this.shardKeyPrefix}${shardId}:lock`;
     const currentOwner = await this.redis.get(lockKey);
 
@@ -258,7 +286,9 @@ export class ShardManagerService implements IShardManager {
    * Clean up stale locks and instance registrations
    */
   async cleanupStaleResources(): Promise<void> {
-    const instanceKeys = await this.redis.keys(`${this.instanceKeyPrefix}[0-9]*`);
+    const instanceKeys = await this.redis.keys(
+      `${this.instanceKeyPrefix}[0-9]*`,
+    );
     const now = new Date();
 
     for (const key of instanceKeys) {
@@ -302,7 +332,7 @@ export class ShardManagerService implements IShardManager {
 
     const activeShards = allShards.filter((s) => s.isActive).length;
     const unassignedShards = allShards.filter(
-      (s) => !s.isActive || !activeInstances.includes(s.instanceId)
+      (s) => !s.isActive || !activeInstances.includes(s.instanceId),
     ).length;
 
     const instanceDistribution: Record<number, number> = {};

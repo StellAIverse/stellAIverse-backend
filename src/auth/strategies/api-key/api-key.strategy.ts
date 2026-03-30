@@ -1,11 +1,21 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as crypto from 'crypto';
-import { AuthStrategy, AuthResult, AuthPayload, ApiKeyCredentials } from '../interfaces/auth-strategy.interface';
-import { User } from '../../../user/entities/user.entity';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as crypto from "crypto";
+import {
+  AuthStrategy,
+  AuthResult,
+  AuthPayload,
+  ApiKeyCredentials,
+} from "../interfaces/auth-strategy.interface";
+import { User } from "../../../user/entities/user.entity";
 
 /**
  * API Key metadata
@@ -25,7 +35,7 @@ interface ApiKeyMetadata {
  */
 @Injectable()
 export class ApiKeyStrategy implements AuthStrategy {
-  readonly name = 'api-key';
+  readonly name = "api-key";
   private readonly logger = new Logger(ApiKeyStrategy.name);
   private readonly apiKeys = new Map<string, ApiKeyMetadata>();
 
@@ -42,11 +52,15 @@ export class ApiKeyStrategy implements AuthStrategy {
    * Load system-level API keys from configuration
    */
   private loadSystemApiKeys(): void {
-    const systemApiKeys = this.configService.get<string>('SYSTEM_API_KEYS');
+    const systemApiKeys = this.configService.get<string>("SYSTEM_API_KEYS");
     if (systemApiKeys) {
       try {
-        const keys: Array<{ key: string; userId: string; name: string; permissions: string[] }> =
-          JSON.parse(systemApiKeys);
+        const keys: Array<{
+          key: string;
+          userId: string;
+          name: string;
+          permissions: string[];
+        }> = JSON.parse(systemApiKeys);
         keys.forEach(({ key, userId, name, permissions }) => {
           this.apiKeys.set(key, {
             userId,
@@ -57,7 +71,7 @@ export class ApiKeyStrategy implements AuthStrategy {
         });
         this.logger.log(`Loaded ${keys.length} system API keys`);
       } catch (error) {
-        this.logger.error('Failed to parse SYSTEM_API_KEYS', error);
+        this.logger.error("Failed to parse SYSTEM_API_KEYS", error);
       }
     }
   }
@@ -66,7 +80,7 @@ export class ApiKeyStrategy implements AuthStrategy {
    * Check if API key strategy is enabled
    */
   get isEnabled(): boolean {
-    return this.configService.get<boolean>('AUTH_API_KEY_ENABLED', true);
+    return this.configService.get<boolean>("AUTH_API_KEY_ENABLED", true);
   }
 
   /**
@@ -78,13 +92,13 @@ export class ApiKeyStrategy implements AuthStrategy {
     const { apiKey, apiSecret } = credentials as ApiKeyCredentials;
 
     if (!apiKey) {
-      throw new BadRequestException('API key is required');
+      throw new BadRequestException("API key is required");
     }
 
     // Validate API key
     const keyMetadata = await this.validateApiKey(apiKey, apiSecret);
     if (!keyMetadata) {
-      throw new UnauthorizedException('Invalid API key');
+      throw new UnauthorizedException("Invalid API key");
     }
 
     // Get user
@@ -93,7 +107,7 @@ export class ApiKeyStrategy implements AuthStrategy {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found for API key');
+      throw new UnauthorizedException("User not found for API key");
     }
 
     // Update last used timestamp
@@ -104,16 +118,18 @@ export class ApiKeyStrategy implements AuthStrategy {
       sub: user.id,
       email: user.email,
       username: user.username,
-      role: user.role || 'service',
+      role: user.role || "service",
       iat: Math.floor(Date.now() / 1000),
-      type: 'api-key',
+      type: "api-key",
     };
 
     const token = this.jwtService.sign(payload, {
-      expiresIn: '1h', // Short-lived tokens for API keys
+      expiresIn: "1h", // Short-lived tokens for API keys
     });
 
-    this.logger.log(`API key authenticated: ${keyMetadata.name} for user ${user.id}`);
+    this.logger.log(
+      `API key authenticated: ${keyMetadata.name} for user ${user.id}`,
+    );
 
     return {
       token,
@@ -121,8 +137,8 @@ export class ApiKeyStrategy implements AuthStrategy {
         id: user.id,
         email: user.email,
         username: user.username,
-        role: user.role || 'service',
-        type: 'api-key',
+        role: user.role || "service",
+        type: "api-key",
       },
     };
   }
@@ -130,7 +146,10 @@ export class ApiKeyStrategy implements AuthStrategy {
   /**
    * Validate API key and optional secret
    */
-  private async validateApiKey(apiKey: string, apiSecret?: string): Promise<ApiKeyMetadata | null> {
+  private async validateApiKey(
+    apiKey: string,
+    apiSecret?: string,
+  ): Promise<ApiKeyMetadata | null> {
     // Check in-memory keys
     const metadata = this.apiKeys.get(apiKey);
     if (metadata) {
@@ -158,11 +177,11 @@ export class ApiKeyStrategy implements AuthStrategy {
   generateApiKey(
     userId: string,
     name: string,
-    permissions: string[] = ['read'],
+    permissions: string[] = ["read"],
     expiresInDays?: number,
   ): { key: string; secret: string } {
-    const key = `sk_${crypto.randomBytes(24).toString('hex')}`;
-    const secret = crypto.randomBytes(32).toString('hex');
+    const key = `sk_${crypto.randomBytes(24).toString("hex")}`;
+    const secret = crypto.randomBytes(32).toString("hex");
 
     this.apiKeys.set(key, {
       userId,
@@ -187,7 +206,7 @@ export class ApiKeyStrategy implements AuthStrategy {
   revokeApiKey(apiKey: string): boolean {
     const deleted = this.apiKeys.delete(apiKey);
     if (deleted) {
-      this.logger.log('API key revoked');
+      this.logger.log("API key revoked");
     }
     return deleted;
   }
@@ -197,8 +216,10 @@ export class ApiKeyStrategy implements AuthStrategy {
    * @param userId - User ID
    * @returns Array of API key metadata (without actual keys)
    */
-  getUserApiKeys(userId: string): Array<Omit<ApiKeyMetadata, 'userId'> & { id: string }> {
-    const keys: Array<Omit<ApiKeyMetadata, 'userId'> & { id: string }> = [];
+  getUserApiKeys(
+    userId: string,
+  ): Array<Omit<ApiKeyMetadata, "userId"> & { id: string }> {
+    const keys: Array<Omit<ApiKeyMetadata, "userId"> & { id: string }> = [];
     let index = 0;
 
     for (const [key, metadata] of this.apiKeys.entries()) {
@@ -226,7 +247,7 @@ export class ApiKeyStrategy implements AuthStrategy {
     try {
       return this.jwtService.verify(token) as AuthPayload;
     } catch (error) {
-      this.logger.warn('Token validation failed', error);
+      this.logger.warn("Token validation failed", error);
       return null;
     }
   }

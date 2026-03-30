@@ -45,7 +45,7 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
     private readonly metricsService: IndexerMetricsService,
     private readonly eventEmitter: EventEmitter2,
     @InjectRepository(IndexedEvent)
-    private readonly indexedRepo: Repository<IndexedEvent>
+    private readonly indexedRepo: Repository<IndexedEvent>,
   ) {
     // Initialize provider
     const rpcUrl =
@@ -56,21 +56,32 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
 
     // Configuration
     this.instanceId = this.configService.get<number>("INDEXER_INSTANCE_ID", 1);
-    this.confirmations = this.configService.get<number>("INDEXER_CONFIRMATIONS", 6);
+    this.confirmations = this.configService.get<number>(
+      "INDEXER_CONFIRMATIONS",
+      6,
+    );
     this.startBlock = this.configService.get<number>("INDEXER_START_BLOCK", 0);
-    this.pollIntervalMs = this.configService.get<number>("INDEXER_POLL_INTERVAL_MS", 10000);
-    this.isCoordinator = this.configService.get<boolean>("INDEXER_IS_COORDINATOR", false);
+    this.pollIntervalMs = this.configService.get<number>(
+      "INDEXER_POLL_INTERVAL_MS",
+      10000,
+    );
+    this.isCoordinator = this.configService.get<boolean>(
+      "INDEXER_IS_COORDINATOR",
+      false,
+    );
     this.rangeSize = this.configService.get<number>("INDEXER_RANGE_SIZE", 1000);
   }
 
   async onModuleInit() {
-    this.logger.log(`Initializing scalable indexer instance ${this.instanceId}`);
+    this.logger.log(
+      `Initializing scalable indexer instance ${this.instanceId}`,
+    );
 
     // Register this instance
     await this.shardManager.registerInstance(
       this.instanceId,
       "localhost",
-      this.configService.get<number>("PORT", 3000)
+      this.configService.get<number>("PORT", 3000),
     );
 
     // Initialize sharding if coordinator
@@ -87,7 +98,9 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
     // Start cleanup task
     this.startCleanupTask();
 
-    this.logger.log(`Indexer instance ${this.instanceId} initialized and running`);
+    this.logger.log(
+      `Indexer instance ${this.instanceId} initialized and running`,
+    );
   }
 
   async onModuleDestroy() {
@@ -109,12 +122,18 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
 
     // Get current block to initialize ranges
     const currentBlock = await this.getSafeBlockNumber();
-    
+
     // Initialize shards
-    await this.shardManager.initializeShards(this.startBlock, currentBlock + 100000);
+    await this.shardManager.initializeShards(
+      this.startBlock,
+      currentBlock + 100000,
+    );
 
     // Initialize block ranges
-    await this.blockCoordinator.initializeRanges(this.startBlock, currentBlock + 100000);
+    await this.blockCoordinator.initializeRanges(
+      this.startBlock,
+      currentBlock + 100000,
+    );
   }
 
   /**
@@ -195,10 +214,13 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
       const shardStats = await this.shardManager.getShardStats();
       await this.metricsService.updateClusterMetrics(
         activeInstances.length,
-        shardStats.totalShards
+        shardStats.totalShards,
       );
     } catch (error) {
-      this.logger.error(`Processing cycle failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Processing cycle failed: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -215,8 +237,10 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
     // Try to acquire new ranges (limit concurrent ranges per instance)
     const maxConcurrentRanges = 2;
     while (this.assignedRanges.length < maxConcurrentRanges) {
-      const range = await this.blockCoordinator.acquireBlockRange(this.instanceId);
-      
+      const range = await this.blockCoordinator.acquireBlockRange(
+        this.instanceId,
+      );
+
       if (!range) {
         break; // No more ranges available
       }
@@ -236,7 +260,9 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
       // Queue the range for processing
       await this.queueService.addBlockRange(range);
 
-      this.logger.log(`Acquired and queued range ${range.fromBlock}-${range.toBlock}`);
+      this.logger.log(
+        `Acquired and queued range ${range.fromBlock}-${range.toBlock}`,
+      );
     }
   }
 
@@ -249,7 +275,7 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
 
     const checkDepth = 20; // Check last 20 blocks
     const lastIndexed = await this.blockCoordinator.getGlobalProgress();
-    
+
     if (lastIndexed < checkDepth) return;
 
     const startCheck = Math.max(this.startBlock, lastIndexed - checkDepth);
@@ -272,16 +298,18 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
 
       try {
         const block = await this.provider.getBlock(blockNumber);
-        
+
         if (block && block.hash !== expectedHash) {
           this.logger.warn(
-            `Reorg detected at block ${blockNumber}: expected ${expectedHash}, got ${block.hash}`
+            `Reorg detected at block ${blockNumber}: expected ${expectedHash}, got ${block.hash}`,
           );
 
           await this.handleReorg(blockNumber);
         }
       } catch (error) {
-        this.logger.error(`Failed to check block ${blockNumber}: ${error.message}`);
+        this.logger.error(
+          `Failed to check block ${blockNumber}: ${error.message}`,
+        );
       }
     }
   }
@@ -300,11 +328,16 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
       .where("CAST(blockNumber AS bigint) >= :block", { block: reorgBlock })
       .execute();
 
-    this.logger.log(`Deleted ${result.affected} events from block ${reorgBlock} onwards`);
+    this.logger.log(
+      `Deleted ${result.affected} events from block ${reorgBlock} onwards`,
+    );
 
     // Reset block coordinator progress
     // This will cause re-processing of the affected range
-    await this.blockCoordinator.initializeRanges(reorgBlock, reorgBlock + 100000);
+    await this.blockCoordinator.initializeRanges(
+      reorgBlock,
+      reorgBlock + 100000,
+    );
 
     // Emit event
     this.eventEmitter.emit("indexer.reorg.handled", {
@@ -418,7 +451,9 @@ export class ScalableIndexerService implements OnModuleInit, OnModuleDestroy {
    * Force reprocessing of a block range
    */
   async reprocessRange(fromBlock: number, toBlock: number): Promise<void> {
-    this.logger.log(`Scheduling reprocessing of blocks ${fromBlock}-${toBlock}`);
+    this.logger.log(
+      `Scheduling reprocessing of blocks ${fromBlock}-${toBlock}`,
+    );
 
     // Delete existing events in range
     await this.indexedRepo

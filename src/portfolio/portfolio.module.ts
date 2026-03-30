@@ -1,25 +1,25 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { BullModule } from '@nestjs/bull';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { BullModule } from "@nestjs/bull";
 
 // Entities
-import { Portfolio } from './entities/portfolio.entity';
-import { PortfolioAsset } from './entities/portfolio-asset.entity';
-import { RiskProfile } from './entities/risk-profile.entity';
-import { OptimizationHistory } from './entities/optimization-history.entity';
-import { RebalancingEvent } from './entities/rebalancing-event.entity';
-import { PerformanceMetric } from './entities/performance-metric.entity';
-import { BacktestResult } from './entities/backtest-result.entity';
+import { Portfolio } from "./entities/portfolio.entity";
+import { PortfolioAsset } from "./entities/portfolio-asset.entity";
+import { RiskProfile } from "./entities/risk-profile.entity";
+import { OptimizationHistory } from "./entities/optimization-history.entity";
+import { RebalancingEvent } from "./entities/rebalancing-event.entity";
+import { PerformanceMetric } from "./entities/performance-metric.entity";
+import { BacktestResult } from "./entities/backtest-result.entity";
 
 // Services
-import { PortfolioService } from './services/portfolio.service';
-import { RebalancingService } from './services/rebalancing.service';
-import { PerformanceAnalyticsService } from './services/performance-analytics.service';
-import { BacktestingService } from './services/backtesting.service';
-import { MLPredictionService } from './services/ml-prediction.service';
+import { PortfolioService } from "./services/portfolio.service";
+import { RebalancingService } from "./services/rebalancing.service";
+import { PerformanceAnalyticsService } from "./services/performance-analytics.service";
+import { BacktestingService } from "./services/backtesting.service";
+import { MLPredictionService } from "./services/ml-prediction.service";
 
 // Controllers
-import { PortfolioController } from './portfolio.controller';
+import { PortfolioController } from "./portfolio.controller";
 
 @Module({
   imports: [
@@ -34,19 +34,19 @@ import { PortfolioController } from './portfolio.controller';
     ]),
     BullModule.registerQueue(
       {
-        name: 'portfolio-optimization',
+        name: "portfolio-optimization",
       },
       {
-        name: 'rebalancing',
+        name: "rebalancing",
       },
       {
-        name: 'performance-analytics',
+        name: "performance-analytics",
       },
       {
-        name: 'backtesting',
+        name: "backtesting",
       },
       {
-        name: 'ml-predictions',
+        name: "ml-predictions",
       },
     ),
   ],

@@ -1,20 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PerformanceMetric } from '../entities/performance-metric.entity';
-import { Portfolio } from '../entities/portfolio.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { PerformanceMetric } from "../entities/performance-metric.entity";
+import { Portfolio } from "../entities/portfolio.entity";
 import {
   EnsemblePredictor,
   calculateExpectedReturn,
   calculateConfidence,
-} from '../ml-models/predictor';
-import { PortfolioService } from './portfolio.service';
+} from "../ml-models/predictor";
+import { PortfolioService } from "./portfolio.service";
 
 @Injectable()
 export class MLPredictionService {
   private readonly logger = new Logger(MLPredictionService.name);
-  private predictors: Map<string, EnsemblePredictor> =
-    new Map();
+  private predictors: Map<string, EnsemblePredictor> = new Map();
 
   constructor(
     @InjectRepository(PerformanceMetric)
@@ -68,25 +67,17 @@ export class MLPredictionService {
     try {
       // Train if not already trained
       if (!this.predictors.has(ticker)) {
-        await this.trainAssetPredictor(
-          ticker,
-          historicalPrices,
-        );
+        await this.trainAssetPredictor(ticker, historicalPrices);
       }
 
       const predictor = this.predictors.get(ticker);
 
       if (!predictor) {
-        throw new Error(
-          `No predictor available for ${ticker}`,
-        );
+        throw new Error(`No predictor available for ${ticker}`);
       }
 
       // Generate predictions
-      const predictions = predictor.forecast(
-        historicalPrices,
-        daysAhead,
-      );
+      const predictions = predictor.forecast(historicalPrices, daysAhead);
 
       // Calculate expected return
       const expectedReturn = calculateExpectedReturn(
@@ -104,9 +95,7 @@ export class MLPredictionService {
         predictions,
       };
     } catch (error) {
-      this.logger.error(
-        `Prediction failed for ${ticker}: ${error.message}`,
-      );
+      this.logger.error(`Prediction failed for ${ticker}: ${error.message}`);
       // Return neutral prediction on error
       return {
         predictedReturn: 0.05,
@@ -121,10 +110,7 @@ export class MLPredictionService {
    */
   async predictPortfolioReturns(
     portfolioId: string,
-    assetDataMap: Map<
-      string,
-      { price: number; historicalPrices: number[] }
-    >,
+    assetDataMap: Map<string, { price: number; historicalPrices: number[] }>,
     daysAhead: number = 30,
   ): Promise<{
     portfolioExpectedReturn: number;
@@ -170,9 +156,7 @@ export class MLPredictionService {
   ): Promise<void> {
     // In a real implementation, this would update the model incrementally
     // For now, just log it
-    this.logger.debug(
-      `Updated prediction data for ${ticker}: ${newPrice}`,
-    );
+    this.logger.debug(`Updated prediction data for ${ticker}: ${newPrice}`);
   }
 
   /**
@@ -180,7 +164,7 @@ export class MLPredictionService {
    */
   clearOldPredictors(maxAge: number = 24 * 60 * 60 * 1000): void {
     // Implement LRU or time-based cache eviction
-    this.logger.log('Clearing old predictors');
+    this.logger.log("Clearing old predictors");
   }
 
   /**

@@ -28,7 +28,7 @@ export class AgentTelemetryService {
   processTelemetry(event: TelemetryEvent): TelemetryEvent {
     // Strip sensitive information if any
     const sanitizedData = this.sanitizeData(event.data);
-    
+
     return {
       ...event,
       data: sanitizedData,
@@ -41,8 +41,15 @@ export class AgentTelemetryService {
    */
   private sanitizeData(data: any): any {
     if (!data) return data;
-    
-    const sensitiveKeys = ["apiKey", "secret", "password", "token", "privateKey", "email"];
+
+    const sensitiveKeys = [
+      "apiKey",
+      "secret",
+      "password",
+      "token",
+      "privateKey",
+      "email",
+    ];
     const sanitized = { ...data };
 
     for (const key of sensitiveKeys) {
@@ -62,11 +69,19 @@ export class AgentTelemetryService {
       return false;
     }
 
-    if (filter.types && filter.types.length > 0 && !filter.types.includes(event.type)) {
+    if (
+      filter.types &&
+      filter.types.length > 0 &&
+      !filter.types.includes(event.type)
+    ) {
       return false;
     }
 
-    if (filter.severities && filter.severities.length > 0 && !filter.severities.includes(event.severity)) {
+    if (
+      filter.severities &&
+      filter.severities.length > 0 &&
+      !filter.severities.includes(event.severity)
+    ) {
       return false;
     }
 

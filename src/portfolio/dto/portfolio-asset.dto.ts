@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsDateString } from "class-validator";
 
 export class PortfolioAssetDto {
   @IsString()

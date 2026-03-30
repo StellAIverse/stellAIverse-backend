@@ -1,7 +1,7 @@
-import { SetMetadata } from '@nestjs/common';
-import { AuthType } from '../strategies/interfaces/auth-strategy.interface';
+import { SetMetadata } from "@nestjs/common";
+import { AuthType } from "../strategies/interfaces/auth-strategy.interface";
 
-export const ALLOWED_STRATEGIES_KEY = 'allowedStrategies';
+export const ALLOWED_STRATEGIES_KEY = "allowedStrategies";
 
 /**
  * Decorator that specifies which authentication strategies are allowed for a route.

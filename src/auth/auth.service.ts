@@ -46,7 +46,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Generate unique referral code for the new user
-    const userReferralCode = await this.rewardService.generateUniqueReferralCode();
+    const userReferralCode =
+      await this.rewardService.generateUniqueReferralCode();
 
     // Check if a referral code was provided
     let referredBy: User | null = null;
@@ -75,9 +76,11 @@ export class AuthService {
     // Trigger reward logic if referred
     if (user.referredById) {
       // We don't await this to keep registration fast, but in many cases we might want to
-      this.rewardService.handleTrigger(RewardTrigger.REGISTRATION, user.id).catch(err => {
-        console.error("Failed to trigger registration reward", err);
-      });
+      this.rewardService
+        .handleTrigger(RewardTrigger.REGISTRATION, user.id)
+        .catch((err) => {
+          console.error("Failed to trigger registration reward", err);
+        });
     }
 
     // Generate JWT token

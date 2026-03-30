@@ -95,7 +95,7 @@ export class SimulatorController {
     const versions = this.environmentRegistry.getEnvironmentVersions(id);
     return {
       id,
-      versions: versions.map(v => v.metadata),
+      versions: versions.map((v) => v.metadata),
       count: versions.length,
     };
   }
@@ -139,7 +139,7 @@ export class SimulatorController {
     const loadedEnvs = await this.environmentLoader.loadFromDirectory(dirPath);
     return {
       message: `Loaded ${loadedEnvs.length} environments`,
-      environments: loadedEnvs.map(e => e.metadata),
+      environments: loadedEnvs.map((e) => e.metadata),
     };
   }
 
@@ -168,7 +168,10 @@ export class SimulatorController {
     @Param("id") id: string,
     @Param("version") version: string,
   ) {
-    const reloaded = await this.environmentLoader.reloadEnvironment(id, version);
+    const reloaded = await this.environmentLoader.reloadEnvironment(
+      id,
+      version,
+    );
     return {
       message: "Environment reloaded successfully",
       environment: reloaded.metadata,
@@ -221,7 +224,11 @@ export class SimulatorController {
     @Body() config: EnvironmentInitConfig,
   ) {
     const { instanceId, result } =
-      await this.environmentLoader.createAndInitializeInstance(id, version, config);
+      await this.environmentLoader.createAndInitializeInstance(
+        id,
+        version,
+        config,
+      );
     return {
       message: result.success
         ? "Instance created and initialized successfully"
@@ -242,7 +249,10 @@ export class SimulatorController {
     @Query("version") version?: string,
   ) {
     const instances = environmentId
-      ? this.environmentRegistry.getInstancesForEnvironment(environmentId, version)
+      ? this.environmentRegistry.getInstancesForEnvironment(
+          environmentId,
+          version,
+        )
       : this.environmentRegistry.getAllInstances();
     return {
       instances,
@@ -272,7 +282,10 @@ export class SimulatorController {
     @Param("instanceId") instanceId: string,
     @Body() config: EnvironmentRunConfig,
   ) {
-    const result = await this.environmentLoader.runSimulation(instanceId, config);
+    const result = await this.environmentLoader.runSimulation(
+      instanceId,
+      config,
+    );
     return {
       message: result.success
         ? "Simulation completed successfully"

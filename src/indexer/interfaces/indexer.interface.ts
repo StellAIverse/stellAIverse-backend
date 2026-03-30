@@ -82,7 +82,10 @@ export interface IShardManager {
 }
 
 export interface IBlockCoordinator {
-  acquireBlockRange(instanceId: number, preferredRange?: BlockRange): Promise<BlockRange | null>;
+  acquireBlockRange(
+    instanceId: number,
+    preferredRange?: BlockRange,
+  ): Promise<BlockRange | null>;
   releaseBlockRange(range: BlockRange): Promise<void>;
   markRangeComplete(range: BlockRange): Promise<void>;
   getGlobalProgress(): Promise<number>;

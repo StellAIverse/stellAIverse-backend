@@ -29,7 +29,11 @@ export class RateLimiterService implements OnModuleDestroy {
     });
   }
 
-  async enforce(scope: PolicyScope, targetId: string, requested = 1): Promise<QuotaResult> {
+  async enforce(
+    scope: PolicyScope,
+    targetId: string,
+    requested = 1,
+  ): Promise<QuotaResult> {
     const policy = this.policyService.getApplicablePolicy(scope, targetId);
     if (!policy) {
       // fallback: allow if no policy defined
@@ -72,7 +76,9 @@ export class RateLimiterService implements OnModuleDestroy {
         resetMs: windowMs,
       };
     } catch (error) {
-      this.logger.error(`Failed to check quota for key ${key}: ${error.message}`);
+      this.logger.error(
+        `Failed to check quota for key ${key}: ${error.message}`,
+      );
       return { allowed: true, remaining: 0, resetMs: 0 };
     }
   }

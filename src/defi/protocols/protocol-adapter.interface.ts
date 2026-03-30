@@ -5,17 +5,41 @@ export interface ProtocolAdapter {
   // Position Management
   getPosition(address: string, token: string): Promise<PositionData>;
   getAllPositions(address: string): Promise<PositionData[]>;
-  deposit(address: string, token: string, amount: number): Promise<TransactionData>;
-  withdraw(address: string, token: string, amount: number): Promise<TransactionData>;
+  deposit(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
+  withdraw(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
 
   // Lending/Borrowing
-  borrow?(address: string, token: string, amount: number): Promise<TransactionData>;
-  repay?(address: string, token: string, amount: number): Promise<TransactionData>;
+  borrow?(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
+  repay?(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
   getCollateralData?(address: string): Promise<CollateralData>;
 
   // Staking/Farming
-  stake?(address: string, token: string, amount: number): Promise<TransactionData>;
-  unstake?(address: string, token: string, amount: number): Promise<TransactionData>;
+  stake?(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
+  unstake?(
+    address: string,
+    token: string,
+    amount: number,
+  ): Promise<TransactionData>;
 
   // Rewards
   getRewards(address: string): Promise<RewardData[]>;
@@ -34,7 +58,11 @@ export interface ProtocolAdapter {
   simulateTransaction(tx: TransactionData): Promise<SimulationResult>;
 
   // Swap Integration
-  getSwapRoute?(tokenIn: string, tokenOut: string, amount: number): Promise<SwapRoute>;
+  getSwapRoute?(
+    tokenIn: string,
+    tokenOut: string,
+    amount: number,
+  ): Promise<SwapRoute>;
   executeSwap?(route: SwapRoute): Promise<TransactionData>;
 }
 

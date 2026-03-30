@@ -1,18 +1,29 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { AuthStrategy, AuthResult, AuthPayload, TraditionalCredentials } from '../interfaces/auth-strategy.interface';
-import { User } from '../../../user/entities/user.entity';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
+import {
+  AuthStrategy,
+  AuthResult,
+  AuthPayload,
+  TraditionalCredentials,
+} from "../interfaces/auth-strategy.interface";
+import { User } from "../../../user/entities/user.entity";
 
 /**
  * Traditional email/password authentication strategy
  */
 @Injectable()
 export class TraditionalStrategy implements AuthStrategy {
-  readonly name = 'traditional';
+  readonly name = "traditional";
   private readonly logger = new Logger(TraditionalStrategy.name);
 
   constructor(
@@ -26,7 +37,7 @@ export class TraditionalStrategy implements AuthStrategy {
    * Check if traditional strategy is enabled
    */
   get isEnabled(): boolean {
-    return this.configService.get<boolean>('AUTH_TRADITIONAL_ENABLED', true);
+    return this.configService.get<boolean>("AUTH_TRADITIONAL_ENABLED", true);
   }
 
   /**
@@ -38,26 +49,26 @@ export class TraditionalStrategy implements AuthStrategy {
     const { email, password } = credentials as TraditionalCredentials;
 
     if (!email || !password) {
-      throw new BadRequestException('Email and password are required');
+      throw new BadRequestException("Email and password are required");
     }
 
     // Find user by email
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Check if user has a password (traditional auth user)
     if (!user.password) {
       throw new BadRequestException(
-        'This account uses wallet authentication. Please use wallet login.',
+        "This account uses wallet authentication. Please use wallet login.",
       );
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Generate JWT token
@@ -65,9 +76,9 @@ export class TraditionalStrategy implements AuthStrategy {
       sub: user.id,
       email: user.email,
       username: user.username,
-      role: user.role || 'user',
+      role: user.role || "user",
       iat: Math.floor(Date.now() / 1000),
-      type: 'traditional',
+      type: "traditional",
     };
 
     const token = this.jwtService.sign(payload);
@@ -80,8 +91,8 @@ export class TraditionalStrategy implements AuthStrategy {
         id: user.id,
         email: user.email,
         username: user.username,
-        role: user.role || 'user',
-        type: 'traditional',
+        role: user.role || "user",
+        type: "traditional",
       },
     };
   }
@@ -93,7 +104,11 @@ export class TraditionalStrategy implements AuthStrategy {
    * @param username - User username
    * @returns Authentication result with JWT token
    */
-  async register(email: string, password: string, username: string): Promise<AuthResult> {
+  async register(
+    email: string,
+    password: string,
+    username: string,
+  ): Promise<AuthResult> {
     // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: [{ email }, { username }],
@@ -101,10 +116,10 @@ export class TraditionalStrategy implements AuthStrategy {
 
     if (existingUser) {
       if (existingUser.email === email) {
-        throw new ConflictException('Email already registered');
+        throw new ConflictException("Email already registered");
       }
       if (existingUser.username === username) {
-        throw new ConflictException('Username already taken');
+        throw new ConflictException("Username already taken");
       }
     }
 
@@ -128,9 +143,9 @@ export class TraditionalStrategy implements AuthStrategy {
       sub: user.id,
       email: user.email,
       username: user.username,
-      role: user.role || 'user',
+      role: user.role || "user",
       iat: Math.floor(Date.now() / 1000),
-      type: 'traditional',
+      type: "traditional",
     };
 
     const token = this.jwtService.sign(payload);
@@ -143,8 +158,8 @@ export class TraditionalStrategy implements AuthStrategy {
         id: user.id,
         email: user.email,
         username: user.username,
-        role: user.role || 'user',
-        type: 'traditional',
+        role: user.role || "user",
+        type: "traditional",
       },
     };
   }
@@ -158,7 +173,7 @@ export class TraditionalStrategy implements AuthStrategy {
     try {
       return this.jwtService.verify(token) as AuthPayload;
     } catch (error) {
-      this.logger.warn('Token validation failed', error);
+      this.logger.warn("Token validation failed", error);
       return null;
     }
   }

@@ -1,8 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import {
-  SimulationConfig,
-  EnvironmentType,
-} from "./simulation.interface";
+import { SimulationConfig, EnvironmentType } from "./simulation.interface";
 import seedrandom = require("seedrandom");
 
 @Injectable()

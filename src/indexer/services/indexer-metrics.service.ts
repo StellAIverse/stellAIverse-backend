@@ -53,17 +53,21 @@ export class IndexerMetricsService implements OnModuleInit {
   /**
    * Record event processing metrics
    */
-  async recordEventProcessed(processingTimeMs: number, success: boolean): Promise<void> {
+  async recordEventProcessed(
+    processingTimeMs: number,
+    success: boolean,
+  ): Promise<void> {
     this.metrics.totalEventsIndexed++;
-    
+
     if (!success) {
       this.metrics.failedEvents++;
     }
 
     // Update running average of processing time
     const alpha = 0.1; // Exponential moving average factor
-    this.metrics.averageProcessingTime = 
-      (1 - alpha) * this.metrics.averageProcessingTime + alpha * processingTimeMs;
+    this.metrics.averageProcessingTime =
+      (1 - alpha) * this.metrics.averageProcessingTime +
+      alpha * processingTimeMs;
 
     await this.persistMetrics();
     await this.takeSnapshotIfNeeded();
@@ -75,19 +79,21 @@ export class IndexerMetricsService implements OnModuleInit {
   async recordBatchProcessed(
     eventCount: number,
     totalTimeMs: number,
-    failedCount: number
+    failedCount: number,
   ): Promise<void> {
     this.metrics.totalEventsIndexed += eventCount;
     this.metrics.failedEvents += failedCount;
 
     const avgTimePerEvent = eventCount > 0 ? totalTimeMs / eventCount : 0;
     const alpha = 0.1;
-    this.metrics.averageProcessingTime = 
-      (1 - alpha) * this.metrics.averageProcessingTime + alpha * avgTimePerEvent;
+    this.metrics.averageProcessingTime =
+      (1 - alpha) * this.metrics.averageProcessingTime +
+      alpha * avgTimePerEvent;
 
     // Calculate events per second
-    const eventsPerSecond = totalTimeMs > 0 ? (eventCount / totalTimeMs) * 1000 : 0;
-    this.metrics.eventsPerSecond = 
+    const eventsPerSecond =
+      totalTimeMs > 0 ? (eventCount / totalTimeMs) * 1000 : 0;
+    this.metrics.eventsPerSecond =
       (1 - alpha) * this.metrics.eventsPerSecond + alpha * eventsPerSecond;
 
     await this.persistMetrics();
@@ -97,14 +103,18 @@ export class IndexerMetricsService implements OnModuleInit {
    * Update queue depth metric
    */
   async updateQueueDepth(queueStats: QueueStats): Promise<void> {
-    this.metrics.queueDepth = queueStats.waiting + queueStats.active + queueStats.delayed;
+    this.metrics.queueDepth =
+      queueStats.waiting + queueStats.active + queueStats.delayed;
     await this.persistMetrics();
   }
 
   /**
    * Update instance and shard metrics
    */
-  async updateClusterMetrics(activeInstances: number, shardCount: number): Promise<void> {
+  async updateClusterMetrics(
+    activeInstances: number,
+    shardCount: number,
+  ): Promise<void> {
     this.metrics.activeInstances = activeInstances;
     this.metrics.shardCount = shardCount;
     await this.persistMetrics();
@@ -113,7 +123,10 @@ export class IndexerMetricsService implements OnModuleInit {
   /**
    * Update blocks behind (lag) metric
    */
-  async updateLagMetric(currentBlock: number, latestBlock: number): Promise<void> {
+  async updateLagMetric(
+    currentBlock: number,
+    latestBlock: number,
+  ): Promise<void> {
     this.metrics.blocksBehind = Math.max(0, latestBlock - currentBlock);
     await this.persistMetrics();
   }
@@ -137,7 +150,8 @@ export class IndexerMetricsService implements OnModuleInit {
     return {
       totalEventsIndexed: this.metrics.totalEventsIndexed,
       eventsPerSecond: Math.round(this.metrics.eventsPerSecond * 100) / 100,
-      averageProcessingTime: Math.round(this.metrics.averageProcessingTime * 100) / 100,
+      averageProcessingTime:
+        Math.round(this.metrics.averageProcessingTime * 100) / 100,
       queueDepth: this.metrics.queueDepth,
       failedEvents: this.metrics.failedEvents,
       retryEvents: this.metrics.retryEvents,
@@ -203,7 +217,9 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
     totalEvents: number;
   } {
     const cutoffTime = Date.now() - timeWindowMinutes * 60 * 1000;
-    const relevantSnapshots = this.snapshots.filter((s) => s.timestamp >= cutoffTime);
+    const relevantSnapshots = this.snapshots.filter(
+      (s) => s.timestamp >= cutoffTime,
+    );
 
     if (relevantSnapshots.length === 0) {
       return {
@@ -215,15 +231,19 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
     }
 
     const eventsPerSecondValues = relevantSnapshots.map((s) => {
-      const timeDelta = s.timestamp - (this.snapshots[0]?.timestamp || s.timestamp);
+      const timeDelta =
+        s.timestamp - (this.snapshots[0]?.timestamp || s.timestamp);
       return timeDelta > 0 ? (s.eventsIndexed / timeDelta) * 1000 : 0;
     });
 
-    const totalEvents = relevantSnapshots[relevantSnapshots.length - 1].eventsIndexed - 
-                       (relevantSnapshots[0]?.eventsIndexed || 0);
+    const totalEvents =
+      relevantSnapshots[relevantSnapshots.length - 1].eventsIndexed -
+      (relevantSnapshots[0]?.eventsIndexed || 0);
 
     return {
-      avgEventsPerSecond: eventsPerSecondValues.reduce((a, b) => a + b, 0) / eventsPerSecondValues.length,
+      avgEventsPerSecond:
+        eventsPerSecondValues.reduce((a, b) => a + b, 0) /
+        eventsPerSecondValues.length,
       peakEventsPerSecond: Math.max(...eventsPerSecondValues),
       minEventsPerSecond: Math.min(...eventsPerSecondValues),
       totalEvents,
@@ -255,7 +275,11 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
    */
   private async persistMetrics(): Promise<void> {
     const key = `${this.metricsKeyPrefix}current`;
-    await this.redis.setex(key, this.snapshotRetention, JSON.stringify(this.metrics));
+    await this.redis.setex(
+      key,
+      this.snapshotRetention,
+      JSON.stringify(this.metrics),
+    );
   }
 
   /**
@@ -264,7 +288,7 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
   private async loadPersistedMetrics(): Promise<void> {
     const key = `${this.metricsKeyPrefix}current`;
     const data = await this.redis.get(key);
-    
+
     if (data) {
       try {
         const persisted = JSON.parse(data);
@@ -281,7 +305,7 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
    */
   private async takeSnapshotIfNeeded(): Promise<void> {
     const now = Date.now();
-    
+
     if (now - this.lastSnapshotTime >= this.snapshotInterval) {
       const snapshot: MetricsSnapshot = {
         timestamp: now,
@@ -303,7 +327,7 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
       await this.redis.setex(
         `${this.metricsKeyPrefix}snapshots`,
         this.snapshotRetention,
-        JSON.stringify(this.snapshots)
+        JSON.stringify(this.snapshots),
       );
     }
   }
@@ -329,10 +353,11 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
     }
 
     // Check failure rate
-    const failureRate = this.metrics.totalEventsIndexed > 0
-      ? this.metrics.failedEvents / this.metrics.totalEventsIndexed
-      : 0;
-    
+    const failureRate =
+      this.metrics.totalEventsIndexed > 0
+        ? this.metrics.failedEvents / this.metrics.totalEventsIndexed
+        : 0;
+
     if (failureRate > 0.1) {
       reasons.push(`High failure rate: ${(failureRate * 100).toFixed(2)}%`);
       status = "unhealthy";
@@ -343,7 +368,9 @@ indexer_blocks_behind ${m.blocksBehind} ${timestamp}
 
     // Check lag
     if (this.metrics.blocksBehind > 100) {
-      reasons.push(`High block lag: ${this.metrics.blocksBehind} blocks behind`);
+      reasons.push(
+        `High block lag: ${this.metrics.blocksBehind} blocks behind`,
+      );
       if (status === "healthy") status = "degraded";
     }
 

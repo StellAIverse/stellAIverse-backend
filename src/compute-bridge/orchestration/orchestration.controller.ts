@@ -6,20 +6,20 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { MultiProviderOrchestrationService } from './multi-provider-orchestration.service';
-import { AuditService } from './audit.service';
-import { ConsensusService } from './consensus.service';
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { MultiProviderOrchestrationService } from "./multi-provider-orchestration.service";
+import { AuditService } from "./audit.service";
+import { ConsensusService } from "./consensus.service";
 import {
   OrchestrationStrategy,
   OrchestratedRequestConfig,
   OrchestratedResponse,
   ProviderExecutionMode,
   ConsensusAlgorithm,
-} from './orchestration.interface';
-import { AIProviderType } from '../provider.interface';
-import { CompletionRequestDto } from '../base.dto';
+} from "./orchestration.interface";
+import { AIProviderType } from "../provider.interface";
+import { CompletionRequestDto } from "../base.dto";
 
 /**
  * Orchestration DTOs
@@ -35,7 +35,7 @@ class OrchestratedCompletionRequestDto extends CompletionRequestDto {
   };
   bestOfNConfig?: {
     n: number;
-    criteria: 'fastest' | 'cheapest' | 'highest_quality' | 'most_tokens';
+    criteria: "fastest" | "cheapest" | "highest_quality" | "most_tokens";
   };
 }
 
@@ -44,8 +44,8 @@ class ProviderModeUpdateDto {
   mode: ProviderExecutionMode;
 }
 
-@ApiTags('orchestration')
-@Controller('orchestration')
+@ApiTags("orchestration")
+@Controller("orchestration")
 export class OrchestrationController {
   constructor(
     private readonly orchestrationService: MultiProviderOrchestrationService,
@@ -56,11 +56,13 @@ export class OrchestrationController {
   /**
    * Execute a completion with multi-provider orchestration
    */
-  @Post('complete')
+  @Post("complete")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Execute completion with multi-provider orchestration' })
-  @ApiResponse({ status: 200, description: 'Completion successful' })
-  @ApiResponse({ status: 500, description: 'All providers failed' })
+  @ApiOperation({
+    summary: "Execute completion with multi-provider orchestration",
+  })
+  @ApiResponse({ status: 200, description: "Completion successful" })
+  @ApiResponse({ status: 500, description: "All providers failed" })
   async orchestratedComplete(
     @Body() request: OrchestratedCompletionRequestDto,
   ): Promise<OrchestratedResponse> {
@@ -91,14 +93,15 @@ export class OrchestrationController {
   /**
    * Execute with consensus strategy
    */
-  @Post('consensus')
+  @Post("consensus")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Execute with consensus across multiple providers' })
+  @ApiOperation({ summary: "Execute with consensus across multiple providers" })
   async consensusComplete(
     @Body() request: CompletionRequestDto,
-    @Query('providers') providers?: AIProviderType[],
-    @Query('algorithm') algorithm: ConsensusAlgorithm = ConsensusAlgorithm.MAJORITY_VOTE,
-    @Query('minAgreement') minAgreement: number = 0.5,
+    @Query("providers") providers?: AIProviderType[],
+    @Query("algorithm")
+    algorithm: ConsensusAlgorithm = ConsensusAlgorithm.MAJORITY_VOTE,
+    @Query("minAgreement") minAgreement: number = 0.5,
   ): Promise<OrchestratedResponse> {
     const config: OrchestratedRequestConfig = {
       strategy: OrchestrationStrategy.CONSENSUS,
@@ -115,12 +118,12 @@ export class OrchestrationController {
   /**
    * Execute in parallel to all providers
    */
-  @Post('parallel')
+  @Post("parallel")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Execute in parallel to all enabled providers' })
+  @ApiOperation({ summary: "Execute in parallel to all enabled providers" })
   async parallelComplete(
     @Body() request: CompletionRequestDto,
-    @Query('providers') providers?: AIProviderType[],
+    @Query("providers") providers?: AIProviderType[],
   ): Promise<OrchestratedResponse> {
     const config: OrchestratedRequestConfig = {
       strategy: OrchestrationStrategy.PARALLEL,
@@ -133,13 +136,18 @@ export class OrchestrationController {
   /**
    * Execute with best-of-N selection
    */
-  @Post('best-of-n')
+  @Post("best-of-n")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Execute with best-of-N provider selection' })
+  @ApiOperation({ summary: "Execute with best-of-N provider selection" })
   async bestOfNComplete(
     @Body() request: CompletionRequestDto,
-    @Query('n') n: number = 3,
-    @Query('criteria') criteria: 'fastest' | 'cheapest' | 'highest_quality' | 'most_tokens' = 'fastest',
+    @Query("n") n: number = 3,
+    @Query("criteria")
+    criteria:
+      | "fastest"
+      | "cheapest"
+      | "highest_quality"
+      | "most_tokens" = "fastest",
   ): Promise<OrchestratedResponse> {
     const config: OrchestratedRequestConfig = {
       strategy: OrchestrationStrategy.BEST_OF_N,
@@ -155,8 +163,8 @@ export class OrchestrationController {
   /**
    * Get orchestration health status
    */
-  @Get('health')
-  @ApiOperation({ summary: 'Get orchestration health status' })
+  @Get("health")
+  @ApiOperation({ summary: "Get orchestration health status" })
   async getHealthStatus() {
     return this.orchestrationService.getHealthStatus();
   }
@@ -164,9 +172,9 @@ export class OrchestrationController {
   /**
    * Get provider execution mode
    */
-  @Get('providers/:provider/mode')
-  @ApiOperation({ summary: 'Get provider execution mode' })
-  getProviderMode(@Query('provider') provider: AIProviderType) {
+  @Get("providers/:provider/mode")
+  @ApiOperation({ summary: "Get provider execution mode" })
+  getProviderMode(@Query("provider") provider: AIProviderType) {
     return {
       provider,
       mode: this.orchestrationService.getProviderMode(provider),
@@ -176,9 +184,9 @@ export class OrchestrationController {
   /**
    * Set provider execution mode
    */
-  @Post('providers/mode')
+  @Post("providers/mode")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Set provider execution mode at runtime' })
+  @ApiOperation({ summary: "Set provider execution mode at runtime" })
   setProviderMode(@Body() update: ProviderModeUpdateDto) {
     this.orchestrationService.setProviderMode(update.provider, update.mode);
     return {
@@ -191,11 +199,14 @@ export class OrchestrationController {
   /**
    * Enable a provider
    */
-  @Post('providers/:provider/enable')
+  @Post("providers/:provider/enable")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Enable a provider' })
-  enableProvider(@Query('provider') provider: AIProviderType) {
-    this.orchestrationService.setProviderMode(provider, ProviderExecutionMode.ENABLED);
+  @ApiOperation({ summary: "Enable a provider" })
+  enableProvider(@Query("provider") provider: AIProviderType) {
+    this.orchestrationService.setProviderMode(
+      provider,
+      ProviderExecutionMode.ENABLED,
+    );
     return {
       message: `Provider ${provider} enabled`,
       provider,
@@ -206,11 +217,14 @@ export class OrchestrationController {
   /**
    * Disable a provider
    */
-  @Post('providers/:provider/disable')
+  @Post("providers/:provider/disable")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Disable a provider' })
-  disableProvider(@Query('provider') provider: AIProviderType) {
-    this.orchestrationService.setProviderMode(provider, ProviderExecutionMode.DISABLED);
+  @ApiOperation({ summary: "Disable a provider" })
+  disableProvider(@Query("provider") provider: AIProviderType) {
+    this.orchestrationService.setProviderMode(
+      provider,
+      ProviderExecutionMode.DISABLED,
+    );
     return {
       message: `Provider ${provider} disabled`,
       provider,
@@ -221,13 +235,13 @@ export class OrchestrationController {
   /**
    * Get audit log
    */
-  @Get('audit-log')
-  @ApiOperation({ summary: 'Get provider audit log' })
+  @Get("audit-log")
+  @ApiOperation({ summary: "Get provider audit log" })
   async getAuditLog(
-    @Query('requestId') requestId?: string,
-    @Query('provider') provider?: AIProviderType,
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query("requestId") requestId?: string,
+    @Query("provider") provider?: AIProviderType,
+    @Query("limit") limit?: number,
+    @Query("offset") offset?: number,
   ) {
     const entries = this.auditService.getAuditLog({
       requestId,
@@ -245,11 +259,9 @@ export class OrchestrationController {
   /**
    * Export audit log
    */
-  @Get('audit-log/export')
-  @ApiOperation({ summary: 'Export audit log' })
-  async exportAuditLog(
-    @Query('format') format: 'json' | 'csv' = 'json',
-  ) {
+  @Get("audit-log/export")
+  @ApiOperation({ summary: "Export audit log" })
+  async exportAuditLog(@Query("format") format: "json" | "csv" = "json") {
     const data = this.auditService.exportAuditLog({ format });
     return {
       data,
@@ -260,8 +272,8 @@ export class OrchestrationController {
   /**
    * Get audit statistics
    */
-  @Get('audit-log/statistics')
-  @ApiOperation({ summary: 'Get audit statistics' })
+  @Get("audit-log/statistics")
+  @ApiOperation({ summary: "Get audit statistics" })
   async getAuditStatistics() {
     return this.auditService.getStatistics();
   }
@@ -269,9 +281,9 @@ export class OrchestrationController {
   /**
    * Verify audit entry integrity
    */
-  @Get('audit-log/:auditId/verify')
-  @ApiOperation({ summary: 'Verify audit entry integrity' })
-  verifyAuditEntry(@Query('auditId') auditId: string) {
+  @Get("audit-log/:auditId/verify")
+  @ApiOperation({ summary: "Verify audit entry integrity" })
+  verifyAuditEntry(@Query("auditId") auditId: string) {
     const isValid = this.auditService.verifyIntegrity(auditId);
     return {
       auditId,

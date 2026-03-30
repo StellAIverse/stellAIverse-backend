@@ -1,5 +1,13 @@
-import { Injectable, Logger, OnModuleInit, NotFoundException } from "@nestjs/common";
-import { IComputeProvider, ProviderType } from "./interfaces/provider.interface";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  NotFoundException,
+} from "@nestjs/common";
+import {
+  IComputeProvider,
+  ProviderType,
+} from "./interfaces/provider.interface";
 import { OpenAIAdapter } from "./providers/openai.adapter";
 import { MockAdapter } from "./providers/mock.adapter";
 
@@ -32,7 +40,9 @@ export class ComputeBridgeService implements OnModuleInit {
         await provider.initialize();
         this.logger.log(`Provider ${type} initialized successfully`);
       } catch (error) {
-        this.logger.error(`Failed to initialize provider ${type}: ${error.message}`);
+        this.logger.error(
+          `Failed to initialize provider ${type}: ${error.message}`,
+        );
       }
     }
   }
@@ -55,7 +65,9 @@ export class ComputeBridgeService implements OnModuleInit {
   /**
    * Get the status of all registered providers
    */
-  async getProvidersStatus(): Promise<Record<string, { status: string; healthy: boolean }>> {
+  async getProvidersStatus(): Promise<
+    Record<string, { status: string; healthy: boolean }>
+  > {
     const statuses: Record<string, { status: string; healthy: boolean }> = {};
 
     for (const [type, provider] of this.providers.entries()) {

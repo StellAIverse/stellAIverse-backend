@@ -1,12 +1,22 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { verifyMessage } from 'ethers';
-import { AuthStrategy, AuthResult, AuthPayload, WalletCredentials } from '../interfaces/auth-strategy.interface';
-import { ChallengeService } from '../../challenge.service';
-import { User } from '../../../user/entities/user.entity';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { verifyMessage } from "ethers";
+import {
+  AuthStrategy,
+  AuthResult,
+  AuthPayload,
+  WalletCredentials,
+} from "../interfaces/auth-strategy.interface";
+import { ChallengeService } from "../../challenge.service";
+import { User } from "../../../user/entities/user.entity";
 
 /**
  * Wallet-based authentication strategy
@@ -14,7 +24,7 @@ import { User } from '../../../user/entities/user.entity';
  */
 @Injectable()
 export class WalletStrategy implements AuthStrategy {
-  readonly name = 'wallet';
+  readonly name = "wallet";
   private readonly logger = new Logger(WalletStrategy.name);
 
   constructor(
@@ -29,7 +39,7 @@ export class WalletStrategy implements AuthStrategy {
    * Check if wallet strategy is enabled
    */
   get isEnabled(): boolean {
-    return this.configService.get<boolean>('AUTH_WALLET_ENABLED', true);
+    return this.configService.get<boolean>("AUTH_WALLET_ENABLED", true);
   }
 
   /**
@@ -41,20 +51,20 @@ export class WalletStrategy implements AuthStrategy {
     const { message, signature } = credentials as WalletCredentials;
 
     if (!message || !signature) {
-      throw new BadRequestException('Message and signature are required');
+      throw new BadRequestException("Message and signature are required");
     }
 
     // Extract challenge ID from message
     const challengeId = this.challengeService.extractChallengeId(message);
     if (!challengeId) {
-      throw new UnauthorizedException('Invalid challenge message format');
+      throw new UnauthorizedException("Invalid challenge message format");
     }
 
     // Get and consume the challenge
     const challenge = this.challengeService.consumeChallenge(challengeId);
     if (!challenge) {
       throw new UnauthorizedException(
-        'Challenge not found or expired. Please request a new challenge.',
+        "Challenge not found or expired. Please request a new challenge.",
       );
     }
 
@@ -63,12 +73,14 @@ export class WalletStrategy implements AuthStrategy {
     try {
       recoveredAddress = verifyMessage(message, signature);
     } catch (error) {
-      throw new UnauthorizedException('Invalid signature');
+      throw new UnauthorizedException("Invalid signature");
     }
 
     // Verify the recovered address matches the challenge address
     if (recoveredAddress.toLowerCase() !== challenge.address) {
-      throw new UnauthorizedException('Signature does not match challenge address');
+      throw new UnauthorizedException(
+        "Signature does not match challenge address",
+      );
     }
 
     // Fetch user to get email if linked
@@ -80,9 +92,9 @@ export class WalletStrategy implements AuthStrategy {
     const payload: AuthPayload = {
       address: recoveredAddress.toLowerCase(),
       email: user?.emailVerified ? user.email : undefined,
-      role: user?.role || 'user',
+      role: user?.role || "user",
       iat: Math.floor(Date.now() / 1000),
-      type: 'wallet',
+      type: "wallet",
     };
 
     const token = this.jwtService.sign(payload);
@@ -94,8 +106,8 @@ export class WalletStrategy implements AuthStrategy {
       user: {
         address: recoveredAddress.toLowerCase(),
         email: user?.emailVerified ? user.email : undefined,
-        role: user?.role || 'user',
-        type: 'wallet',
+        role: user?.role || "user",
+        type: "wallet",
       },
     };
   }
@@ -109,7 +121,7 @@ export class WalletStrategy implements AuthStrategy {
     try {
       return this.jwtService.verify(token) as AuthPayload;
     } catch (error) {
-      this.logger.warn('Token validation failed', error);
+      this.logger.warn("Token validation failed", error);
       return null;
     }
   }

@@ -1,10 +1,6 @@
 // src/plugins/plugin.interface.ts
 
-export type PluginStatus =
-  | "pending"
-  | "approved"
-  | "active"
-  | "inactive";
+export type PluginStatus = "pending" | "approved" | "active" | "inactive";
 
 export interface PluginMetadata {
   name: string;

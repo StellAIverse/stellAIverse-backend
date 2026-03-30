@@ -1,5 +1,10 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { StrategyRegistry } from './strategies/strategy.registry';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+import { StrategyRegistry } from "./strategies/strategy.registry";
 import {
   AuthStrategy,
   AuthResult,
@@ -8,7 +13,7 @@ import {
   TraditionalCredentials,
   OAuthCredentials,
   ApiKeyCredentials,
-} from './strategies/interfaces/auth-strategy.interface';
+} from "./strategies/interfaces/auth-strategy.interface";
 
 /**
  * Service for managing strategy-based authentication
@@ -26,15 +31,22 @@ export class StrategyAuthService {
    * @param credentials - Strategy-specific credentials
    * @returns Authentication result
    */
-  async authenticate(strategyName: string, credentials: unknown): Promise<AuthResult> {
+  async authenticate(
+    strategyName: string,
+    credentials: unknown,
+  ): Promise<AuthResult> {
     const strategy = this.strategyRegistry.get(strategyName);
 
     if (!strategy) {
-      throw new BadRequestException(`Authentication strategy '${strategyName}' is not available`);
+      throw new BadRequestException(
+        `Authentication strategy '${strategyName}' is not available`,
+      );
     }
 
     if (!strategy.isEnabled) {
-      throw new BadRequestException(`Authentication strategy '${strategyName}' is disabled`);
+      throw new BadRequestException(
+        `Authentication strategy '${strategyName}' is disabled`,
+      );
     }
 
     this.logger.log(`Authenticating using strategy: ${strategyName}`);
@@ -46,8 +58,10 @@ export class StrategyAuthService {
    * @param credentials - Wallet credentials
    * @returns Authentication result
    */
-  async authenticateWallet(credentials: WalletCredentials): Promise<AuthResult> {
-    return this.authenticate('wallet', credentials);
+  async authenticateWallet(
+    credentials: WalletCredentials,
+  ): Promise<AuthResult> {
+    return this.authenticate("wallet", credentials);
   }
 
   /**
@@ -55,8 +69,10 @@ export class StrategyAuthService {
    * @param credentials - Traditional credentials
    * @returns Authentication result
    */
-  async authenticateTraditional(credentials: TraditionalCredentials): Promise<AuthResult> {
-    return this.authenticate('traditional', credentials);
+  async authenticateTraditional(
+    credentials: TraditionalCredentials,
+  ): Promise<AuthResult> {
+    return this.authenticate("traditional", credentials);
   }
 
   /**
@@ -65,7 +81,7 @@ export class StrategyAuthService {
    * @returns Authentication result
    */
   async authenticateOAuth(credentials: OAuthCredentials): Promise<AuthResult> {
-    return this.authenticate('oauth', credentials);
+    return this.authenticate("oauth", credentials);
   }
 
   /**
@@ -73,8 +89,10 @@ export class StrategyAuthService {
    * @param credentials - API key credentials
    * @returns Authentication result
    */
-  async authenticateApiKey(credentials: ApiKeyCredentials): Promise<AuthResult> {
-    return this.authenticate('api-key', credentials);
+  async authenticateApiKey(
+    credentials: ApiKeyCredentials,
+  ): Promise<AuthResult> {
+    return this.authenticate("api-key", credentials);
   }
 
   /**

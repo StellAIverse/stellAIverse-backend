@@ -1,15 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PerformanceMetric } from '../entities/performance-metric.entity';
-import { Portfolio } from '../entities/portfolio.entity';
-import { PortfolioAsset } from '../entities/portfolio-asset.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { PerformanceMetric } from "../entities/performance-metric.entity";
+import { Portfolio } from "../entities/portfolio.entity";
+import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 
 @Injectable()
 export class PerformanceAnalyticsService {
-  private readonly logger = new Logger(
-    PerformanceAnalyticsService.name,
-  );
+  private readonly logger = new Logger(PerformanceAnalyticsService.name);
 
   constructor(
     @InjectRepository(PerformanceMetric)
@@ -54,16 +52,13 @@ export class PerformanceAnalyticsService {
     let query = this.metricRepository.createQueryBuilder();
 
     query = query
-      .where('metric.portfolioId = :portfolioId', {
+      .where("metric.portfolioId = :portfolioId", {
         portfolioId,
       })
-      .orderBy('metric.dateTime', 'ASC');
+      .orderBy("metric.dateTime", "ASC");
 
     if (startDate) {
-      query = query.andWhere(
-        'metric.dateTime >= :startDate',
-        { startDate },
-      );
+      query = query.andWhere("metric.dateTime >= :startDate", { startDate });
     }
 
     const metrics = await query.getMany();
@@ -71,8 +66,7 @@ export class PerformanceAnalyticsService {
     if (metrics.length < 2) return 0;
 
     const firstValue = metrics[0].portfolioValue;
-    const lastValue =
-      metrics[metrics.length - 1].portfolioValue;
+    const lastValue = metrics[metrics.length - 1].portfolioValue;
 
     return (lastValue - firstValue) / firstValue;
   }
@@ -86,7 +80,7 @@ export class PerformanceAnalyticsService {
   ): Promise<number> {
     const metrics = await this.metricRepository.find({
       where: { portfolioId },
-      order: { dateTime: 'DESC' },
+      order: { dateTime: "DESC" },
       take: days + 1,
     });
 
@@ -95,17 +89,14 @@ export class PerformanceAnalyticsService {
     const returns: number[] = [];
     for (let i = 0; i < metrics.length - 1; i++) {
       const ret =
-        (metrics[i].portfolioValue -
-          metrics[i + 1].portfolioValue) /
+        (metrics[i].portfolioValue - metrics[i + 1].portfolioValue) /
         metrics[i + 1].portfolioValue;
       returns.push(ret);
     }
 
-    const mean =
-      returns.reduce((a, b) => a + b, 0) / returns.length;
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
     const variance =
-      returns.reduce((sum, ret) => sum + (ret - mean) ** 2, 0) /
-      returns.length;
+      returns.reduce((sum, ret) => sum + (ret - mean) ** 2, 0) / returns.length;
     const volatility = Math.sqrt(variance);
 
     // Annualize
@@ -119,17 +110,12 @@ export class PerformanceAnalyticsService {
     portfolioId: string,
     riskFreeRate: number = 0.02,
   ): Promise<number> {
-    const cumulativeReturn =
-      await this.calculateCumulativeReturn(portfolioId);
-    const volatility = await this.calculateVolatility(
-      portfolioId,
-    );
+    const cumulativeReturn = await this.calculateCumulativeReturn(portfolioId);
+    const volatility = await this.calculateVolatility(portfolioId);
 
     if (volatility === 0) return 0;
 
-    return (
-      (cumulativeReturn - riskFreeRate) / volatility || 0
-    );
+    return (cumulativeReturn - riskFreeRate) / volatility || 0;
   }
 
   /**
@@ -142,7 +128,7 @@ export class PerformanceAnalyticsService {
   ): Promise<number> {
     const metrics = await this.metricRepository.find({
       where: { portfolioId },
-      order: { dateTime: 'ASC' },
+      order: { dateTime: "ASC" },
       take: 252,
     });
 
@@ -150,8 +136,7 @@ export class PerformanceAnalyticsService {
 
     for (let i = 0; i < metrics.length - 1; i++) {
       const ret =
-        (metrics[i + 1].portfolioValue -
-          metrics[i].portfolioValue) /
+        (metrics[i + 1].portfolioValue - metrics[i].portfolioValue) /
         metrics[i].portfolioValue;
 
       if (ret < targetReturn) {
@@ -162,32 +147,23 @@ export class PerformanceAnalyticsService {
     if (downreturns.length === 0) return 0;
 
     const downsideDeviation = Math.sqrt(
-      downreturns.reduce(
-        (sum, ret) => sum + ret ** 2,
-        0,
-      ) / downreturns.length,
+      downreturns.reduce((sum, ret) => sum + ret ** 2, 0) / downreturns.length,
     );
 
-    const cumulativeReturn =
-      await this.calculateCumulativeReturn(portfolioId);
+    const cumulativeReturn = await this.calculateCumulativeReturn(portfolioId);
 
     if (downsideDeviation === 0) return 0;
 
-    return (
-      (cumulativeReturn - riskFreeRate) /
-      downsideDeviation
-    );
+    return (cumulativeReturn - riskFreeRate) / downsideDeviation;
   }
 
   /**
    * Calculate maximum drawdown
    */
-  async calculateMaxDrawdown(
-    portfolioId: string,
-  ): Promise<number> {
+  async calculateMaxDrawdown(portfolioId: string): Promise<number> {
     const metrics = await this.metricRepository.find({
       where: { portfolioId },
-      order: { dateTime: 'ASC' },
+      order: { dateTime: "ASC" },
     });
 
     if (metrics.length === 0) return 0;
@@ -200,9 +176,7 @@ export class PerformanceAnalyticsService {
         maxValue = metric.portfolioValue;
       }
 
-      const drawdown =
-        (maxValue - metric.portfolioValue) /
-        maxValue;
+      const drawdown = (maxValue - metric.portfolioValue) / maxValue;
       if (drawdown > maxDrawdown) {
         maxDrawdown = drawdown;
       }
@@ -220,23 +194,20 @@ export class PerformanceAnalyticsService {
   ): Promise<number> {
     const metrics = await this.metricRepository.find({
       where: { portfolioId },
-      order: { dateTime: 'DESC' },
+      order: { dateTime: "DESC" },
       take: 252,
     });
 
     const returns: number[] = [];
     for (let i = 0; i < metrics.length - 1; i++) {
       const ret =
-        (metrics[i].portfolioValue -
-          metrics[i + 1].portfolioValue) /
+        (metrics[i].portfolioValue - metrics[i + 1].portfolioValue) /
         metrics[i + 1].portfolioValue;
       returns.push(ret);
     }
 
     returns.sort((a, b) => a - b);
-    const index = Math.floor(
-      returns.length * (1 - confidence),
-    );
+    const index = Math.floor(returns.length * (1 - confidence));
 
     return returns[index] || 0;
   }
@@ -244,13 +215,9 @@ export class PerformanceAnalyticsService {
   /**
    * Calculate Calmar ratio
    */
-  async calculateCalmarRatio(
-    portfolioId: string,
-  ): Promise<number> {
-    const cumulativeReturn =
-      await this.calculateCumulativeReturn(portfolioId);
-    const maxDrawdown =
-      await this.calculateMaxDrawdown(portfolioId);
+  async calculateCalmarRatio(portfolioId: string): Promise<number> {
+    const cumulativeReturn = await this.calculateCumulativeReturn(portfolioId);
+    const maxDrawdown = await this.calculateMaxDrawdown(portfolioId);
 
     if (maxDrawdown === 0) return 0;
 
@@ -302,7 +269,7 @@ export class PerformanceAnalyticsService {
       where: {
         portfolioId,
       },
-      order: { dateTime: 'ASC' },
+      order: { dateTime: "ASC" },
     });
   }
 
@@ -316,7 +283,7 @@ export class PerformanceAnalyticsService {
   ): Promise<Record<string, number>> {
     const metrics = await this.metricRepository.find({
       where: { portfolioId },
-      order: { dateTime: 'ASC' },
+      order: { dateTime: "ASC" },
     });
 
     const attribution: Record<string, number> = {};
@@ -327,8 +294,7 @@ export class PerformanceAnalyticsService {
           metric.assetContribution,
         )) {
           attribution[asset] =
-            (attribution[asset] || 0) +
-            (contribution as number);
+            (attribution[asset] || 0) + (contribution as number);
         }
       }
     }

@@ -83,21 +83,21 @@ import { IndexedEvent } from "./entities/indexed-event.entity";
           removeOnComplete: false,
           removeOnFail: false,
         },
-      }
+      },
     ),
   ],
   controllers: [IndexerController],
   providers: [
     // Legacy service
     IndexerService,
-    
+
     // New scalable indexer services
     ScalableIndexerService,
     ShardManagerService,
     BlockCoordinatorService,
     IndexerMetricsService,
     IndexerQueueService,
-    
+
     // Queue processors
     EventIngestionProcessor,
     BlockFetchProcessor,

@@ -1,5 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { IAIProvider, AIProviderType, IProviderConfig } from "./provider.interface";
+import {
+  IAIProvider,
+  AIProviderType,
+  IProviderConfig,
+} from "./provider.interface";
 import { ProviderRegistry } from "./provider.registry";
 import {
   CompletionRequestDto,
@@ -9,7 +13,11 @@ import {
   MessageRole,
 } from "./base.dto";
 import { ProviderRouterService } from "./router/provider-router.service";
-import { ComputeRequest, RoutingContext, LoadBalancingStrategy } from "./router/routing.interface";
+import {
+  ComputeRequest,
+  RoutingContext,
+  LoadBalancingStrategy,
+} from "./router/routing.interface";
 
 /**
  * ComputeBridge Service
@@ -91,46 +99,46 @@ export class ComputeBridgeService implements OnModuleInit {
     // Create routing context with defaults
     const context: RoutingContext = {
       requestId: `comp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      requestType: 'completion',
+      requestType: "completion",
       strategy: routingContext?.strategy || LoadBalancingStrategy.HEALTH_AWARE,
       preferredProviders: routingContext?.preferredProviders,
       fallbackChain: routingContext?.fallbackChain,
       maxRetries: routingContext?.maxRetries || 3,
-      priority: routingContext?.priority || 'normal',
+      priority: routingContext?.priority || "normal",
       costSensitivity: routingContext?.costSensitivity || 0.5,
       latencySensitivity: routingContext?.latencySensitivity || 0.5,
-      tenantId: routingContext?.tenantId
+      tenantId: routingContext?.tenantId,
     };
 
     // Create compute request
     const computeRequest: ComputeRequest = {
       request,
-      context
+      context,
     };
 
     try {
       // Execute request with intelligent routing and failover
-      const { result, selectedProvider } = await this.providerRouter.executeRequest(
-        computeRequest,
-        async (provider: AIProviderType, req: CompletionRequestDto) => {
-          const providerInstance = this.getProvider(provider);
-          if (!providerInstance) {
-            throw new Error(`Provider ${provider} not found`);
-          }
+      const { result, selectedProvider } =
+        await this.providerRouter.executeRequest(
+          computeRequest,
+          async (provider: AIProviderType, req: CompletionRequestDto) => {
+            const providerInstance = this.getProvider(provider);
+            if (!providerInstance) {
+              throw new Error(`Provider ${provider} not found`);
+            }
 
-          // Execute completion using the selected provider
-          // This would call the provider's complete method
-          // For now, return a mock response
-          return this.createMockCompletionResponse(req, provider);
-        }
-      );
+            // Execute completion using the selected provider
+            // This would call the provider's complete method
+            // For now, return a mock response
+            return this.createMockCompletionResponse(req, provider);
+          },
+        );
 
       this.logger.log(
-        `Completion completed using provider: ${selectedProvider.provider}, reason: ${selectedProvider.reason}`
+        `Completion completed using provider: ${selectedProvider.provider}, reason: ${selectedProvider.reason}`,
       );
 
       return result as CompletionResponseDto;
-
     } catch (error) {
       this.logger.error(`Completion failed: ${error.message}`);
       throw error;
@@ -147,46 +155,46 @@ export class ComputeBridgeService implements OnModuleInit {
     // Create routing context with defaults
     const context: RoutingContext = {
       requestId: `emb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      requestType: 'embedding',
+      requestType: "embedding",
       strategy: routingContext?.strategy || LoadBalancingStrategy.HEALTH_AWARE,
       preferredProviders: routingContext?.preferredProviders,
       fallbackChain: routingContext?.fallbackChain,
       maxRetries: routingContext?.maxRetries || 3,
-      priority: routingContext?.priority || 'normal',
+      priority: routingContext?.priority || "normal",
       costSensitivity: routingContext?.costSensitivity || 0.5,
       latencySensitivity: routingContext?.latencySensitivity || 0.5,
-      tenantId: routingContext?.tenantId
+      tenantId: routingContext?.tenantId,
     };
 
     // Create compute request
     const computeRequest: ComputeRequest = {
       request,
-      context
+      context,
     };
 
     try {
       // Execute request with intelligent routing and failover
-      const { result, selectedProvider } = await this.providerRouter.executeRequest(
-        computeRequest,
-        async (provider: AIProviderType, req: EmbeddingRequestDto) => {
-          const providerInstance = this.getProvider(provider);
-          if (!providerInstance) {
-            throw new Error(`Provider ${provider} not found`);
-          }
+      const { result, selectedProvider } =
+        await this.providerRouter.executeRequest(
+          computeRequest,
+          async (provider: AIProviderType, req: EmbeddingRequestDto) => {
+            const providerInstance = this.getProvider(provider);
+            if (!providerInstance) {
+              throw new Error(`Provider ${provider} not found`);
+            }
 
-          // Execute embedding using the selected provider
-          // This would call the provider's generateEmbeddings method
-          // For now, return a mock response
-          return this.createMockEmbeddingResponse(req, provider);
-        }
-      );
+            // Execute embedding using the selected provider
+            // This would call the provider's generateEmbeddings method
+            // For now, return a mock response
+            return this.createMockEmbeddingResponse(req, provider);
+          },
+        );
 
       this.logger.log(
-        `Embedding completed using provider: ${selectedProvider.provider}, reason: ${selectedProvider.reason}`
+        `Embedding completed using provider: ${selectedProvider.provider}, reason: ${selectedProvider.reason}`,
       );
 
       return result as EmbeddingResponseDto;
-
     } catch (error) {
       this.logger.error(`Embedding failed: ${error.message}`);
       throw error;
@@ -232,10 +240,13 @@ export class ComputeBridgeService implements OnModuleInit {
   /**
    * Create mock completion response for testing
    */
-  private createMockCompletionResponse(request: CompletionRequestDto, provider: AIProviderType): CompletionResponseDto {
+  private createMockCompletionResponse(
+    request: CompletionRequestDto,
+    provider: AIProviderType,
+  ): CompletionResponseDto {
     return {
       id: `mock_${Date.now()}`,
-      object: 'chat.completion',
+      object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
       model: request.model,
       provider,
@@ -244,39 +255,44 @@ export class ComputeBridgeService implements OnModuleInit {
           index: 0,
           message: {
             role: MessageRole.ASSISTANT,
-            content: `Mock response from ${provider} for model ${request.model}`
+            content: `Mock response from ${provider} for model ${request.model}`,
           },
-          finishReason: 'stop'
-        }
+          finishReason: "stop",
+        },
       ],
       usage: {
         promptTokens: 10,
         completionTokens: 15,
-        totalTokens: 25
-      }
+        totalTokens: 25,
+      },
     };
   }
 
   /**
    * Create mock embedding response for testing
    */
-  private createMockEmbeddingResponse(request: EmbeddingRequestDto, provider: AIProviderType): EmbeddingResponseDto {
-    const inputs = Array.isArray(request.input) ? request.input : [request.input];
+  private createMockEmbeddingResponse(
+    request: EmbeddingRequestDto,
+    provider: AIProviderType,
+  ): EmbeddingResponseDto {
+    const inputs = Array.isArray(request.input)
+      ? request.input
+      : [request.input];
 
     return {
-      object: 'list',
+      object: "list",
       data: inputs.map((input, index) => ({
         index,
-        object: 'embedding',
-        embedding: Array.from({ length: 1536 }, () => Math.random()) // Mock 1536-dimensional embedding
+        object: "embedding",
+        embedding: Array.from({ length: 1536 }, () => Math.random()), // Mock 1536-dimensional embedding
       })),
       model: request.model,
       provider,
       usage: {
         promptTokens: inputs.length * 10,
         completionTokens: 0,
-        totalTokens: inputs.length * 10
-      }
+        totalTokens: inputs.length * 10,
+      },
     };
   }
 }

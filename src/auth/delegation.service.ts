@@ -6,12 +6,12 @@ import {
   UnauthorizedException,
   ForbiddenException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
-import { randomBytes, createHash } from 'crypto';
-import { Wallet, WalletStatus, WalletType } from './entities/wallet.entity';
-import { User } from '../user/entities/user.entity';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { randomBytes, createHash } from "crypto";
+import { Wallet, WalletStatus, WalletType } from "./entities/wallet.entity";
+import { User } from "../user/entities/user.entity";
 
 export interface DelegationRequest {
   delegatorWalletId: string;
@@ -22,10 +22,10 @@ export interface DelegationRequest {
 }
 
 export enum DelegationPermission {
-  SIGN_MESSAGES = 'sign_messages',
-  SIGN_TRANSACTIONS = 'sign_transactions',
-  AUTHENTICATE = 'authenticate',
-  READ_DATA = 'read_data',
+  SIGN_MESSAGES = "sign_messages",
+  SIGN_TRANSACTIONS = "sign_transactions",
+  AUTHENTICATE = "authenticate",
+  READ_DATA = "read_data",
 }
 
 export interface DelegationRecord {
@@ -36,7 +36,7 @@ export interface DelegationRecord {
   grantedAt: Date;
   expiresAt: Date;
   revokedAt?: Date;
-  status: 'active' | 'expired' | 'revoked';
+  status: "active" | "expired" | "revoked";
 }
 
 @Injectable()
@@ -72,12 +72,17 @@ export class DelegationService {
     });
 
     if (!delegatorWallet) {
-      throw new NotFoundException('Delegator wallet not found or not active');
+      throw new NotFoundException("Delegator wallet not found or not active");
     }
 
     // Check if delegator has permission to delegate
-    if (!delegatorWallet.isPrimary && delegatorWallet.type !== WalletType.SECONDARY) {
-      throw new ForbiddenException('Only primary or secondary wallets can delegate authority');
+    if (
+      !delegatorWallet.isPrimary &&
+      delegatorWallet.type !== WalletType.SECONDARY
+    ) {
+      throw new ForbiddenException(
+        "Only primary or secondary wallets can delegate authority",
+      );
     }
 
     // Normalize delegate address
@@ -89,7 +94,9 @@ export class DelegationService {
     });
 
     if (existingWallet && existingWallet.userId !== delegatorUserId) {
-      throw new ConflictException('Delegate address is already linked to another account');
+      throw new ConflictException(
+        "Delegate address is already linked to another account",
+      );
     }
 
     // Validate permissions
@@ -97,12 +104,12 @@ export class DelegationService {
 
     // Validate expiration
     if (request.expiresAt <= new Date()) {
-      throw new BadRequestException('Expiration date must be in the future');
+      throw new BadRequestException("Expiration date must be in the future");
     }
 
     const maxExpiration = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days max
     if (request.expiresAt > maxExpiration) {
-      throw new BadRequestException('Delegation cannot exceed 90 days');
+      throw new BadRequestException("Delegation cannot exceed 90 days");
     }
 
     // Create delegation ID and challenge
@@ -137,7 +144,7 @@ export class DelegationService {
     await this.auditDelegationAction(
       delegatorWallet.id,
       delegateWallet.id,
-      'request',
+      "request",
       clientInfo,
     );
 
@@ -147,7 +154,7 @@ export class DelegationService {
 
     return {
       delegationId,
-      message: 'Delegation requested. Sign the challenge to authorize.',
+      message: "Delegation requested. Sign the challenge to authorize.",
       challenge,
     };
   }
@@ -171,11 +178,11 @@ export class DelegationService {
         type: WalletType.DELEGATED,
         status: WalletStatus.PENDING,
       },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!delegateWallet) {
-      throw new NotFoundException('Pending delegation not found');
+      throw new NotFoundException("Pending delegation not found");
     }
 
     const delegatorWallet = await this.walletRepository.findOne({
@@ -183,11 +190,11 @@ export class DelegationService {
     });
 
     if (!delegatorWallet) {
-      throw new NotFoundException('Delegator wallet not found');
+      throw new NotFoundException("Delegator wallet not found");
     }
 
     // Verify signature
-    const { verifyMessage } = await import('ethers');
+    const { verifyMessage } = await import("ethers");
     const challenge = this.generateDelegationChallenge(
       delegatorWallet.address,
       delegateWallet.address,
@@ -199,11 +206,15 @@ export class DelegationService {
     try {
       recoveredAddress = verifyMessage(challenge, signature);
     } catch (error) {
-      throw new UnauthorizedException('Invalid signature');
+      throw new UnauthorizedException("Invalid signature");
     }
 
-    if (recoveredAddress.toLowerCase() !== delegatorWallet.address.toLowerCase()) {
-      throw new UnauthorizedException('Signature does not match delegator wallet');
+    if (
+      recoveredAddress.toLowerCase() !== delegatorWallet.address.toLowerCase()
+    ) {
+      throw new UnauthorizedException(
+        "Signature does not match delegator wallet",
+      );
     }
 
     // Activate delegation
@@ -215,11 +226,13 @@ export class DelegationService {
     await this.auditDelegationAction(
       delegatorWallet.id,
       delegateWallet.id,
-      'grant',
+      "grant",
       clientInfo,
     );
 
-    this.logger.log(`Delegation completed: ${delegatorWallet.address} -> ${delegateWallet.address}`);
+    this.logger.log(
+      `Delegation completed: ${delegatorWallet.address} -> ${delegateWallet.address}`,
+    );
 
     return {
       success: true,
@@ -230,7 +243,7 @@ export class DelegationService {
         permissions: delegateWallet.delegationPermissions || [],
         grantedAt: delegateWallet.verifiedAt,
         expiresAt: delegateWallet.delegationExpiresAt!,
-        status: 'active',
+        status: "active",
       },
     };
   }
@@ -255,11 +268,11 @@ export class DelegationService {
     });
 
     if (!delegateWallet) {
-      throw new NotFoundException('Delegation not found');
+      throw new NotFoundException("Delegation not found");
     }
 
     if (delegateWallet.status !== WalletStatus.ACTIVE) {
-      throw new BadRequestException('Delegation is not active');
+      throw new BadRequestException("Delegation is not active");
     }
 
     // Revoke the delegation
@@ -269,7 +282,7 @@ export class DelegationService {
     await this.auditDelegationAction(
       delegateWallet.delegatedById!,
       delegateWallet.id,
-      'revoke',
+      "revoke",
       clientInfo,
     );
 
@@ -277,7 +290,7 @@ export class DelegationService {
 
     return {
       success: true,
-      message: 'Delegation revoked successfully',
+      message: "Delegation revoked successfully",
     };
   }
 
@@ -324,13 +337,16 @@ export class DelegationService {
   /**
    * Get delegations for a specific wallet
    */
-  async getWalletDelegations(walletId: string, userId: string): Promise<DelegationRecord[]> {
+  async getWalletDelegations(
+    walletId: string,
+    userId: string,
+  ): Promise<DelegationRecord[]> {
     const wallet = await this.walletRepository.findOne({
       where: { id: walletId, userId },
     });
 
     if (!wallet) {
-      throw new NotFoundException('Wallet not found');
+      throw new NotFoundException("Wallet not found");
     }
 
     const delegatedWallets = await this.walletRepository.find({
@@ -379,7 +395,10 @@ export class DelegationService {
     }
 
     // Check expiration
-    if (delegateWallet.delegationExpiresAt && delegateWallet.delegationExpiresAt < new Date()) {
+    if (
+      delegateWallet.delegationExpiresAt &&
+      delegateWallet.delegationExpiresAt < new Date()
+    ) {
       // Auto-expire
       delegateWallet.status = WalletStatus.UNLINKED;
       await this.walletRepository.save(delegateWallet);
@@ -438,24 +457,26 @@ export class DelegationService {
     }
 
     if (permissions.length === 0) {
-      throw new BadRequestException('At least one permission must be granted');
+      throw new BadRequestException("At least one permission must be granted");
     }
   }
 
   /**
    * Get delegation status
    */
-  private getDelegationStatus(wallet: Wallet): 'active' | 'expired' | 'revoked' {
+  private getDelegationStatus(
+    wallet: Wallet,
+  ): "active" | "expired" | "revoked" {
     if (wallet.status === WalletStatus.REVOKED) {
-      return 'revoked';
+      return "revoked";
     }
     if (wallet.delegationExpiresAt && wallet.delegationExpiresAt < new Date()) {
-      return 'expired';
+      return "expired";
     }
     if (wallet.status === WalletStatus.ACTIVE) {
-      return 'active';
+      return "active";
     }
-    return 'expired';
+    return "expired";
   }
 
   /**
@@ -467,18 +488,20 @@ export class DelegationService {
     permissions: DelegationPermission[],
     expiresAt: Date,
   ): string {
-    const nonce = randomBytes(16).toString('hex');
-    return `Delegate signing authority from ${delegatorAddress} to ${delegateAddress}\n` +
-           `Permissions: ${permissions.join(', ')}\n` +
-           `Expires: ${expiresAt.toISOString()}\n` +
-           `Nonce: ${nonce}`;
+    const nonce = randomBytes(16).toString("hex");
+    return (
+      `Delegate signing authority from ${delegatorAddress} to ${delegateAddress}\n` +
+      `Permissions: ${permissions.join(", ")}\n` +
+      `Expires: ${expiresAt.toISOString()}\n` +
+      `Nonce: ${nonce}`
+    );
   }
 
   /**
    * Generate delegation ID
    */
   private generateDelegationId(): string {
-    return randomBytes(16).toString('hex');
+    return randomBytes(16).toString("hex");
   }
 
   /**
@@ -492,9 +515,7 @@ export class DelegationService {
   ): Promise<void> {
     this.logger.log(
       `Delegation action: ${action}, delegator=${delegatorWalletId}, ` +
-      `delegate=${delegateWalletId}, ip=${clientInfo?.ip}`,
+        `delegate=${delegateWalletId}, ip=${clientInfo?.ip}`,
     );
   }
 }
-
-

@@ -1,5 +1,15 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsJSON, IsBoolean, IsArray, Min, Max } from 'class-validator';
-import { StrategyType } from '../entities/defi-yield-strategy.entity';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  IsJSON,
+  IsBoolean,
+  IsArray,
+  Min,
+  Max,
+} from "class-validator";
+import { StrategyType } from "../entities/defi-yield-strategy.entity";
 
 export class CreateYieldStrategyDto {
   @IsString()

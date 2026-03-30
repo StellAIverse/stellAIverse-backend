@@ -76,6 +76,12 @@ import { ProvenanceCacheInvalidationListener } from "./listeners/provenance-cach
     ProvenanceCacheInvalidationListener,
   ],
   controllers: [QueueController, ProvenanceController],
-  exports: [QueueService, BullModule, CacheModule, DagModule, JobProvenanceService],
+  exports: [
+    QueueService,
+    BullModule,
+    CacheModule,
+    DagModule,
+    JobProvenanceService,
+  ],
 })
 export class QueueModule {}

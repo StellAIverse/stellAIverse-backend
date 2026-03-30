@@ -43,16 +43,10 @@ export class ARIMAPredictor {
     const differenced = this.difference(timeSeries, this.d);
 
     // Estimate AR coefficients (simplified Yule-Walker)
-    this.arCoefficients = this.estimateARCoefficients(
-      differenced,
-      this.p,
-    );
+    this.arCoefficients = this.estimateARCoefficients(differenced, this.p);
 
     // Estimate MA coefficients (simplified)
-    this.maCoefficients = this.estimateMACoefficients(
-      differenced,
-      this.q,
-    );
+    this.maCoefficients = this.estimateMACoefficients(differenced, this.q);
 
     // Calculate metrics
     const predictions = this.predict(timeSeries, timeSeries.length);
@@ -71,23 +65,19 @@ export class ARIMAPredictor {
     const forecasts: number[] = [];
     const differenced = this.difference(timeSeries, this.d);
 
-    let current = [...differenced];
+    const current = [...differenced];
 
     for (let i = 0; i < steps; i++) {
       let prediction = 0;
 
       // AR component
       for (let j = 0; j < Math.min(this.p, current.length); j++) {
-        prediction +=
-          this.arCoefficients[j] *
-          current[current.length - 1 - j];
+        prediction += this.arCoefficients[j] * current[current.length - 1 - j];
       }
 
       // MA component (simplified)
       for (let j = 0; j < Math.min(this.q, current.length); j++) {
-        prediction +=
-          this.maCoefficients[j] *
-          (Math.random() - 0.5) * 0.1;
+        prediction += this.maCoefficients[j] * (Math.random() - 0.5) * 0.1;
       }
 
       current.push(prediction);
@@ -160,9 +150,7 @@ export class ARIMAPredictor {
       let autocovar = 0;
       const lag = i + 1;
       for (let j = lag; j < series.length; j++) {
-        autocovar +=
-          (series[j] - mean) *
-          (series[j - lag] - mean);
+        autocovar += (series[j] - mean) * (series[j - lag] - mean);
       }
       autocovar /= series.length;
       coefficients.push(autocovar > 0 ? 0.5 : 0);
@@ -252,14 +240,9 @@ export class NeuralNetworkPredictor {
     for (let layer = 0; layer < this.weights.length; layer++) {
       const next: number[] = [];
 
-      for (
-        let neuron = 0;
-        neuron < this.weights[layer].length;
-        neuron++
-      ) {
-        let sum =
-          current[0] * this.weights[layer][neuron] +
-          this.biases[layer];
+      for (let neuron = 0; neuron < this.weights[layer].length; neuron++) {
+        const sum =
+          current[0] * this.weights[layer][neuron] + this.biases[layer];
         next.push(this.relu(sum));
       }
 
@@ -286,11 +269,7 @@ export class NeuralNetworkPredictor {
   /**
    * Train the network
    */
-  fit(
-    x: number[][],
-    y: number[],
-    epochs: number = 100,
-  ): TrainingMetrics {
+  fit(x: number[][], y: number[], epochs: number = 100): TrainingMetrics {
     for (let epoch = 0; epoch < epochs; epoch++) {
       for (let i = 0; i < x.length; i++) {
         const prediction = this.forward(x[i])[0];
@@ -302,8 +281,7 @@ export class NeuralNetworkPredictor {
             this.weights[layer][j] +=
               this.learningRate * error * (Math.random() - 0.5);
           }
-          this.biases[layer] +=
-            this.learningRate * error * 0.1;
+          this.biases[layer] += this.learningRate * error * 0.1;
         }
       }
     }
@@ -416,18 +394,13 @@ export class EnsemblePredictor {
    */
   forecast(timeSeries: number[], steps: number): number[] {
     const arimaPredictions = this.arima.forecast(timeSeries, steps);
-    const nnPredictions = this.nn.forecast(
-      timeSeries.slice(-10),
-      steps,
-    );
+    const nnPredictions = this.nn.forecast(timeSeries.slice(-10), steps);
 
     // Ensemble: average predictions with weighted voting
     const predictions: number[] = [];
     for (let i = 0; i < steps; i++) {
       const ensemble =
-        (arimaPredictions[i] * 0.4 +
-          nnPredictions[i] * 0.6) /
-        1.0;
+        (arimaPredictions[i] * 0.4 + nnPredictions[i] * 0.6) / 1.0;
       predictions.push(ensemble);
     }
 
@@ -443,18 +416,13 @@ export function calculateExpectedReturn(
   predictedPrices: number[],
   timeHorizonDays: number,
 ): number {
-  if (
-    predictedPrices.length === 0 ||
-    currentPrice === 0
-  ) {
+  if (predictedPrices.length === 0 || currentPrice === 0) {
     return 0;
   }
 
-  const finalPrice =
-    predictedPrices[predictedPrices.length - 1];
+  const finalPrice = predictedPrices[predictedPrices.length - 1];
   const totalReturn = (finalPrice - currentPrice) / currentPrice;
-  const annualizedReturn =
-    Math.pow(1 + totalReturn, 365 / timeHorizonDays) - 1;
+  const annualizedReturn = Math.pow(1 + totalReturn, 365 / timeHorizonDays) - 1;
 
   return annualizedReturn;
 }
@@ -462,18 +430,10 @@ export function calculateExpectedReturn(
 /**
  * Calculate prediction confidence based on model metrics
  */
-export function calculateConfidence(
-  metrics: TrainingMetrics,
-): number {
+export function calculateConfidence(metrics: TrainingMetrics): number {
   // Higher R2 and lower MAPE = higher confidence
-  const r2Confidence = Math.max(
-    0,
-    Math.min(1, metrics.r2Score),
-  );
-  const mapeConfidence = Math.max(
-    0,
-    1 - metrics.mape / 100,
-  );
+  const r2Confidence = Math.max(0, Math.min(1, metrics.r2Score));
+  const mapeConfidence = Math.max(0, 1 - metrics.mape / 100);
 
   return (r2Confidence + mapeConfidence) / 2;
 }

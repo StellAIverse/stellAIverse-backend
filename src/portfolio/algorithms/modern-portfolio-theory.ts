@@ -1,4 +1,4 @@
-import * as numeric from 'numeric';
+import * as numeric from "numeric";
 
 /**
  * Modern Portfolio Theory (Markowitz) algorithms for portfolio optimization
@@ -110,8 +110,7 @@ export class ModernPortfolioTheory {
     let portfolioVariance = 0;
     for (let i = 0; i < weights.length; i++) {
       for (let j = 0; j < weights.length; j++) {
-        portfolioVariance +=
-          weights[i] * weights[j] * covarianceMatrix[i][j];
+        portfolioVariance += weights[i] * weights[j] * covarianceMatrix[i][j];
       }
     }
     const portfolioVolatility = Math.sqrt(portfolioVariance);
@@ -228,7 +227,7 @@ export class ModernPortfolioTheory {
       gradient[i] =
         (expectedReturns[i] - riskFreeRate) / metrics.volatility -
         ((metrics.expectedReturn - riskFreeRate) * covariance) /
-          (metrics.volatility ** 3);
+          metrics.volatility ** 3;
     }
 
     return gradient;
@@ -262,8 +261,7 @@ export class ModernPortfolioTheory {
         for (let j = 0; j < n; j++) {
           marginalRisk += weights[j] * covarianceMatrix[i][j];
         }
-        riskContribution[i] =
-          (weights[i] * marginalRisk) / portfolioVolatility;
+        riskContribution[i] = (weights[i] * marginalRisk) / portfolioVolatility;
       }
 
       // Update weights to equalize risk contribution
@@ -344,7 +342,8 @@ export class ModernPortfolioTheory {
     const maxReturn = Math.max(...expectedReturns);
 
     for (let i = 0; i < numberOfPoints; i++) {
-      const targetReturn = minReturn + ((maxReturn - minReturn) * i) / numberOfPoints;
+      const targetReturn =
+        minReturn + ((maxReturn - minReturn) * i) / numberOfPoints;
       targetReturns.push(targetReturn);
     }
 
@@ -408,7 +407,8 @@ export class ModernPortfolioTheory {
         // Adjust weights to reach target return
         const returnDifference = currentReturn - targetReturn;
         for (let i = 0; i < n; i++) {
-          weights[i] -= (learningRate * returnDifference * expectedReturns[i]) / 100;
+          weights[i] -=
+            (learningRate * returnDifference * expectedReturns[i]) / 100;
         }
       }
 
@@ -469,15 +469,18 @@ export class ModernPortfolioTheory {
     if (p < 0.5) {
       const t = Math.sqrt(-2 * Math.log(p));
       return (
-        -((2.515517 + 0.802853 * t + 0.010328 * t * t) /
-          (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t)) * t
+        -(
+          (2.515517 + 0.802853 * t + 0.010328 * t * t) /
+          (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t)
+        ) * t
       );
     } else {
       const t = Math.sqrt(-2 * Math.log(1 - p));
       return (
-        (2.515517 + 0.802853 * t + 0.010328 * t * t) /
-        (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t)
-      ) * t;
+        ((2.515517 + 0.802853 * t + 0.010328 * t * t) /
+          (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t)) *
+        t
+      );
     }
   }
 }

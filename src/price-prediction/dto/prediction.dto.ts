@@ -1,10 +1,10 @@
-import { IsString, IsEnum, IsOptional, IsNumber, Min } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsNumber, Min } from "class-validator";
 
 export enum Timeframe {
-  ONE_MIN = '1m',
-  FIVE_MIN = '5m',
-  ONE_HOUR = '1h',
-  ONE_DAY = '1d',
+  ONE_MIN = "1m",
+  FIVE_MIN = "5m",
+  ONE_HOUR = "1h",
+  ONE_DAY = "1d",
 }
 
 export class PredictionRequestDto {

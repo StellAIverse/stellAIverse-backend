@@ -24,10 +24,6 @@ import { RecommendationInteraction } from "./entities/recommendation-interaction
     FeedbackService,
     RecommendationAuditService,
   ],
-  exports: [
-    RecommendationService,
-    MLModelService,
-    FeedbackService,
-  ],
+  exports: [RecommendationService, MLModelService, FeedbackService],
 })
 export class RecommendationModule {}

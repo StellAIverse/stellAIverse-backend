@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ProtocolAdapter } from './protocol-adapter.interface';
-import { AaveAdapter } from './aave.adapter';
-import { CompoundAdapter } from './compound.adapter';
-import { DeFiProtocol } from '../entities/defi-position.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { ProtocolAdapter } from "./protocol-adapter.interface";
+import { AaveAdapter } from "./aave.adapter";
+import { CompoundAdapter } from "./compound.adapter";
+import { DeFiProtocol } from "../entities/defi-position.entity";
 
 @Injectable()
 export class ProtocolRegistry {
-  private logger = new Logger('ProtocolRegistry');
+  private logger = new Logger("ProtocolRegistry");
   private adapters: Map<DeFiProtocol, ProtocolAdapter> = new Map();
 
   constructor(

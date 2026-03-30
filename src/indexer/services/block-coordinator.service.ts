@@ -23,7 +23,10 @@ export class BlockCoordinatorService implements IBlockCoordinator {
 
   constructor(private readonly configService: ConfigService) {
     this.rangeSize = this.configService.get<number>("INDEXER_RANGE_SIZE", 1000);
-    this.lockTTL = this.configService.get<number>("INDEXER_LOCK_TTL_SECONDS", 300);
+    this.lockTTL = this.configService.get<number>(
+      "INDEXER_LOCK_TTL_SECONDS",
+      300,
+    );
 
     this.redis = new Redis({
       host: this.configService.get<string>("REDIS_HOST", "localhost"),
@@ -62,15 +65,25 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       await this.redis.setex(
         `${this.keyPrefix}${rangeId}`,
         86400, // 24 hour TTL
-        JSON.stringify(rangeStatus)
+        JSON.stringify(rangeStatus),
       );
     }
 
     // Set global start and target
-    await this.redis.setex(`${this.progressKey}:start`, 86400, String(startBlock));
-    await this.redis.setex(`${this.progressKey}:target`, 86400, String(endBlock));
+    await this.redis.setex(
+      `${this.progressKey}:start`,
+      86400,
+      String(startBlock),
+    );
+    await this.redis.setex(
+      `${this.progressKey}:target`,
+      86400,
+      String(endBlock),
+    );
 
-    this.logger.log(`Initialized ${rangeCount} block ranges from ${startBlock} to ${endBlock}`);
+    this.logger.log(
+      `Initialized ${rangeCount} block ranges from ${startBlock} to ${endBlock}`,
+    );
   }
 
   /**
@@ -78,7 +91,7 @@ export class BlockCoordinatorService implements IBlockCoordinator {
    */
   async acquireBlockRange(
     instanceId: number,
-    preferredRange?: BlockRange
+    preferredRange?: BlockRange,
   ): Promise<BlockRange | null> {
     // Try preferred range first if provided
     if (preferredRange) {
@@ -97,15 +110,19 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       const data = await this.redis.get(key);
       if (data) {
         const status: BlockRangeStatus = JSON.parse(data);
-        if (status.status === "pending" || 
-            (status.status === "failed" && status.retryCount < 3)) {
+        if (
+          status.status === "pending" ||
+          (status.status === "failed" && status.retryCount < 3)
+        ) {
           pendingRanges.push({ key, status });
         }
       }
     }
 
     // Sort by fromBlock to process in order
-    pendingRanges.sort((a, b) => a.status.range.fromBlock - b.status.range.fromBlock);
+    pendingRanges.sort(
+      (a, b) => a.status.range.fromBlock - b.status.range.fromBlock,
+    );
 
     // Try to acquire the first available range
     for (const { key, status } of pendingRanges) {
@@ -122,7 +139,10 @@ export class BlockCoordinatorService implements IBlockCoordinator {
   /**
    * Try to acquire a specific range with distributed locking
    */
-  private async tryAcquireRange(rangeId: string, instanceId: number): Promise<boolean> {
+  private async tryAcquireRange(
+    rangeId: string,
+    instanceId: number,
+  ): Promise<boolean> {
     const lockKey = `${this.keyPrefix}${rangeId}:lock`;
     const dataKey = `${this.keyPrefix}${rangeId}`;
 
@@ -132,7 +152,7 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       String(instanceId),
       "EX",
       this.lockTTL,
-      "NX"
+      "NX",
     );
 
     if (!lockAcquired) {
@@ -148,7 +168,7 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       }
 
       const status: BlockRangeStatus = JSON.parse(data);
-      
+
       // Check if range is already being processed
       if (status.status === "processing") {
         await this.redis.del(lockKey);
@@ -165,7 +185,7 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       }
 
       await this.redis.setex(dataKey, 86400, JSON.stringify(status));
-      
+
       this.logger.log(`Instance ${instanceId} acquired range ${rangeId}`);
       return true;
     } catch (error) {
@@ -185,7 +205,7 @@ export class BlockCoordinatorService implements IBlockCoordinator {
     const data = await this.redis.get(dataKey);
     if (data) {
       const status: BlockRangeStatus = JSON.parse(data);
-      
+
       // Mark as failed if it was processing
       if (status.status === "processing") {
         status.status = "failed";
@@ -230,7 +250,11 @@ export class BlockCoordinatorService implements IBlockCoordinator {
     const current = currentProgress ? parseInt(currentProgress, 10) : 0;
 
     if (completedBlock > current) {
-      await this.redis.setex(`${this.progressKey}:current`, 86400, String(completedBlock));
+      await this.redis.setex(
+        `${this.progressKey}:current`,
+        86400,
+        String(completedBlock),
+      );
     }
   }
 
@@ -294,7 +318,9 @@ export class BlockCoordinatorService implements IBlockCoordinator {
     }
 
     if (stats.total > 0) {
-      stats.completionPercentage = Math.round((stats.completed / stats.total) * 100);
+      stats.completionPercentage = Math.round(
+        (stats.completed / stats.total) * 100,
+      );
     }
 
     return stats;
@@ -311,7 +337,10 @@ export class BlockCoordinatorService implements IBlockCoordinator {
       const data = await this.redis.get(key);
       if (data) {
         const status: BlockRangeStatus = JSON.parse(data);
-        if (status.instanceId === instanceId && status.status === "processing") {
+        if (
+          status.instanceId === instanceId &&
+          status.status === "processing"
+        ) {
           ranges.push(status.range);
         }
       }

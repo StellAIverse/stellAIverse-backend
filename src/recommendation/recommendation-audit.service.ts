@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ProvenanceService } from '../audit/provenance.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { ProvenanceService } from "../audit/provenance.service";
 import {
   ProvenanceAction,
   ProvenanceStatus,
-} from '../audit/entities/provenance-record.entity';
+} from "../audit/entities/provenance-record.entity";
 
 /**
  * Audit logging service for recommendation system
@@ -27,23 +27,25 @@ export class RecommendationAuditService {
     },
   ): Promise<string> {
     const record = await this.provenanceService.createProvenanceRecord({
-      agentId: 'recommendation-system',
+      agentId: "recommendation-system",
       userId: userId || undefined,
       action: ProvenanceAction.REQUEST_RECEIVED,
       input: {
-        type: 'recommendation_request',
+        type: "recommendation_request",
         capabilities: context?.capabilities,
         limit: context?.limit,
         sessionId: context?.sessionId,
       },
       status: ProvenanceStatus.SUCCESS,
       metadata: {
-        event: 'recommendation_request_logged',
+        event: "recommendation_request_logged",
         timestamp: new Date().toISOString(),
       },
     });
 
-    this.logger.log(`Logged recommendation request for user ${userId || 'anonymous'}`);
+    this.logger.log(
+      `Logged recommendation request for user ${userId || "anonymous"}`,
+    );
     return record.id;
   }
 
@@ -59,13 +61,16 @@ export class RecommendationAuditService {
     }>,
     userId?: string,
   ): Promise<string> {
-    const record = await this.provenanceService.updateProvenanceRecord(requestId, {
-      output: {
-        type: 'recommendation_response',
-        recommendations,
-        count: recommendations.length,
+    const record = await this.provenanceService.updateProvenanceRecord(
+      requestId,
+      {
+        output: {
+          type: "recommendation_response",
+          recommendations,
+          count: recommendations.length,
+        },
       },
-    });
+    );
 
     this.logger.log(
       `Logged recommendation response: ${recommendations.length} agents recommended`,
@@ -87,16 +92,16 @@ export class RecommendationAuditService {
     },
   ): Promise<string> {
     const record = await this.provenanceService.createProvenanceRecord({
-      agentId: 'recommendation-system',
+      agentId: "recommendation-system",
       userId: userId || undefined,
       action: ProvenanceAction.SUBMISSION,
       input: {
-        type: 'feedback_submission',
+        type: "feedback_submission",
         ...feedbackData,
       },
       status: ProvenanceStatus.SUCCESS,
       metadata: {
-        event: 'feedback_logged',
+        event: "feedback_logged",
         timestamp: new Date().toISOString(),
       },
     });
@@ -120,16 +125,16 @@ export class RecommendationAuditService {
     },
   ): Promise<string> {
     const record = await this.provenanceService.createProvenanceRecord({
-      agentId: 'ml-model-service',
+      agentId: "ml-model-service",
       userId: userId || undefined,
       action: ProvenanceAction.RESULT_NORMALIZATION,
       input: {
-        type: 'model_training',
+        type: "model_training",
         ...metrics,
       },
       status: ProvenanceStatus.SUCCESS,
       metadata: {
-        event: 'model_training_completed',
+        event: "model_training_completed",
         timestamp: new Date().toISOString(),
       },
     });
@@ -151,18 +156,18 @@ export class RecommendationAuditService {
     context?: Record<string, any>,
   ): Promise<string> {
     const record = await this.provenanceService.createProvenanceRecord({
-      agentId: 'recommendation-system',
+      agentId: "recommendation-system",
       userId: userId || undefined,
       action: ProvenanceAction.PROVIDER_CALL, // Using closest match
       input: {
-        type: 'error',
+        type: "error",
         action,
         context,
       },
       status: ProvenanceStatus.FAILED,
       error,
       metadata: {
-        event: 'recommendation_error',
+        event: "recommendation_error",
         timestamp: new Date().toISOString(),
       },
     });

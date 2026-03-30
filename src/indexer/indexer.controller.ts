@@ -8,7 +8,13 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from "@nestjs/swagger";
 import { ScalableIndexerService } from "./scalable-indexer.service";
 import { IndexerQueueService } from "./queues/indexer-queue.service";
 import { IndexerMetricsService } from "./services/indexer-metrics.service";
@@ -23,12 +29,15 @@ export class IndexerController {
     private readonly queueService: IndexerQueueService,
     private readonly metricsService: IndexerMetricsService,
     private readonly blockCoordinator: BlockCoordinatorService,
-    private readonly shardManager: ShardManagerService
+    private readonly shardManager: ShardManagerService,
   ) {}
 
   @Get("health")
   @ApiOperation({ summary: "Get indexer health status" })
-  @ApiResponse({ status: 200, description: "Health status retrieved successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Health status retrieved successfully",
+  })
   async getHealth() {
     return this.indexerService.getHealth();
   }
@@ -97,11 +106,11 @@ export class IndexerController {
   @ApiResponse({ status: 200, description: "Range scheduled for reprocessing" })
   async reprocessRange(
     @Query("fromBlock") fromBlock: string,
-    @Query("toBlock") toBlock: string
+    @Query("toBlock") toBlock: string,
   ) {
     await this.indexerService.reprocessRange(
       parseInt(fromBlock, 10),
-      parseInt(toBlock, 10)
+      parseInt(toBlock, 10),
     );
     return {
       status: "scheduled",
@@ -125,7 +134,7 @@ export class IndexerController {
   @ApiResponse({ status: 200, description: "Dead letter jobs retrieved" })
   async getDeadLetterJobs(@Query("limit") limit?: string) {
     const jobs = await this.queueService.getDeadLetterJobs(
-      limit ? parseInt(limit, 10) : 100
+      limit ? parseInt(limit, 10) : 100,
     );
     return { jobs };
   }
@@ -147,7 +156,9 @@ export class IndexerController {
   @ApiQuery({ name: "maxAgeHours", type: Number, required: false })
   @ApiResponse({ status: 200, description: "Cleanup completed" })
   async cleanup(@Query("maxAgeHours") maxAgeHours?: string) {
-    await this.queueService.cleanupOldJobs(maxAgeHours ? parseInt(maxAgeHours, 10) : 24);
+    await this.queueService.cleanupOldJobs(
+      maxAgeHours ? parseInt(maxAgeHours, 10) : 24,
+    );
     return { status: "cleanup completed" };
   }
 
@@ -157,7 +168,7 @@ export class IndexerController {
   @ApiResponse({ status: 200, description: "Throughput statistics retrieved" })
   async getThroughputStats(@Query("windowMinutes") windowMinutes?: string) {
     const stats = this.metricsService.getThroughputStats(
-      windowMinutes ? parseInt(windowMinutes, 10) : 60
+      windowMinutes ? parseInt(windowMinutes, 10) : 60,
     );
     return stats;
   }

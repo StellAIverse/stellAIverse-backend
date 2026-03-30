@@ -14,7 +14,12 @@ export class CreateAgentEventAndComputeResultTables1708700000000 implements Migr
             generationStrategy: "uuid",
           },
           { name: "agentId", type: "varchar", length: "42", isNullable: false },
-          { name: "eventType", type: "varchar", length: "128", isNullable: false },
+          {
+            name: "eventType",
+            type: "varchar",
+            length: "128",
+            isNullable: false,
+          },
           { name: "payload", type: "jsonb", isNullable: true },
           { name: "txHash", type: "varchar", length: "66", isNullable: true },
           { name: "metadata", type: "jsonb", isNullable: true },

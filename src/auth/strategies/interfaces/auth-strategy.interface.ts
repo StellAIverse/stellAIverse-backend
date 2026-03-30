@@ -96,7 +96,7 @@ export interface AuthPayload {
 /**
  * Authentication types
  */
-export type AuthType = 'wallet' | 'traditional' | 'oauth' | 'api-key';
+export type AuthType = "wallet" | "traditional" | "oauth" | "api-key";
 
 /**
  * Configuration for authentication strategies

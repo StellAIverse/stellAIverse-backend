@@ -38,13 +38,11 @@ export class RecommendationService {
 
     try {
       let agents = this.agentService.findAll();
-      
+
       // Filter by capabilities if provided
       if (requestedCapabilities.length > 0) {
-        agents = agents.filter(agent =>
-          requestedCapabilities.some(cap => 
-            agent.capabilities.includes(cap)
-          )
+        agents = agents.filter((agent) =>
+          requestedCapabilities.some((cap) => agent.capabilities.includes(cap)),
         );
       }
 
@@ -67,7 +65,7 @@ export class RecommendationService {
             normalizedUsage * this.USAGE_WEIGHT;
 
           // Combine ML score with traditional score (ML gets higher weight)
-          const combinedScore = (mlScore * 0.7 + (traditionalScore / 100) * 0.3);
+          const combinedScore = mlScore * 0.7 + (traditionalScore / 100) * 0.3;
 
           return {
             agentId: agent.id,
@@ -87,25 +85,25 @@ export class RecommendationService {
               ),
             },
           };
-        })
+        }),
       );
 
       // Sort by combined score descending
       const sorted = scoredAgents.sort((a, b) => b.totalScore - a.totalScore);
-      
+
       // Track impressions for analytics
       if (sessionId || userId) {
         sorted.slice(0, limit).forEach((rec, index) => {
-          this.feedbackService.recordInteraction({
-            userId: userId || undefined,
-            agentId: rec.agentId,
-            interactionType: InteractionType.IMPRESSION,
-            position: index + 1,
-            sessionId,
-            context: { capabilities: requestedCapabilities },
-          }).catch(err => 
-            console.error('Failed to track impression:', err)
-          );
+          this.feedbackService
+            .recordInteraction({
+              userId: userId || undefined,
+              agentId: rec.agentId,
+              interactionType: InteractionType.IMPRESSION,
+              position: index + 1,
+              sessionId,
+              context: { capabilities: requestedCapabilities },
+            })
+            .catch((err) => console.error("Failed to track impression:", err));
         });
       }
 
@@ -126,7 +124,7 @@ export class RecommendationService {
       // Log any errors
       await this.auditService.logError(
         userId,
-        'getRecommendations',
+        "getRecommendations",
         error.message,
         { options },
       );

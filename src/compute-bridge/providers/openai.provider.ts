@@ -1,9 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
-import { BaseAIProvider } from '../base-provider.service';
-import { AIProviderType, ICompletionProvider, IModelInfo, IProviderConfig } from '../provider.interface';
-import { CompletionRequestDto, CompletionResponseDto, MessageRole } from '../base.dto';
-import { Provider } from '../provider.decorator';
+import { Injectable, Logger } from "@nestjs/common";
+import axios, { AxiosInstance } from "axios";
+import { BaseAIProvider } from "../base-provider.service";
+import {
+  AIProviderType,
+  ICompletionProvider,
+  IModelInfo,
+  IProviderConfig,
+} from "../provider.interface";
+import {
+  CompletionRequestDto,
+  CompletionResponseDto,
+  MessageRole,
+} from "../base.dto";
+import { Provider } from "../provider.decorator";
 
 /**
  * OpenAI Provider Adapter
@@ -13,13 +22,16 @@ import { Provider } from '../provider.decorator';
  */
 @Provider(AIProviderType.OPENAI)
 @Injectable()
-export class OpenAIProvider extends BaseAIProvider implements ICompletionProvider {
+export class OpenAIProvider
+  extends BaseAIProvider
+  implements ICompletionProvider
+{
   private client: AxiosInstance;
 
   private readonly models: IModelInfo[] = [
     {
-      id: 'gpt-4',
-      name: 'GPT-4',
+      id: "gpt-4",
+      name: "GPT-4",
       provider: AIProviderType.OPENAI,
       capabilities: {
         textGeneration: true,
@@ -33,8 +45,8 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
       costPerOutputToken: 0.06,
     },
     {
-      id: 'gpt-4-turbo',
-      name: 'GPT-4 Turbo',
+      id: "gpt-4-turbo",
+      name: "GPT-4 Turbo",
       provider: AIProviderType.OPENAI,
       capabilities: {
         textGeneration: true,
@@ -48,8 +60,8 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
       costPerOutputToken: 0.03,
     },
     {
-      id: 'gpt-3.5-turbo',
-      name: 'GPT-3.5 Turbo',
+      id: "gpt-3.5-turbo",
+      name: "GPT-3.5 Turbo",
       provider: AIProviderType.OPENAI,
       capabilities: {
         textGeneration: true,
@@ -74,18 +86,20 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
 
   protected async initializeProvider(): Promise<void> {
     const config = this.getConfig();
-    
+
     this.client = axios.create({
-      baseURL: config.apiEndpoint || 'https://api.openai.com/v1',
+      baseURL: config.apiEndpoint || "https://api.openai.com/v1",
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-        ...(config.organizationId && { 'OpenAI-Organization': config.organizationId }),
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+        ...(config.organizationId && {
+          "OpenAI-Organization": config.organizationId,
+        }),
       },
       timeout: config.timeout || 60000,
     });
 
-    this.logger.log('OpenAI provider initialized');
+    this.logger.log("OpenAI provider initialized");
   }
 
   async listModels(): Promise<IModelInfo[]> {
@@ -93,22 +107,24 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
   }
 
   async getModelInfo(modelId: string): Promise<IModelInfo> {
-    const model = this.models.find(m => m.id === modelId);
+    const model = this.models.find((m) => m.id === modelId);
     if (!model) {
       throw new Error(`Model ${modelId} not found`);
     }
     return model;
   }
 
-  async complete(request: CompletionRequestDto): Promise<CompletionResponseDto> {
+  async complete(
+    request: CompletionRequestDto,
+  ): Promise<CompletionResponseDto> {
     if (!this.client) {
-      throw new Error('Provider not initialized');
+      throw new Error("Provider not initialized");
     }
 
     const response = await this.executeWithRetry(async () => {
-      const result = await this.client.post('/chat/completions', {
+      const result = await this.client.post("/chat/completions", {
         model: request.model,
-        messages: request.messages.map(m => ({
+        messages: request.messages.map((m) => ({
           role: m.role,
           content: m.content,
           name: m.name,
@@ -127,29 +143,33 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
 
   async *streamComplete(request: CompletionRequestDto): AsyncGenerator<any> {
     if (!this.client) {
-      throw new Error('Provider not initialized');
+      throw new Error("Provider not initialized");
     }
 
-    const response = await this.client.post('/chat/completions', {
-      model: request.model,
-      messages: request.messages.map(m => ({
-        role: m.role,
-        content: m.content,
-        name: m.name,
-      })),
-      temperature: request.temperature,
-      max_tokens: request.maxTokens,
-      stream: true,
-    }, {
-      responseType: 'stream',
-    });
+    const response = await this.client.post(
+      "/chat/completions",
+      {
+        model: request.model,
+        messages: request.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+          name: m.name,
+        })),
+        temperature: request.temperature,
+        max_tokens: request.maxTokens,
+        stream: true,
+      },
+      {
+        responseType: "stream",
+      },
+    );
 
     for await (const chunk of response.data) {
-      const lines = chunk.toString().split('\n');
+      const lines = chunk.toString().split("\n");
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        if (line.startsWith("data: ")) {
           const data = line.slice(6);
-          if (data === '[DONE]') return;
+          if (data === "[DONE]") return;
           try {
             const parsed = JSON.parse(data);
             yield parsed;
@@ -163,10 +183,10 @@ export class OpenAIProvider extends BaseAIProvider implements ICompletionProvide
 
   async healthCheck(): Promise<boolean> {
     try {
-      await this.client.get('/models');
+      await this.client.get("/models");
       return true;
     } catch (error) {
-      this.logger.warn('OpenAI health check failed:', error.message);
+      this.logger.warn("OpenAI health check failed:", error.message);
       return false;
     }
   }

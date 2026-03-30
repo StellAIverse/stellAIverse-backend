@@ -1,5 +1,5 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AuthUser } from '../strategies/interfaces/auth-strategy.interface';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { AuthUser } from "../strategies/interfaces/auth-strategy.interface";
 
 /**
  * Decorator that extracts the current authenticated user from the request.
@@ -11,7 +11,10 @@ import { AuthUser } from '../strategies/interfaces/auth-strategy.interface';
  * }
  */
 export const CurrentUser = createParamDecorator(
-  (data: keyof AuthUser | undefined, ctx: ExecutionContext): AuthUser | AuthUser[keyof AuthUser] | undefined => {
+  (
+    data: keyof AuthUser | undefined,
+    ctx: ExecutionContext,
+  ): AuthUser | AuthUser[keyof AuthUser] | undefined => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user as AuthUser;
 

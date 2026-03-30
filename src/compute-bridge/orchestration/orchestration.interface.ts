@@ -5,25 +5,25 @@
  * with support for parallel execution, consensus, voting, and comprehensive auditing.
  */
 
-import { AIProviderType } from '../provider.interface';
-import { CompletionRequestDto, CompletionResponseDto } from '../base.dto';
+import { AIProviderType } from "../provider.interface";
+import { CompletionRequestDto, CompletionResponseDto } from "../base.dto";
 
 /**
  * Orchestration strategy types
  */
 export enum OrchestrationStrategy {
   /** Single provider with fallback */
-  SINGLE = 'single',
+  SINGLE = "single",
   /** Parallel execution to all providers */
-  PARALLEL = 'parallel',
+  PARALLEL = "parallel",
   /** Consensus-based with voting */
-  CONSENSUS = 'consensus',
+  CONSENSUS = "consensus",
   /** Best-of-N selection */
-  BEST_OF_N = 'best_of_n',
+  BEST_OF_N = "best_of_n",
   /** Round-robin across providers */
-  ROUND_ROBIN = 'round_robin',
+  ROUND_ROBIN = "round_robin",
   /** Random provider selection */
-  RANDOM = 'random',
+  RANDOM = "random",
 }
 
 /**
@@ -31,13 +31,13 @@ export enum OrchestrationStrategy {
  */
 export enum ConsensusAlgorithm {
   /** Simple majority voting */
-  MAJORITY_VOTE = 'majority_vote',
+  MAJORITY_VOTE = "majority_vote",
   /** Weighted voting based on provider reliability */
-  WEIGHTED_VOTE = 'weighted_vote',
+  WEIGHTED_VOTE = "weighted_vote",
   /** Semantic similarity clustering */
-  SEMANTIC_CLUSTERING = 'semantic_clustering',
+  SEMANTIC_CLUSTERING = "semantic_clustering",
   /** Exact match comparison */
-  EXACT_MATCH = 'exact_match',
+  EXACT_MATCH = "exact_match",
 }
 
 /**
@@ -45,11 +45,11 @@ export enum ConsensusAlgorithm {
  */
 export enum ProviderExecutionMode {
   /** Provider is enabled and can receive requests */
-  ENABLED = 'enabled',
+  ENABLED = "enabled",
   /** Provider is disabled and won't receive requests */
-  DISABLED = 'disabled',
+  DISABLED = "disabled",
   /** Provider is in maintenance mode */
-  MAINTENANCE = 'maintenance',
+  MAINTENANCE = "maintenance",
 }
 
 /**
@@ -159,7 +159,7 @@ export interface BestOfNConfig {
   /** Number of providers to query */
   n: number;
   /** Selection criteria */
-  criteria: 'fastest' | 'cheapest' | 'highest_quality' | 'most_tokens';
+  criteria: "fastest" | "cheapest" | "highest_quality" | "most_tokens";
   /** Provider preference order */
   providerPriority?: AIProviderType[];
 }
@@ -251,22 +251,22 @@ export interface ProviderAuditLogEntry {
 export interface IProviderAdapter {
   /** Get provider type */
   getProviderType(): AIProviderType;
-  
+
   /** Get provider name */
   getProviderName(): string;
-  
+
   /** Check if provider is healthy */
   isHealthy(): Promise<boolean>;
-  
+
   /** Execute completion request */
   complete(request: CompletionRequestDto): Promise<NormalizedProviderResponse>;
-  
+
   /** Get provider capabilities */
   getCapabilities(): ProviderCapabilities;
-  
+
   /** Get current execution mode */
   getExecutionMode(): ProviderExecutionMode;
-  
+
   /** Set execution mode */
   setExecutionMode(mode: ProviderExecutionMode): void;
 }
@@ -320,7 +320,7 @@ export interface ProviderRuntimeConfig {
  */
 export interface OrchestrationHealthStatus {
   /** Overall status */
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   /** Provider statuses */
   providers: Map<AIProviderType, ProviderHealthSummary>;
   /** Active request count */
@@ -346,5 +346,5 @@ export interface ProviderHealthSummary {
   /** Average latency */
   averageLatencyMs: number;
   /** Circuit breaker state */
-  circuitBreakerState: 'closed' | 'open' | 'half_open';
+  circuitBreakerState: "closed" | "open" | "half_open";
 }

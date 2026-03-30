@@ -1,72 +1,80 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from "typeorm";
 
 export class CreateAuditEntities1708800000000 implements MigrationInterface {
-  name = 'CreateAuditEntities1708800000000';
+  name = "CreateAuditEntities1708800000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create agent_events table
     await queryRunner.createTable(
       new Table({
-        name: 'agent_events',
+        name: "agent_events",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
             isGenerated: true,
-            generationStrategy: 'uuid',
+            generationStrategy: "uuid",
           },
           {
-            name: 'agentId',
-            type: 'varchar',
-            length: '36',
+            name: "agentId",
+            type: "varchar",
+            length: "36",
             isNullable: false,
           },
           {
-            name: 'eventType',
-            type: 'varchar',
-            enum: ['created', 'updated', 'deleted', 'executed', 'failed', 'paused', 'resumed'],
+            name: "eventType",
+            type: "varchar",
+            enum: [
+              "created",
+              "updated",
+              "deleted",
+              "executed",
+              "failed",
+              "paused",
+              "resumed",
+            ],
             isNullable: false,
           },
           {
-            name: 'eventData',
-            type: 'jsonb',
+            name: "eventData",
+            type: "jsonb",
             isNullable: false,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'clientIp',
-            type: 'varchar',
-            length: '45',
+            name: "clientIp",
+            type: "varchar",
+            length: "45",
             isNullable: true,
           },
           {
-            name: 'userAgent',
-            type: 'text',
+            name: "userAgent",
+            type: "text",
             isNullable: true,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "createdAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
         ],
         foreignKeys: [
           {
-            columnNames: ['userId'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
-            onDelete: 'SET NULL',
+            columnNames: ["userId"],
+            referencedTableName: "users",
+            referencedColumnNames: ["id"],
+            onDelete: "SET NULL",
           },
         ],
       }),
@@ -75,145 +83,145 @@ export class CreateAuditEntities1708800000000 implements MigrationInterface {
 
     // Create indexes for agent_events
     await queryRunner.createIndex(
-      'agent_events',
+      "agent_events",
       new TableIndex({
-        name: 'IDX_AGENT_EVENTS_AGENT_ID_EVENT_TYPE',
-        columnNames: ['agentId', 'eventType'],
+        name: "IDX_AGENT_EVENTS_AGENT_ID_EVENT_TYPE",
+        columnNames: ["agentId", "eventType"],
       }),
     );
 
     await queryRunner.createIndex(
-      'agent_events',
+      "agent_events",
       new TableIndex({
-        name: 'IDX_AGENT_EVENTS_AGENT_ID_CREATED_AT',
-        columnNames: ['agentId', 'createdAt'],
+        name: "IDX_AGENT_EVENTS_AGENT_ID_CREATED_AT",
+        columnNames: ["agentId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'agent_events',
+      "agent_events",
       new TableIndex({
-        name: 'IDX_AGENT_EVENTS_EVENT_TYPE_CREATED_AT',
-        columnNames: ['eventType', 'createdAt'],
+        name: "IDX_AGENT_EVENTS_EVENT_TYPE_CREATED_AT",
+        columnNames: ["eventType", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'agent_events',
+      "agent_events",
       new TableIndex({
-        name: 'IDX_AGENT_EVENTS_USER_ID_CREATED_AT',
-        columnNames: ['userId', 'createdAt'],
+        name: "IDX_AGENT_EVENTS_USER_ID_CREATED_AT",
+        columnNames: ["userId", "createdAt"],
       }),
     );
 
     // Create oracle_submissions table
     await queryRunner.createTable(
       new Table({
-        name: 'oracle_submissions',
+        name: "oracle_submissions",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
             isGenerated: true,
-            generationStrategy: 'uuid',
+            generationStrategy: "uuid",
           },
           {
-            name: 'oracleId',
-            type: 'varchar',
-            length: '36',
+            name: "oracleId",
+            type: "varchar",
+            length: "36",
             isNullable: false,
           },
           {
-            name: 'data',
-            type: 'jsonb',
+            name: "data",
+            type: "jsonb",
             isNullable: false,
           },
           {
-            name: 'dataHash',
-            type: 'varchar',
-            length: '66',
+            name: "dataHash",
+            type: "varchar",
+            length: "66",
             isNullable: false,
             isUnique: true,
           },
           {
-            name: 'signature',
-            type: 'varchar',
-            length: '132',
+            name: "signature",
+            type: "varchar",
+            length: "132",
             isNullable: false,
           },
           {
-            name: 'status',
-            type: 'varchar',
-            enum: ['pending', 'submitted', 'confirmed', 'failed', 'expired'],
+            name: "status",
+            type: "varchar",
+            enum: ["pending", "submitted", "confirmed", "failed", "expired"],
             default: "'pending'",
             isNullable: false,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: false,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "createdAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
           {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "updatedAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
           {
-            name: 'submittedAt',
-            type: 'timestamp',
+            name: "submittedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'confirmedAt',
-            type: 'timestamp',
+            name: "confirmedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'transactionHash',
-            type: 'varchar',
-            length: '66',
+            name: "transactionHash",
+            type: "varchar",
+            length: "66",
             isNullable: true,
           },
           {
-            name: 'blockNumber',
-            type: 'bigint',
+            name: "blockNumber",
+            type: "bigint",
             isNullable: true,
           },
           {
-            name: 'retryAttempts',
-            type: 'integer',
-            default: '0',
+            name: "retryAttempts",
+            type: "integer",
+            default: "0",
             isNullable: false,
           },
           {
-            name: 'errorMessage',
-            type: 'text',
+            name: "errorMessage",
+            type: "text",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'expiresAt',
-            type: 'timestamp',
+            name: "expiresAt",
+            type: "timestamp",
             isNullable: true,
           },
         ],
         foreignKeys: [
           {
-            columnNames: ['userId'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
+            columnNames: ["userId"],
+            referencedTableName: "users",
+            referencedColumnNames: ["id"],
           },
         ],
       }),
@@ -222,42 +230,42 @@ export class CreateAuditEntities1708800000000 implements MigrationInterface {
 
     // Create indexes for oracle_submissions
     await queryRunner.createIndex(
-      'oracle_submissions',
+      "oracle_submissions",
       new TableIndex({
-        name: 'IDX_ORACLE_SUBMISSIONS_ORACLE_ID_STATUS',
-        columnNames: ['oracleId', 'status'],
+        name: "IDX_ORACLE_SUBMISSIONS_ORACLE_ID_STATUS",
+        columnNames: ["oracleId", "status"],
       }),
     );
 
     await queryRunner.createIndex(
-      'oracle_submissions',
+      "oracle_submissions",
       new TableIndex({
-        name: 'IDX_ORACLE_SUBMISSIONS_ORACLE_ID_SUBMITTED_AT',
-        columnNames: ['oracleId', 'submittedAt'],
+        name: "IDX_ORACLE_SUBMISSIONS_ORACLE_ID_SUBMITTED_AT",
+        columnNames: ["oracleId", "submittedAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'oracle_submissions',
+      "oracle_submissions",
       new TableIndex({
-        name: 'IDX_ORACLE_SUBMISSIONS_STATUS_CREATED_AT',
-        columnNames: ['status', 'createdAt'],
+        name: "IDX_ORACLE_SUBMISSIONS_STATUS_CREATED_AT",
+        columnNames: ["status", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'oracle_submissions',
+      "oracle_submissions",
       new TableIndex({
-        name: 'IDX_ORACLE_SUBMISSIONS_USER_ID_CREATED_AT',
-        columnNames: ['userId', 'createdAt'],
+        name: "IDX_ORACLE_SUBMISSIONS_USER_ID_CREATED_AT",
+        columnNames: ["userId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'oracle_submissions',
+      "oracle_submissions",
       new TableIndex({
-        name: 'IDX_ORACLE_SUBMISSIONS_DATA_HASH',
-        columnNames: ['dataHash'],
+        name: "IDX_ORACLE_SUBMISSIONS_DATA_HASH",
+        columnNames: ["dataHash"],
         isUnique: true,
       }),
     );
@@ -265,99 +273,99 @@ export class CreateAuditEntities1708800000000 implements MigrationInterface {
     // Create compute_results table
     await queryRunner.createTable(
       new Table({
-        name: 'compute_results',
+        name: "compute_results",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
+            name: "id",
+            type: "uuid",
             isPrimary: true,
             isGenerated: true,
-            generationStrategy: 'uuid',
+            generationStrategy: "uuid",
           },
           {
-            name: 'jobId',
-            type: 'varchar',
-            length: '36',
+            name: "jobId",
+            type: "varchar",
+            length: "36",
             isNullable: false,
           },
           {
-            name: 'resultData',
-            type: 'jsonb',
+            name: "resultData",
+            type: "jsonb",
             isNullable: false,
           },
           {
-            name: 'resultHash',
-            type: 'varchar',
-            length: '66',
+            name: "resultHash",
+            type: "varchar",
+            length: "66",
             isNullable: false,
             isUnique: true,
           },
           {
-            name: 'status',
-            type: 'varchar',
-            enum: ['pending', 'processing', 'completed', 'failed', 'timeout'],
+            name: "status",
+            type: "varchar",
+            enum: ["pending", "processing", "completed", "failed", "timeout"],
             default: "'pending'",
             isNullable: false,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: false,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "createdAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
           {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'NOW()',
+            name: "updatedAt",
+            type: "timestamp",
+            default: "NOW()",
             isNullable: false,
           },
           {
-            name: 'startedAt',
-            type: 'timestamp',
+            name: "startedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'completedAt',
-            type: 'timestamp',
+            name: "completedAt",
+            type: "timestamp",
             isNullable: true,
           },
           {
-            name: 'processingDurationMs',
-            type: 'integer',
+            name: "processingDurationMs",
+            type: "integer",
             isNullable: true,
           },
           {
-            name: 'provider',
-            type: 'varchar',
-            length: '100',
+            name: "provider",
+            type: "varchar",
+            length: "100",
             isNullable: true,
           },
           {
-            name: 'costWei',
-            type: 'bigint',
+            name: "costWei",
+            type: "bigint",
             isNullable: true,
           },
           {
-            name: 'errorMessage',
-            type: 'text',
+            name: "errorMessage",
+            type: "text",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
         ],
         foreignKeys: [
           {
-            columnNames: ['userId'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
+            columnNames: ["userId"],
+            referencedTableName: "users",
+            referencedColumnNames: ["id"],
           },
         ],
       }),
@@ -366,42 +374,42 @@ export class CreateAuditEntities1708800000000 implements MigrationInterface {
 
     // Create indexes for compute_results
     await queryRunner.createIndex(
-      'compute_results',
+      "compute_results",
       new TableIndex({
-        name: 'IDX_COMPUTE_RESULTS_JOB_ID_STATUS',
-        columnNames: ['jobId', 'status'],
+        name: "IDX_COMPUTE_RESULTS_JOB_ID_STATUS",
+        columnNames: ["jobId", "status"],
       }),
     );
 
     await queryRunner.createIndex(
-      'compute_results',
+      "compute_results",
       new TableIndex({
-        name: 'IDX_COMPUTE_RESULTS_JOB_ID_CREATED_AT',
-        columnNames: ['jobId', 'createdAt'],
+        name: "IDX_COMPUTE_RESULTS_JOB_ID_CREATED_AT",
+        columnNames: ["jobId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'compute_results',
+      "compute_results",
       new TableIndex({
-        name: 'IDX_COMPUTE_RESULTS_STATUS_CREATED_AT',
-        columnNames: ['status', 'createdAt'],
+        name: "IDX_COMPUTE_RESULTS_STATUS_CREATED_AT",
+        columnNames: ["status", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'compute_results',
+      "compute_results",
       new TableIndex({
-        name: 'IDX_COMPUTE_RESULTS_USER_ID_CREATED_AT',
-        columnNames: ['userId', 'createdAt'],
+        name: "IDX_COMPUTE_RESULTS_USER_ID_CREATED_AT",
+        columnNames: ["userId", "createdAt"],
       }),
     );
 
     await queryRunner.createIndex(
-      'compute_results',
+      "compute_results",
       new TableIndex({
-        name: 'IDX_COMPUTE_RESULTS_RESULT_HASH',
-        columnNames: ['resultHash'],
+        name: "IDX_COMPUTE_RESULTS_RESULT_HASH",
+        columnNames: ["resultHash"],
         isUnique: true,
       }),
     );
@@ -409,24 +417,66 @@ export class CreateAuditEntities1708800000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes and tables in reverse order
-    await queryRunner.dropIndex('compute_results', 'IDX_COMPUTE_RESULTS_RESULT_HASH');
-    await queryRunner.dropIndex('compute_results', 'IDX_COMPUTE_RESULTS_USER_ID_CREATED_AT');
-    await queryRunner.dropIndex('compute_results', 'IDX_COMPUTE_RESULTS_STATUS_CREATED_AT');
-    await queryRunner.dropIndex('compute_results', 'IDX_COMPUTE_RESULTS_JOB_ID_CREATED_AT');
-    await queryRunner.dropIndex('compute_results', 'IDX_COMPUTE_RESULTS_JOB_ID_STATUS');
-    await queryRunner.dropTable('compute_results', true);
+    await queryRunner.dropIndex(
+      "compute_results",
+      "IDX_COMPUTE_RESULTS_RESULT_HASH",
+    );
+    await queryRunner.dropIndex(
+      "compute_results",
+      "IDX_COMPUTE_RESULTS_USER_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "compute_results",
+      "IDX_COMPUTE_RESULTS_STATUS_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "compute_results",
+      "IDX_COMPUTE_RESULTS_JOB_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "compute_results",
+      "IDX_COMPUTE_RESULTS_JOB_ID_STATUS",
+    );
+    await queryRunner.dropTable("compute_results", true);
 
-    await queryRunner.dropIndex('oracle_submissions', 'IDX_ORACLE_SUBMISSIONS_DATA_HASH');
-    await queryRunner.dropIndex('oracle_submissions', 'IDX_ORACLE_SUBMISSIONS_USER_ID_CREATED_AT');
-    await queryRunner.dropIndex('oracle_submissions', 'IDX_ORACLE_SUBMISSIONS_STATUS_CREATED_AT');
-    await queryRunner.dropIndex('oracle_submissions', 'IDX_ORACLE_SUBMISSIONS_ORACLE_ID_SUBMITTED_AT');
-    await queryRunner.dropIndex('oracle_submissions', 'IDX_ORACLE_SUBMISSIONS_ORACLE_ID_STATUS');
-    await queryRunner.dropTable('oracle_submissions', true);
+    await queryRunner.dropIndex(
+      "oracle_submissions",
+      "IDX_ORACLE_SUBMISSIONS_DATA_HASH",
+    );
+    await queryRunner.dropIndex(
+      "oracle_submissions",
+      "IDX_ORACLE_SUBMISSIONS_USER_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "oracle_submissions",
+      "IDX_ORACLE_SUBMISSIONS_STATUS_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "oracle_submissions",
+      "IDX_ORACLE_SUBMISSIONS_ORACLE_ID_SUBMITTED_AT",
+    );
+    await queryRunner.dropIndex(
+      "oracle_submissions",
+      "IDX_ORACLE_SUBMISSIONS_ORACLE_ID_STATUS",
+    );
+    await queryRunner.dropTable("oracle_submissions", true);
 
-    await queryRunner.dropIndex('agent_events', 'IDX_AGENT_EVENTS_USER_ID_CREATED_AT');
-    await queryRunner.dropIndex('agent_events', 'IDX_AGENT_EVENTS_EVENT_TYPE_CREATED_AT');
-    await queryRunner.dropIndex('agent_events', 'IDX_AGENT_EVENTS_AGENT_ID_CREATED_AT');
-    await queryRunner.dropIndex('agent_events', 'IDX_AGENT_EVENTS_AGENT_ID_EVENT_TYPE');
-    await queryRunner.dropTable('agent_events', true);
+    await queryRunner.dropIndex(
+      "agent_events",
+      "IDX_AGENT_EVENTS_USER_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "agent_events",
+      "IDX_AGENT_EVENTS_EVENT_TYPE_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "agent_events",
+      "IDX_AGENT_EVENTS_AGENT_ID_CREATED_AT",
+    );
+    await queryRunner.dropIndex(
+      "agent_events",
+      "IDX_AGENT_EVENTS_AGENT_ID_EVENT_TYPE",
+    );
+    await queryRunner.dropTable("agent_events", true);
   }
 }

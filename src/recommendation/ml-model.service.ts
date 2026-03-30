@@ -1,9 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { RecommendationFeedback, FeedbackType } from './entities/recommendation-feedback.entity';
-import { RecommendationInteraction, InteractionType } from './entities/recommendation-interaction.entity';
-import { Agent } from '../agent/entities/agent.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  RecommendationFeedback,
+  FeedbackType,
+} from "./entities/recommendation-feedback.entity";
+import {
+  RecommendationInteraction,
+  InteractionType,
+} from "./entities/recommendation-interaction.entity";
+import { Agent } from "../agent/entities/agent.entity";
 
 /**
  * Feature vector for ML model
@@ -12,17 +18,17 @@ interface FeatureVector {
   // User features
   userHasHistory: number;
   userAvgRating: number;
-  
+
   // Agent features
   agentPerformanceScore: number;
   agentUsageCount: number;
   agentHasUserHistory: number;
   agentAvgFeedback: number;
-  
+
   // Interaction features
   recencyScore: number;
   capabilityMatch: number;
-  
+
   // Bias term
   bias: number;
 }
@@ -57,7 +63,7 @@ interface TrainingExample {
 @Injectable()
 export class MLModelService {
   private readonly logger = new Logger(MLModelService.name);
-  
+
   // Current model weights (initialized to default values)
   private weights: ModelWeights = {
     userHasHistory: 0.1,
@@ -73,7 +79,7 @@ export class MLModelService {
 
   // Learning rate for gradient descent
   private readonly learningRate = 0.01;
-  
+
   // Regularization parameter
   private readonly regularizationLambda = 0.01;
 
@@ -108,43 +114,51 @@ export class MLModelService {
     if (userId) {
       const userFeedback = await this.feedbackRepository.find({
         where: { userId },
-        order: { createdAt: 'DESC' },
+        order: { createdAt: "DESC" },
         take: 50,
       });
 
       features.userHasHistory = userFeedback.length > 0 ? 1 : 0;
-      
+
       if (userFeedback.length > 0) {
         const ratings = userFeedback
-          .filter(f => f.feedbackType === FeedbackType.EXPLICIT_RATING && f.rating)
-          .map(f => f.rating!);
-        
-        features.userAvgRating = ratings.length > 0 
-          ? (ratings.reduce((a, b) => a + b, 0) / 5) / 5 // Normalize to 0-1
-          : 0.5;
+          .filter(
+            (f) => f.feedbackType === FeedbackType.EXPLICIT_RATING && f.rating,
+          )
+          .map((f) => f.rating!);
+
+        features.userAvgRating =
+          ratings.length > 0
+            ? ratings.reduce((a, b) => a + b, 0) / 5 / 5 // Normalize to 0-1
+            : 0.5;
 
         // Check if user has history with this specific agent
-        features.agentHasUserHistory = userFeedback.some(f => f.agentId === agent.id) ? 1 : 0;
+        features.agentHasUserHistory = userFeedback.some(
+          (f) => f.agentId === agent.id,
+        )
+          ? 1
+          : 0;
 
         // Calculate agent-specific feedback average
         const agentFeedback = userFeedback
-          .filter(f => f.agentId === agent.id && f.rating)
-          .map(f => f.rating!);
-        
-        features.agentAvgFeedback = agentFeedback.length > 0
-          ? (agentFeedback.reduce((a, b) => a + b, 0) / 5) / 5
-          : 0.5;
+          .filter((f) => f.agentId === agent.id && f.rating)
+          .map((f) => f.rating!);
+
+        features.agentAvgFeedback =
+          agentFeedback.length > 0
+            ? agentFeedback.reduce((a, b) => a + b, 0) / 5 / 5
+            : 0.5;
       }
 
       // Recency score based on recent interactions
       const oneWeekAgo = this.getLastWeek();
       const recentInteractions = await this.interactionRepository.count({
-        where: { 
+        where: {
           userId,
           createdAt: oneWeekAgo,
         } as any,
       });
-      
+
       features.recencyScore = Math.min(recentInteractions / 10, 1); // Cap at 1
     } else {
       // Default values for anonymous users
@@ -155,10 +169,10 @@ export class MLModelService {
 
     // Capability matching
     if (requestedCapabilities && requestedCapabilities.length > 0) {
-      const matches = agent.capabilities.filter(c => 
-        requestedCapabilities.includes(c)
+      const matches = agent.capabilities.filter((c) =>
+        requestedCapabilities.includes(c),
       ).length;
-      
+
       features.capabilityMatch = matches / requestedCapabilities.length;
     } else {
       features.capabilityMatch = 0.5;
@@ -175,7 +189,11 @@ export class MLModelService {
     agent: Agent,
     requestedCapabilities?: string[],
   ): Promise<number> {
-    const features = await this.extractFeatures(userId, agent, requestedCapabilities);
+    const features = await this.extractFeatures(
+      userId,
+      agent,
+      requestedCapabilities,
+    );
     const score = this.logisticRegression(features);
     return score;
   }
@@ -184,7 +202,7 @@ export class MLModelService {
    * Logistic regression sigmoid function
    */
   private logisticRegression(features: FeatureVector): number {
-    const z = 
+    const z =
       this.weights.userHasHistory * features.userHasHistory +
       this.weights.userAvgRating * features.userAvgRating +
       this.weights.agentPerformanceScore * features.agentPerformanceScore +
@@ -205,13 +223,15 @@ export class MLModelService {
    * Uses gradient descent with regularization
    */
   async trainModel(): Promise<void> {
-    this.logger.log('Starting model training...');
+    this.logger.log("Starting model training...");
 
     // Gather training examples
     const examples = await this.gatherTrainingExamples();
-    
+
     if (examples.length < 10) {
-      this.logger.warn('Insufficient training data. Need at least 10 examples.');
+      this.logger.warn(
+        "Insufficient training data. Need at least 10 examples.",
+      );
       return;
     }
 
@@ -223,8 +243,10 @@ export class MLModelService {
       this.updateWeights(gradients);
     }
 
-    this.logger.log('Model training completed');
-    this.logger.debug(`Updated weights: ${JSON.stringify(this.weights, null, 2)}`);
+    this.logger.log("Model training completed");
+    this.logger.debug(
+      `Updated weights: ${JSON.stringify(this.weights, null, 2)}`,
+    );
   }
 
   /**
@@ -235,14 +257,17 @@ export class MLModelService {
 
     // Get all feedback
     const feedbackList = await this.feedbackRepository.find({
-      relations: ['user'],
-      order: { createdAt: 'DESC' },
+      relations: ["user"],
+      order: { createdAt: "DESC" },
       take: 1000,
     });
 
     for (const feedback of feedbackList) {
       // Create positive example from explicit high ratings or usage
-      if (feedback.feedbackType === FeedbackType.EXPLICIT_RATING && feedback.rating! >= 4) {
+      if (
+        feedback.feedbackType === FeedbackType.EXPLICIT_RATING &&
+        feedback.rating! >= 4
+      ) {
         examples.push({
           features: await this.createFeaturesFromFeedback(feedback),
           label: 1,
@@ -252,8 +277,11 @@ export class MLModelService {
           features: await this.createFeaturesFromFeedback(feedback),
           label: 1,
         });
-      } else if (feedback.feedbackType === FeedbackType.DISMISS || 
-                 (feedback.feedbackType === FeedbackType.EXPLICIT_RATING && feedback.rating! <= 2)) {
+      } else if (
+        feedback.feedbackType === FeedbackType.DISMISS ||
+        (feedback.feedbackType === FeedbackType.EXPLICIT_RATING &&
+          feedback.rating! <= 2)
+      ) {
         examples.push({
           features: await this.createFeaturesFromFeedback(feedback),
           label: 0,
@@ -263,7 +291,7 @@ export class MLModelService {
 
     // Get interactions
     const interactions = await this.interactionRepository.find({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: 1000,
     });
 
@@ -352,9 +380,11 @@ export class MLModelService {
 
       gradients.userHasHistory += error * example.features.userHasHistory;
       gradients.userAvgRating += error * example.features.userAvgRating;
-      gradients.agentPerformanceScore += error * example.features.agentPerformanceScore;
+      gradients.agentPerformanceScore +=
+        error * example.features.agentPerformanceScore;
       gradients.agentUsageCount += error * example.features.agentUsageCount;
-      gradients.agentHasUserHistory += error * example.features.agentHasUserHistory;
+      gradients.agentHasUserHistory +=
+        error * example.features.agentHasUserHistory;
       gradients.agentAvgFeedback += error * example.features.agentAvgFeedback;
       gradients.recencyScore += error * example.features.recencyScore;
       gradients.capabilityMatch += error * example.features.capabilityMatch;
@@ -364,10 +394,10 @@ export class MLModelService {
     // Average gradients and add regularization
     for (const key of Object.keys(gradients)) {
       gradients[key as keyof ModelWeights] /= m;
-      
+
       // Add L2 regularization (except for bias)
-      if (key !== 'bias') {
-        gradients[key as keyof ModelWeights] += 
+      if (key !== "bias") {
+        gradients[key as keyof ModelWeights] +=
           this.regularizationLambda * this.weights[key as keyof ModelWeights];
       }
     }
@@ -380,7 +410,7 @@ export class MLModelService {
    */
   private updateWeights(gradients: ModelWeights): void {
     for (const key of Object.keys(this.weights)) {
-      this.weights[key as keyof ModelWeights] -= 
+      this.weights[key as keyof ModelWeights] -=
         this.learningRate * gradients[key as keyof ModelWeights];
     }
   }
@@ -389,13 +419,16 @@ export class MLModelService {
    * Get feature importance for explainability
    */
   getFeatureImportance(): Record<string, number> {
-    const totalWeight = Object.values(this.weights).reduce((sum, w) => sum + Math.abs(w), 0);
-    
+    const totalWeight = Object.values(this.weights).reduce(
+      (sum, w) => sum + Math.abs(w),
+      0,
+    );
+
     const importance: Record<string, number> = {};
     for (const [key, weight] of Object.entries(this.weights)) {
       importance[key] = Math.abs(weight) / totalWeight;
     }
-    
+
     return importance;
   }
 

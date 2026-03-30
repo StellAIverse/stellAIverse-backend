@@ -1,7 +1,12 @@
 import { Injectable, Logger, ConflictException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { ReferralReward, RewardStatus, RewardTrigger, RewardType } from "./reward.entity";
+import {
+  ReferralReward,
+  RewardStatus,
+  RewardTrigger,
+  RewardType,
+} from "./reward.entity";
 import { User } from "../user/entities/user.entity";
 import { AuditLogService } from "../audit/audit-log.service";
 import { v4 as uuidv4 } from "uuid";
@@ -26,7 +31,9 @@ export class RewardService {
     let exists = true;
     while (exists) {
       code = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const user = await this.userRepository.findOne({ where: { referralCode: code } });
+      const user = await this.userRepository.findOne({
+        where: { referralCode: code },
+      });
       if (!user) exists = false;
     }
     return code;
@@ -45,7 +52,9 @@ export class RewardService {
     });
 
     if (!referee || !referee.referredById) {
-      this.logger.debug(`No referrer found for user ${refereeId}, skipping rewards.`);
+      this.logger.debug(
+        `No referrer found for user ${refereeId}, skipping rewards.`,
+      );
       return;
     }
 
@@ -57,7 +66,9 @@ export class RewardService {
     });
 
     if (existingReward) {
-      this.logger.warn(`Reward already exists for ${event} and referee ${refereeId}`);
+      this.logger.warn(
+        `Reward already exists for ${event} and referee ${refereeId}`,
+      );
       return;
     }
 
@@ -127,7 +138,10 @@ export class RewardService {
       await this.auditLogService.recordVerification({
         event: "REFERRAL_REWARD_PAYOUT",
         rewardId: reward.id,
-        partyId: reward.metadata?.party === "referrer" ? reward.referrerId : reward.refereeId,
+        partyId:
+          reward.metadata?.party === "referrer"
+            ? reward.referrerId
+            : reward.refereeId,
         amount: reward.amount,
         type: reward.rewardType,
         timestamp: new Date(),
@@ -135,7 +149,10 @@ export class RewardService {
 
       this.logger.log(`Reward ${reward.id} awarded successfully.`);
     } catch (error) {
-      this.logger.error(`Failed to process payout for reward ${reward.id}`, error.stack);
+      this.logger.error(
+        `Failed to process payout for reward ${reward.id}`,
+        error.stack,
+      );
       reward.status = RewardStatus.FAILED;
       await this.rewardRepository.save(reward);
     }

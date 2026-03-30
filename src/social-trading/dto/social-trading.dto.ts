@@ -1,10 +1,18 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsEnum, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+  Min,
+  Max,
+} from "class-validator";
 
 export enum TraderTier {
-  BRONZE = 'bronze',
-  SILVER = 'silver',
-  GOLD = 'gold',
-  PLATINUM = 'platinum',
+  BRONZE = "bronze",
+  SILVER = "silver",
+  GOLD = "gold",
+  PLATINUM = "platinum",
 }
 
 export class CreateTraderProfileDto {
@@ -67,8 +75,8 @@ export class TraderProfileDto {
 
 export class LeaderboardQueryDto {
   @IsOptional()
-  @IsEnum(['winRate', 'totalReturn', 'monthlyReturn', 'followers'])
-  sortBy?: 'winRate' | 'totalReturn' | 'monthlyReturn' | 'followers';
+  @IsEnum(["winRate", "totalReturn", "monthlyReturn", "followers"])
+  sortBy?: "winRate" | "totalReturn" | "monthlyReturn" | "followers";
 
   @IsOptional()
   @IsNumber()
@@ -85,11 +93,11 @@ export class CopyTradeDto {
   traderId: string;
   originalTradeId: string;
   asset: string;
-  side: 'buy' | 'sell';
+  side: "buy" | "sell";
   originalAmount: number;
   copiedAmount: number;
   price: number;
-  status: 'pending' | 'executed' | 'failed' | 'skipped';
+  status: "pending" | "executed" | "failed" | "skipped";
   skipReason?: string;
   executedAt?: Date;
 }
@@ -98,14 +106,14 @@ export class SocialInteractionDto {
   @IsString()
   userId: string;
 
-  @IsEnum(['like', 'comment', 'share'])
-  type: 'like' | 'comment' | 'share';
+  @IsEnum(["like", "comment", "share"])
+  type: "like" | "comment" | "share";
 
   @IsString()
   targetId: string;
 
-  @IsEnum(['trade', 'strategy', 'profile'])
-  targetType: 'trade' | 'strategy' | 'profile';
+  @IsEnum(["trade", "strategy", "profile"])
+  targetType: "trade" | "strategy" | "profile";
 
   @IsOptional()
   @IsString()

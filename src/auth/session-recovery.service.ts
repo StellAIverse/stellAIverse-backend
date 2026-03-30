@@ -4,18 +4,18 @@ import {
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { randomBytes, createHash, scryptSync } from 'crypto';
-import { JwtService } from '@nestjs/jwt';
-import { Wallet, WalletStatus } from './entities/wallet.entity';
-import { User } from '../user/entities/user.entity';
-import { ChallengeService } from './challenge.service';
-import { EmailService } from './email.service';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { randomBytes, createHash, scryptSync } from "crypto";
+import { JwtService } from "@nestjs/jwt";
+import { Wallet, WalletStatus } from "./entities/wallet.entity";
+import { User } from "../user/entities/user.entity";
+import { ChallengeService } from "./challenge.service";
+import { EmailService } from "./email.service";
 
 export interface RecoveryMethod {
-  type: 'backup_code' | 'email' | 'social';
+  type: "backup_code" | "email" | "social";
   identifier: string;
   verified: boolean;
 }
@@ -61,7 +61,7 @@ export class SessionRecoveryService {
     });
 
     if (!wallet) {
-      throw new NotFoundException('Wallet not found');
+      throw new NotFoundException("Wallet not found");
     }
 
     // Generate 10 recovery codes
@@ -76,7 +76,7 @@ export class SessionRecoveryService {
     }
 
     // Store hashed codes in wallet
-    wallet.recoveryCodeHash = hashedCodes.join(',');
+    wallet.recoveryCodeHash = hashedCodes.join(",");
     wallet.recoveryEnabled = true;
     await this.walletRepository.save(wallet);
 
@@ -101,25 +101,30 @@ export class SessionRecoveryService {
 
     const wallet = await this.walletRepository.findOne({
       where: { address: normalizedAddress, status: WalletStatus.ACTIVE },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!wallet || !wallet.recoveryEnabled) {
-      throw new UnauthorizedException('Recovery not enabled for this wallet');
+      throw new UnauthorizedException("Recovery not enabled for this wallet");
     }
 
     // Verify backup code
     const hashedInput = this.hashRecoveryCode(backupCode);
-    const storedHashes = wallet.recoveryCodeHash?.split(',') || [];
+    const storedHashes = wallet.recoveryCodeHash?.split(",") || [];
 
     if (!storedHashes.includes(hashedInput)) {
-      await this.auditRecoveryAttempt(wallet.id, 'backup_code', false, clientInfo);
-      throw new UnauthorizedException('Invalid recovery code');
+      await this.auditRecoveryAttempt(
+        wallet.id,
+        "backup_code",
+        false,
+        clientInfo,
+      );
+      throw new UnauthorizedException("Invalid recovery code");
     }
 
     // Remove used code (one-time use)
     const updatedHashes = storedHashes.filter((h) => h !== hashedInput);
-    wallet.recoveryCodeHash = updatedHashes.join(',');
+    wallet.recoveryCodeHash = updatedHashes.join(",");
     await this.walletRepository.save(wallet);
 
     // Create recovery session
@@ -128,7 +133,11 @@ export class SessionRecoveryService {
       id: sessionId,
       userId: wallet.userId,
       walletId: wallet.id,
-      method: { type: 'backup_code', identifier: walletAddress, verified: true },
+      method: {
+        type: "backup_code",
+        identifier: walletAddress,
+        verified: true,
+      },
       expiresAt: new Date(Date.now() + this.SESSION_EXPIRY),
       attempts: 0,
       verified: true,
@@ -137,15 +146,19 @@ export class SessionRecoveryService {
     this.recoverySessions.set(sessionId, session);
 
     // Issue challenge for wallet authentication
-    const challenge = this.challengeService.issueChallengeForAddress(normalizedAddress);
+    const challenge =
+      this.challengeService.issueChallengeForAddress(normalizedAddress);
 
-    await this.auditRecoveryAttempt(wallet.id, 'backup_code', true, clientInfo);
+    await this.auditRecoveryAttempt(wallet.id, "backup_code", true, clientInfo);
 
-    this.logger.log(`Backup code recovery initiated for wallet ${walletAddress}`);
+    this.logger.log(
+      `Backup code recovery initiated for wallet ${walletAddress}`,
+    );
 
     return {
       sessionId,
-      message: 'Recovery verified. Sign the challenge to complete authentication.',
+      message:
+        "Recovery verified. Sign the challenge to complete authentication.",
       challenge,
     };
   }
@@ -168,7 +181,7 @@ export class SessionRecoveryService {
 
     if (!user) {
       // Don't reveal if email exists
-      throw new UnauthorizedException('Recovery email sent if account exists');
+      throw new UnauthorizedException("Recovery email sent if account exists");
     }
 
     // Get primary wallet
@@ -177,7 +190,7 @@ export class SessionRecoveryService {
     });
 
     if (!wallet) {
-      throw new UnauthorizedException('No active wallet found for recovery');
+      throw new UnauthorizedException("No active wallet found for recovery");
     }
 
     // Create recovery session
@@ -188,7 +201,7 @@ export class SessionRecoveryService {
       id: sessionId,
       userId: user.id,
       walletId: wallet.id,
-      method: { type: 'email', identifier: normalizedEmail, verified: false },
+      method: { type: "email", identifier: normalizedEmail, verified: false },
       expiresAt: new Date(Date.now() + this.SESSION_EXPIRY),
       attempts: 0,
       verified: false,
@@ -197,13 +210,16 @@ export class SessionRecoveryService {
     this.recoverySessions.set(sessionId, session);
 
     // Send recovery email
-    await this.emailService.sendRecoveryEmail(normalizedEmail, verificationCode);
+    await this.emailService.sendRecoveryEmail(
+      normalizedEmail,
+      verificationCode,
+    );
 
     this.logger.log(`Email recovery initiated for user ${user.id}`);
 
     return {
       sessionId,
-      message: 'Recovery email sent if account exists',
+      message: "Recovery email sent if account exists",
     };
   }
 
@@ -222,16 +238,18 @@ export class SessionRecoveryService {
     const session = this.getValidSession(sessionId);
 
     if (!session) {
-      throw new UnauthorizedException('Invalid or expired recovery session');
+      throw new UnauthorizedException("Invalid or expired recovery session");
     }
 
-    if (session.method.type !== 'email') {
-      throw new BadRequestException('Invalid recovery method');
+    if (session.method.type !== "email") {
+      throw new BadRequestException("Invalid recovery method");
     }
 
     if (session.attempts >= this.MAX_ATTEMPTS) {
       this.recoverySessions.delete(sessionId);
-      throw new UnauthorizedException('Too many failed attempts. Please start over.');
+      throw new UnauthorizedException(
+        "Too many failed attempts. Please start over.",
+      );
     }
 
     session.attempts++;
@@ -240,8 +258,13 @@ export class SessionRecoveryService {
     const isValid = await this.verifyRecoveryCode(session, code);
 
     if (!isValid) {
-      await this.auditRecoveryAttempt(session.walletId, 'email', false, clientInfo);
-      throw new UnauthorizedException('Invalid verification code');
+      await this.auditRecoveryAttempt(
+        session.walletId,
+        "email",
+        false,
+        clientInfo,
+      );
+      throw new UnauthorizedException("Invalid verification code");
     }
 
     session.verified = true;
@@ -253,16 +276,24 @@ export class SessionRecoveryService {
     });
 
     if (!wallet) {
-      throw new NotFoundException('Wallet not found');
+      throw new NotFoundException("Wallet not found");
     }
 
-    const challenge = this.challengeService.issueChallengeForAddress(wallet.address);
+    const challenge = this.challengeService.issueChallengeForAddress(
+      wallet.address,
+    );
 
-    await this.auditRecoveryAttempt(session.walletId, 'email', true, clientInfo);
+    await this.auditRecoveryAttempt(
+      session.walletId,
+      "email",
+      true,
+      clientInfo,
+    );
 
     return {
       verified: true,
-      message: 'Recovery verified. Sign the challenge to complete authentication.',
+      message:
+        "Recovery verified. Sign the challenge to complete authentication.",
       challenge,
     };
   }
@@ -282,30 +313,32 @@ export class SessionRecoveryService {
     const session = this.getValidSession(sessionId);
 
     if (!session || !session.verified) {
-      throw new UnauthorizedException('Recovery session not verified');
+      throw new UnauthorizedException("Recovery session not verified");
     }
 
     const wallet = await this.walletRepository.findOne({
       where: { id: session.walletId },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!wallet) {
-      throw new NotFoundException('Wallet not found');
+      throw new NotFoundException("Wallet not found");
     }
 
     // Verify signature
-    const { verifyMessage } = await import('ethers');
+    const { verifyMessage } = await import("ethers");
     let recoveredAddress: string;
 
     try {
       recoveredAddress = verifyMessage(message, signature);
     } catch (error) {
-      throw new UnauthorizedException('Invalid signature');
+      throw new UnauthorizedException("Invalid signature");
     }
 
     if (recoveredAddress.toLowerCase() !== wallet.address.toLowerCase()) {
-      throw new UnauthorizedException('Signature does not match wallet address');
+      throw new UnauthorizedException(
+        "Signature does not match wallet address",
+      );
     }
 
     // Consume challenge
@@ -313,7 +346,7 @@ export class SessionRecoveryService {
     const challenge = this.challengeService.consumeChallenge(challengeId);
 
     if (!challenge) {
-      throw new UnauthorizedException('Challenge expired or invalid');
+      throw new UnauthorizedException("Challenge expired or invalid");
     }
 
     // Issue new token
@@ -321,7 +354,7 @@ export class SessionRecoveryService {
       sub: wallet.userId,
       address: wallet.address,
       email: wallet.user.emailVerified ? wallet.user.email : undefined,
-      role: wallet.user.role || 'user',
+      role: wallet.user.role || "user",
       iat: Math.floor(Date.now() / 1000),
     };
 
@@ -339,7 +372,7 @@ export class SessionRecoveryService {
     return {
       token,
       walletAddress: wallet.address,
-      message: 'Recovery successful. New session established.',
+      message: "Recovery successful. New session established.",
     };
   }
 
@@ -354,7 +387,10 @@ export class SessionRecoveryService {
   /**
    * Get recovery status for a wallet
    */
-  async getRecoveryStatus(walletId: string, userId: string): Promise<{
+  async getRecoveryStatus(
+    walletId: string,
+    userId: string,
+  ): Promise<{
     recoveryEnabled: boolean;
     remainingCodes: number;
     methods: string[];
@@ -364,22 +400,22 @@ export class SessionRecoveryService {
     });
 
     if (!wallet) {
-      throw new NotFoundException('Wallet not found');
+      throw new NotFoundException("Wallet not found");
     }
 
     const remainingCodes = wallet.recoveryCodeHash
-      ? wallet.recoveryCodeHash.split(',').length
+      ? wallet.recoveryCodeHash.split(",").length
       : 0;
 
     const methods: string[] = [];
     if (wallet.recoveryEnabled) {
-      methods.push('backup_code');
+      methods.push("backup_code");
     }
 
     // Check if user has verified email
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user?.emailVerified) {
-      methods.push('email');
+      methods.push("email");
     }
 
     return {
@@ -394,22 +430,22 @@ export class SessionRecoveryService {
    */
   private generateRecoveryCode(): string {
     const bytes = randomBytes(6);
-    return bytes.toString('hex').toUpperCase().match(/.{4}/g)!.join('-');
+    return bytes.toString("hex").toUpperCase().match(/.{4}/g)!.join("-");
   }
 
   /**
    * Hash a recovery code for storage
    */
   private hashRecoveryCode(code: string): string {
-    const normalized = code.toUpperCase().replace(/-/g, '');
-    return createHash('sha256').update(normalized).digest('hex');
+    const normalized = code.toUpperCase().replace(/-/g, "");
+    return createHash("sha256").update(normalized).digest("hex");
   }
 
   /**
    * Generate a session ID
    */
   private generateSessionId(): string {
-    return randomBytes(32).toString('hex');
+    return randomBytes(32).toString("hex");
   }
 
   /**

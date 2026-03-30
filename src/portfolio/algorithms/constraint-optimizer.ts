@@ -23,10 +23,10 @@ export class ConstraintOptimizer {
     ub: number[], // Upper bounds
   ): QuadraticProgramSolution {
     const n = q.length;
-    let w = new Array(n).fill(1 / n);
+    const w = new Array(n).fill(1 / n);
 
     // Active set algorithm
-    let activeSet = new Set<number>();
+    const activeSet = new Set<number>();
     const maxIterations = 100;
     let iteration = 0;
     let converged = false;
@@ -112,7 +112,7 @@ export class ConstraintOptimizer {
     n: number,
     maxIterations: number = 100,
   ): number[] {
-    let w = new Array(n).fill(1 / n);
+    const w = new Array(n).fill(1 / n);
     const learningRate = 0.001;
 
     for (let iteration = 0; iteration < maxIterations; iteration++) {

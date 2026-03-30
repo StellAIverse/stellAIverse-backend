@@ -1,20 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, FindOptionsWhere } from 'typeorm';
-import { ethers } from 'ethers';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, FindOptionsWhere } from "typeorm";
+import { ethers } from "ethers";
+import { ConfigService } from "@nestjs/config";
 import {
   ProvenanceRecord,
   ProvenanceStatus,
-} from './entities/provenance-record.entity';
-import { CreateProvenanceRecordDto } from './dto/create-provenance-record.dto';
-import { QueryProvenanceDto } from './dto/query-provenance.dto';
+} from "./entities/provenance-record.entity";
+import { CreateProvenanceRecordDto } from "./dto/create-provenance-record.dto";
+import { QueryProvenanceDto } from "./dto/query-provenance.dto";
 import {
   ProvenanceResponseDto,
   ProvenanceListResponseDto,
   ProvenanceVerificationResultDto,
   ProvenanceTimelineResponseDto,
-} from './dto/provenance-response.dto';
+} from "./dto/provenance-response.dto";
 
 @Injectable()
 export class ProvenanceService {
@@ -29,8 +29,8 @@ export class ProvenanceService {
     // Use a system signing key for provenance signatures
     // In production, this should be securely managed (e.g., AWS KMS, HashiCorp Vault)
     this.signingKey =
-      this.configService.get<string>('PROVENANCE_SIGNING_KEY') ||
-      '0x' + '1'.repeat(64); // Fallback for development only
+      this.configService.get<string>("PROVENANCE_SIGNING_KEY") ||
+      "0x" + "1".repeat(64); // Fallback for development only
   }
 
   /**
@@ -53,7 +53,9 @@ export class ProvenanceService {
     });
 
     const saved = await this.provenanceRepository.save(provenance);
-    this.logger.log(`Created provenance record ${saved.id} for agent ${saved.agentId}`);
+    this.logger.log(
+      `Created provenance record ${saved.id} for agent ${saved.agentId}`,
+    );
 
     return this.toResponseDto(saved);
   }
@@ -64,7 +66,7 @@ export class ProvenanceService {
   async getProvenanceById(id: string): Promise<ProvenanceResponseDto> {
     const record = await this.provenanceRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ["user"],
     });
 
     if (!record) {
@@ -123,9 +125,9 @@ export class ProvenanceService {
 
     const [records, total] = await this.provenanceRepository.findAndCount({
       where,
-      relations: ['user'],
+      relations: ["user"],
       order: {
-        [query.sortBy || 'createdAt']: query.sortOrder || 'DESC',
+        [query.sortBy || "createdAt"]: query.sortOrder || "DESC",
       },
       skip,
       take: limit,
@@ -176,11 +178,14 @@ export class ProvenanceService {
 
     const records = await this.provenanceRepository.find({
       where,
-      relations: ['user'],
-      order: { createdAt: 'ASC' },
+      relations: ["user"],
+      order: { createdAt: "ASC" },
     });
 
-    const from = fromDate || records[0]?.createdAt.toISOString() || new Date(0).toISOString();
+    const from =
+      fromDate ||
+      records[0]?.createdAt.toISOString() ||
+      new Date(0).toISOString();
     const to = toDate || new Date().toISOString();
 
     return {
@@ -210,36 +215,36 @@ export class ProvenanceService {
     });
 
     if (records.length === 0) {
-      return 'id,agentId,userId,action,status,provider,providerModel,createdAt,recordHash,signature\n';
+      return "id,agentId,userId,action,status,provider,providerModel,createdAt,recordHash,signature\n";
     }
 
     const headers = [
-      'id',
-      'agentId',
-      'userId',
-      'action',
-      'status',
-      'provider',
-      'providerModel',
-      'createdAt',
-      'recordHash',
-      'signature',
+      "id",
+      "agentId",
+      "userId",
+      "action",
+      "status",
+      "provider",
+      "providerModel",
+      "createdAt",
+      "recordHash",
+      "signature",
     ];
 
     const rows = records.map((r) => [
       r.id,
       r.agentId,
-      r.userId || '',
+      r.userId || "",
       r.action,
       r.status,
-      r.provider || '',
-      r.providerModel || '',
+      r.provider || "",
+      r.providerModel || "",
       r.createdAt.toISOString(),
       r.recordHash,
       r.signature,
     ]);
 
-    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
   }
 
   /**
@@ -252,8 +257,8 @@ export class ProvenanceService {
       return {
         isValid: false,
         recordId: id,
-        recordHash: '',
-        error: 'Record not found',
+        recordHash: "",
+        error: "Record not found",
       };
     }
 
@@ -284,7 +289,7 @@ export class ProvenanceService {
           isValid: false,
           recordId: id,
           recordHash: record.recordHash,
-          error: 'Record hash mismatch - data may have been tampered with',
+          error: "Record hash mismatch - data may have been tampered with",
         };
       }
 
@@ -298,7 +303,7 @@ export class ProvenanceService {
         isValid,
         recordId: id,
         recordHash: record.recordHash,
-        error: isValid ? undefined : 'Invalid signature',
+        error: isValid ? undefined : "Invalid signature",
       };
     } catch (error) {
       return {
@@ -360,7 +365,10 @@ export class ProvenanceService {
       timestamp: Date.now(),
     };
 
-    const sortedString = JSON.stringify(dataToHash, Object.keys(dataToHash).sort());
+    const sortedString = JSON.stringify(
+      dataToHash,
+      Object.keys(dataToHash).sort(),
+    );
     return ethers.keccak256(ethers.toUtf8Bytes(sortedString));
   }
 
@@ -372,9 +380,9 @@ export class ProvenanceService {
       const wallet = new ethers.Wallet(this.signingKey);
       return wallet.signMessageSync(hash);
     } catch (error) {
-      this.logger.error('Failed to generate signature', error);
+      this.logger.error("Failed to generate signature", error);
       // Return a placeholder signature for development
-      return '0x' + '0'.repeat(130);
+      return "0x" + "0".repeat(130);
     }
   }
 
@@ -395,7 +403,7 @@ export class ProvenanceService {
    * Normalize data for consistent hashing
    */
   private normalizeForHash(data: any): any {
-    if (data === null || typeof data !== 'object') {
+    if (data === null || typeof data !== "object") {
       return data;
     }
 
@@ -408,7 +416,7 @@ export class ProvenanceService {
 
     for (const key of keys) {
       // Skip non-deterministic fields
-      if (!['timestamp', 'createdAt', 'updatedAt', 'id'].includes(key)) {
+      if (!["timestamp", "createdAt", "updatedAt", "id"].includes(key)) {
         normalized[key] = this.normalizeForHash(data[key]);
       }
     }

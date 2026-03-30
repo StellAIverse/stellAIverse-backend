@@ -44,7 +44,7 @@ export class EventIngestionProcessor {
     @InjectQueue("indexer-dead-letter")
     private readonly deadLetterQueue: Queue,
     private readonly dataSource: DataSource,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -56,7 +56,7 @@ export class EventIngestionProcessor {
     const startTime = Date.now();
 
     this.logger.log(
-      `Processing batch of ${events.length} events for shard ${shardId}, blocks ${blockRange.fromBlock}-${blockRange.toBlock}`
+      `Processing batch of ${events.length} events for shard ${shardId}, blocks ${blockRange.fromBlock}-${blockRange.toBlock}`,
     );
 
     const result: IngestionResult = {
@@ -69,13 +69,13 @@ export class EventIngestionProcessor {
     // Process events in smaller sub-batches for better error isolation
     for (let i = 0; i < events.length; i += this.batchSize) {
       const subBatch = events.slice(i, i + this.batchSize);
-      
+
       try {
         await this.processSubBatch(subBatch, shardId);
         result.eventsProcessed += subBatch.length;
       } catch (error) {
         this.logger.error(
-          `Failed to process sub-batch ${i / this.batchSize + 1}: ${error.message}`
+          `Failed to process sub-batch ${i / this.batchSize + 1}: ${error.message}`,
         );
 
         // Try individual processing for failed sub-batch
@@ -86,7 +86,7 @@ export class EventIngestionProcessor {
           } catch (singleError) {
             result.eventsFailed++;
             result.errors.push(
-              `Event ${event.txHash}-${event.logIndex}: ${singleError.message}`
+              `Event ${event.txHash}-${event.logIndex}: ${singleError.message}`,
             );
 
             // Send to dead letter queue if max retries reached
@@ -94,7 +94,11 @@ export class EventIngestionProcessor {
               await this.sendToDeadLetter(event, shardId, singleError.message);
             } else {
               // Re-queue for retry
-              await this.requeueEvent(event, shardId, (job.data.retryCount || 0) + 1);
+              await this.requeueEvent(
+                event,
+                shardId,
+                (job.data.retryCount || 0) + 1,
+              );
             }
           }
         }
@@ -103,7 +107,7 @@ export class EventIngestionProcessor {
 
     const duration = Date.now() - startTime;
     this.logger.log(
-      `Batch processing completed: ${result.eventsProcessed} succeeded, ${result.eventsFailed} failed in ${duration}ms`
+      `Batch processing completed: ${result.eventsProcessed} succeeded, ${result.eventsFailed} failed in ${duration}ms`,
     );
 
     // Emit metrics
@@ -131,7 +135,9 @@ export class EventIngestionProcessor {
   async handleSingleIngest(job: Job<SingleEventJob>): Promise<IngestionResult> {
     const { event, shardId, retryCount = 0 } = job.data;
 
-    this.logger.debug(`Processing single event ${event.txHash}-${event.logIndex}`);
+    this.logger.debug(
+      `Processing single event ${event.txHash}-${event.logIndex}`,
+    );
 
     try {
       await this.processSingleEvent(event, shardId);
@@ -149,7 +155,7 @@ export class EventIngestionProcessor {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to process event ${event.txHash}-${event.logIndex}: ${error.message}`
+        `Failed to process event ${event.txHash}-${event.logIndex}: ${error.message}`,
       );
 
       if (retryCount >= this.maxRetries) {
@@ -165,7 +171,10 @@ export class EventIngestionProcessor {
   /**
    * Process a sub-batch of events using bulk insert
    */
-  private async processSubBatch(events: IndexerEvent[], shardId: string): Promise<void> {
+  private async processSubBatch(
+    events: IndexerEvent[],
+    shardId: string,
+  ): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -182,7 +191,7 @@ export class EventIngestionProcessor {
           data: event.data,
           topics: event.topics,
           processedAt: new Date(),
-        })
+        }),
       );
 
       // Use bulk insert with ON CONFLICT DO NOTHING for upsert behavior
@@ -206,7 +215,10 @@ export class EventIngestionProcessor {
   /**
    * Process a single event
    */
-  private async processSingleEvent(event: IndexerEvent, shardId: string): Promise<void> {
+  private async processSingleEvent(
+    event: IndexerEvent,
+    shardId: string,
+  ): Promise<void> {
     const entity = this.indexedRepo.create({
       blockNumber: event.blockNumber,
       blockHash: event.blockHash,
@@ -225,7 +237,9 @@ export class EventIngestionProcessor {
       // Handle duplicate key errors gracefully
       if (error.code === "23505") {
         // PostgreSQL unique violation
-        this.logger.debug(`Duplicate event ${event.txHash}-${event.logIndex}, skipping`);
+        this.logger.debug(
+          `Duplicate event ${event.txHash}-${event.logIndex}, skipping`,
+        );
         return;
       }
       throw error;
@@ -238,7 +252,7 @@ export class EventIngestionProcessor {
   private async requeueEvent(
     event: IndexerEvent,
     shardId: string,
-    retryCount: number
+    retryCount: number,
   ): Promise<void> {
     const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff: 2s, 4s, 8s
 
@@ -252,10 +266,12 @@ export class EventIngestionProcessor {
       {
         delay,
         attempts: 1, // We handle retries manually
-      }
+      },
     );
 
-    this.logger.debug(`Re-queued event ${event.txHash}-${event.logIndex} with ${delay}ms delay`);
+    this.logger.debug(
+      `Re-queued event ${event.txHash}-${event.logIndex} with ${delay}ms delay`,
+    );
   }
 
   /**
@@ -264,7 +280,7 @@ export class EventIngestionProcessor {
   private async sendToDeadLetter(
     event: IndexerEvent,
     shardId: string,
-    errorMessage: string
+    errorMessage: string,
   ): Promise<void> {
     await this.deadLetterQueue.add("failed-event", {
       event,
@@ -281,14 +297,19 @@ export class EventIngestionProcessor {
       error: errorMessage,
     });
 
-    this.logger.warn(`Sent event ${event.txHash}-${event.logIndex} to dead letter queue`);
+    this.logger.warn(
+      `Sent event ${event.txHash}-${event.logIndex} to dead letter queue`,
+    );
   }
 
   /**
    * Handle job completion
    */
   @OnQueueCompleted()
-  async onCompleted(job: Job<EventBatchJob | SingleEventJob>, result: IngestionResult) {
+  async onCompleted(
+    job: Job<EventBatchJob | SingleEventJob>,
+    result: IngestionResult,
+  ) {
     this.logger.debug(`Job ${job.id} completed: ${JSON.stringify(result)}`);
   }
 

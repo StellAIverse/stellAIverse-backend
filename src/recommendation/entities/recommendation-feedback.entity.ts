@@ -6,48 +6,48 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+} from "typeorm";
+import { User } from "../../user/entities/user.entity";
 
 /**
  * Types of feedback that can be provided
  */
 export enum FeedbackType {
-  EXPLICIT_RATING = 'explicit_rating',
-  CLICK = 'click',
-  DISMISS = 'dismiss',
-  USAGE = 'usage',
+  EXPLICIT_RATING = "explicit_rating",
+  CLICK = "click",
+  DISMISS = "dismiss",
+  USAGE = "usage",
 }
 
 /**
  * User feedback on agent recommendations
  * Supports both explicit (ratings) and implicit (clicks, usage) feedback
  */
-@Entity('recommendation_feedback')
-@Index(['userId', 'agentId'])
-@Index(['createdAt'])
+@Entity("recommendation_feedback")
+@Index(["userId", "agentId"])
+@Index(["createdAt"])
 export class RecommendationFeedback {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * User who provided the feedback
    */
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   @Index()
   userId: string;
 
   /**
    * Reference to the user entity
    */
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   /**
    * Agent ID that was recommended
    */
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   @Index()
   agentId: string;
 
@@ -55,7 +55,7 @@ export class RecommendationFeedback {
    * Type of feedback (explicit rating, click, dismiss, usage)
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: FeedbackType,
   })
   feedbackType: FeedbackType;
@@ -63,19 +63,19 @@ export class RecommendationFeedback {
   /**
    * Rating value (1-5 for explicit ratings, 1 for clicks/usage, 0 for dismiss)
    */
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: "int", nullable: true })
   rating?: number;
 
   /**
    * Additional context or metadata about the feedback
    */
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>;
 
   /**
    * Session ID for tracking anonymous interactions
    */
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: "varchar", nullable: true })
   sessionId?: string;
 
   /**

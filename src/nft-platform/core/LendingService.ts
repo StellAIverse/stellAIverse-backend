@@ -9,7 +9,7 @@ export class LendingService {
   }
 
   repayLoan(nftId: string) {
-    const loan = this.loans.find(l => l.nftId === nftId && l.active);
+    const loan = this.loans.find((l) => l.nftId === nftId && l.active);
     if (!loan) throw new Error("Loan not found");
 
     loan.active = false;

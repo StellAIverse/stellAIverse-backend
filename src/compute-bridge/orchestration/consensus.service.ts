@@ -1,13 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { AIProviderType } from '../provider.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { AIProviderType } from "../provider.interface";
 import {
   ConsensusAlgorithm,
   ConsensusConfig,
   ConsensusResult,
   NormalizedProviderResponse,
   ProviderVote,
-} from './orchestration.interface';
-import { ResponseNormalizerService } from './response-normalizer.service';
+} from "./orchestration.interface";
+import { ResponseNormalizerService } from "./response-normalizer.service";
 
 /**
  * Consensus Service
@@ -29,10 +29,10 @@ export class ConsensusService {
     config: ConsensusConfig,
   ): Promise<ConsensusResult> {
     // Filter out invalid responses
-    const validResponses = responses.filter(r => r.isValid);
-    
+    const validResponses = responses.filter((r) => r.isValid);
+
     if (validResponses.length === 0) {
-      return this.createNoConsensusResult(responses, 'No valid responses');
+      return this.createNoConsensusResult(responses, "No valid responses");
     }
 
     if (validResponses.length === 1) {
@@ -62,25 +62,26 @@ export class ConsensusService {
   ): ConsensusResult {
     // Group responses by content similarity
     const groups = this.groupBySimilarity(responses, 0.9);
-    
+
     // Find the largest group
-    const largestGroup = groups.reduce((max, group) => 
-      group.length > max.length ? group : max
+    const largestGroup = groups.reduce((max, group) =>
+      group.length > max.length ? group : max,
     );
-    
+
     const agreementCount = largestGroup.length;
     const totalParticipants = responses.length;
     const agreementPercentage = agreementCount / totalParticipants;
-    
+
     // Create votes
-    const votes: ProviderVote[] = responses.map(response => ({
+    const votes: ProviderVote[] = responses.map((response) => ({
       provider: response.provider,
       value: response.content,
       confidence: this.calculateConfidence(response),
       weight: 1,
     }));
 
-    const consensusReached = agreementPercentage >= config.minAgreementPercentage;
+    const consensusReached =
+      agreementPercentage >= config.minAgreementPercentage;
 
     return {
       winner: largestGroup[0].content,
@@ -90,7 +91,8 @@ export class ConsensusService {
       agreementCount,
       totalParticipants,
       consensusReached,
-      confidence: agreementPercentage * this.calculateAverageConfidence(largestGroup),
+      confidence:
+        agreementPercentage * this.calculateAverageConfidence(largestGroup),
     };
   }
 
@@ -102,39 +104,40 @@ export class ConsensusService {
     config: ConsensusConfig,
   ): ConsensusResult {
     const weights = config.providerWeights || new Map();
-    
+
     // Group responses with weighted counts
     const groups = this.groupBySimilarity(responses, 0.9);
-    
+
     // Calculate weighted scores for each group
-    const groupScores = groups.map(group => {
+    const groupScores = groups.map((group) => {
       const weightedCount = group.reduce((sum, response) => {
         const weight = weights.get(response.provider) || 1;
         return sum + weight;
       }, 0);
-      
+
       const avgConfidence = this.calculateAverageConfidence(group);
-      
+
       return {
         group,
         score: weightedCount * avgConfidence,
         weightedCount,
       };
     });
-    
+
     // Find the group with highest weighted score
-    const winner = groupScores.reduce((max, current) => 
-      current.score > max.score ? current : max
+    const winner = groupScores.reduce((max, current) =>
+      current.score > max.score ? current : max,
     );
-    
-    const totalWeight = responses.reduce((sum, r) => 
-      sum + (weights.get(r.provider) || 1), 0
+
+    const totalWeight = responses.reduce(
+      (sum, r) => sum + (weights.get(r.provider) || 1),
+      0,
     );
-    
+
     const agreementPercentage = winner.weightedCount / totalWeight;
-    
+
     // Create weighted votes
-    const votes: ProviderVote[] = responses.map(response => {
+    const votes: ProviderVote[] = responses.map((response) => {
       const weight = weights.get(response.provider) || 1;
       return {
         provider: response.provider,
@@ -144,7 +147,8 @@ export class ConsensusService {
       };
     });
 
-    const consensusReached = agreementPercentage >= config.minAgreementPercentage;
+    const consensusReached =
+      agreementPercentage >= config.minAgreementPercentage;
 
     return {
       winner: winner.group[0].content,
@@ -154,7 +158,8 @@ export class ConsensusService {
       agreementCount: winner.group.length,
       totalParticipants: responses.length,
       consensusReached,
-      confidence: agreementPercentage * this.calculateAverageConfidence(winner.group),
+      confidence:
+        agreementPercentage * this.calculateAverageConfidence(winner.group),
     };
   }
 
@@ -167,51 +172,57 @@ export class ConsensusService {
   ): ConsensusResult {
     const threshold = config.similarityThreshold || 0.7;
     const clusters: NormalizedProviderResponse[][] = [];
-    
+
     // Build clusters using semantic similarity
     for (const response of responses) {
       let added = false;
-      
+
       for (const cluster of clusters) {
         // Check similarity with cluster representative
         const similarity = this.normalizer.calculateSemanticSimilarity(
           response,
           cluster[0],
         );
-        
+
         if (similarity >= threshold) {
           cluster.push(response);
           added = true;
           break;
         }
       }
-      
+
       if (!added) {
         clusters.push([response]);
       }
     }
-    
+
     // Sort clusters by size (descending) and then by average confidence
     clusters.sort((a, b) => {
       const sizeDiff = b.length - a.length;
       if (sizeDiff !== 0) return sizeDiff;
-      return this.calculateAverageConfidence(b) - this.calculateAverageConfidence(a);
+      return (
+        this.calculateAverageConfidence(b) - this.calculateAverageConfidence(a)
+      );
     });
-    
+
     const largestCluster = clusters[0];
     const agreementCount = largestCluster.length;
     const totalParticipants = responses.length;
     const agreementPercentage = agreementCount / totalParticipants;
-    
+
     // Create votes with semantic similarity scores
-    const votes: ProviderVote[] = responses.map(response => ({
+    const votes: ProviderVote[] = responses.map((response) => ({
       provider: response.provider,
       value: response.content,
       confidence: this.calculateConfidence(response),
-      weight: this.normalizer.calculateSemanticSimilarity(response, largestCluster[0]),
+      weight: this.normalizer.calculateSemanticSimilarity(
+        response,
+        largestCluster[0],
+      ),
     }));
 
-    const consensusReached = agreementPercentage >= config.minAgreementPercentage;
+    const consensusReached =
+      agreementPercentage >= config.minAgreementPercentage;
 
     return {
       winner: this.aggregateClusterResponse(largestCluster),
@@ -221,7 +232,8 @@ export class ConsensusService {
       agreementCount,
       totalParticipants,
       consensusReached,
-      confidence: agreementPercentage * this.calculateAverageConfidence(largestCluster),
+      confidence:
+        agreementPercentage * this.calculateAverageConfidence(largestCluster),
     };
   }
 
@@ -234,14 +246,14 @@ export class ConsensusService {
   ): ConsensusResult {
     // Group by exact content match
     const contentGroups = new Map<string, NormalizedProviderResponse[]>();
-    
+
     for (const response of responses) {
       const normalized = response.content.trim().toLowerCase();
       const existing = contentGroups.get(normalized) || [];
       existing.push(response);
       contentGroups.set(normalized, existing);
     }
-    
+
     // Find the group with most matches
     let largestGroup: NormalizedProviderResponse[] = [];
     for (const group of contentGroups.values()) {
@@ -249,22 +261,23 @@ export class ConsensusService {
         largestGroup = group;
       }
     }
-    
+
     const agreementCount = largestGroup.length;
     const totalParticipants = responses.length;
     const agreementPercentage = agreementCount / totalParticipants;
-    
-    const votes: ProviderVote[] = responses.map(response => ({
+
+    const votes: ProviderVote[] = responses.map((response) => ({
       provider: response.provider,
       value: response.content,
       confidence: this.calculateConfidence(response),
       weight: 1,
     }));
 
-    const consensusReached = agreementPercentage >= config.minAgreementPercentage;
+    const consensusReached =
+      agreementPercentage >= config.minAgreementPercentage;
 
     return {
-      winner: largestGroup[0]?.content || '',
+      winner: largestGroup[0]?.content || "",
       algorithm: ConsensusAlgorithm.EXACT_MATCH,
       votes,
       agreementPercentage,
@@ -283,24 +296,27 @@ export class ConsensusService {
     threshold: number,
   ): NormalizedProviderResponse[][] {
     const groups: NormalizedProviderResponse[][] = [];
-    
+
     for (const response of responses) {
       let added = false;
-      
+
       for (const group of groups) {
-        const similarity = this.normalizer.calculateSimilarity(response, group[0]);
+        const similarity = this.normalizer.calculateSimilarity(
+          response,
+          group[0],
+        );
         if (similarity >= threshold) {
           group.push(response);
           added = true;
           break;
         }
       }
-      
+
       if (!added) {
         groups.push([response]);
       }
     }
-    
+
     return groups;
   }
 
@@ -310,35 +326,43 @@ export class ConsensusService {
   private calculateConfidence(response: NormalizedProviderResponse): number {
     // Base confidence from response validity
     if (!response.isValid) return 0;
-    
+
     // Factor in latency (faster = more confident)
-    const latencyScore = Math.max(0, 1 - (response.latencyMs / 10000));
-    
+    const latencyScore = Math.max(0, 1 - response.latencyMs / 10000);
+
     // Factor in token usage efficiency
-    const tokenEfficiency = response.usage.completionTokens > 0
-      ? Math.min(response.usage.completionTokens / 1000, 1)
-      : 0.5;
-    
+    const tokenEfficiency =
+      response.usage.completionTokens > 0
+        ? Math.min(response.usage.completionTokens / 1000, 1)
+        : 0.5;
+
     // Combine factors
-    return (0.5 + latencyScore * 0.3 + tokenEfficiency * 0.2);
+    return 0.5 + latencyScore * 0.3 + tokenEfficiency * 0.2;
   }
 
   /**
    * Calculate average confidence for a group of responses
    */
-  private calculateAverageConfidence(responses: NormalizedProviderResponse[]): number {
+  private calculateAverageConfidence(
+    responses: NormalizedProviderResponse[],
+  ): number {
     if (responses.length === 0) return 0;
-    const total = responses.reduce((sum, r) => sum + this.calculateConfidence(r), 0);
+    const total = responses.reduce(
+      (sum, r) => sum + this.calculateConfidence(r),
+      0,
+    );
     return total / responses.length;
   }
 
   /**
    * Aggregate responses from a cluster into a single response
    */
-  private aggregateClusterResponse(cluster: NormalizedProviderResponse[]): string {
-    if (cluster.length === 0) return '';
+  private aggregateClusterResponse(
+    cluster: NormalizedProviderResponse[],
+  ): string {
+    if (cluster.length === 0) return "";
     if (cluster.length === 1) return cluster[0].content;
-    
+
     // For now, return the most common response
     // In a more sophisticated implementation, this could use text summarization
     const contentCounts = new Map<string, number>();
@@ -346,18 +370,20 @@ export class ConsensusService {
       const normalized = response.content.trim().toLowerCase();
       contentCounts.set(normalized, (contentCounts.get(normalized) || 0) + 1);
     }
-    
+
     let mostCommon = cluster[0].content;
     let maxCount = 0;
-    
+
     for (const [content, count] of contentCounts) {
       if (count > maxCount) {
         maxCount = count;
         // Find the original casing
-        mostCommon = cluster.find(r => r.content.trim().toLowerCase() === content)?.content || content;
+        mostCommon =
+          cluster.find((r) => r.content.trim().toLowerCase() === content)
+            ?.content || content;
       }
     }
-    
+
     return mostCommon;
   }
 
@@ -369,9 +395,9 @@ export class ConsensusService {
     reason: string,
   ): ConsensusResult {
     return {
-      winner: '',
+      winner: "",
       algorithm: ConsensusAlgorithm.MAJORITY_VOTE,
-      votes: responses.map(r => ({
+      votes: responses.map((r) => ({
         provider: r.provider,
         value: r.content,
         confidence: 0,
@@ -394,12 +420,14 @@ export class ConsensusService {
     return {
       winner: response.content,
       algorithm: ConsensusAlgorithm.MAJORITY_VOTE,
-      votes: [{
-        provider: response.provider,
-        value: response.content,
-        confidence: 1,
-        weight: 1,
-      }],
+      votes: [
+        {
+          provider: response.provider,
+          value: response.content,
+          confidence: 1,
+          weight: 1,
+        },
+      ],
       agreementPercentage: 1,
       agreementCount: 1,
       totalParticipants: 1,

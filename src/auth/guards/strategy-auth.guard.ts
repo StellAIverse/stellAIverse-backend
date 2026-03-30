@@ -4,13 +4,13 @@ import {
   ExecutionContext,
   UnauthorizedException,
   Logger,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
-import { StrategyRegistry } from '../strategies/strategy.registry';
-import { AuthPayload } from '../strategies/interfaces/auth-strategy.interface';
-import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
-import { ALLOWED_STRATEGIES_KEY } from '../decorators/allowed-strategies.decorator';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Reflector } from "@nestjs/core";
+import { StrategyRegistry } from "../strategies/strategy.registry";
+import { AuthPayload } from "../strategies/interfaces/auth-strategy.interface";
+import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
+import { ALLOWED_STRATEGIES_KEY } from "../decorators/allowed-strategies.decorator";
 
 /**
  * Authentication guard that supports multiple strategies
@@ -41,7 +41,7 @@ export class StrategyAuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('Access token is required');
+      throw new UnauthorizedException("Access token is required");
     }
 
     try {
@@ -49,7 +49,7 @@ export class StrategyAuthGuard implements CanActivate {
       const payload = await this.validateTokenWithStrategies(token);
 
       if (!payload) {
-        throw new UnauthorizedException('Invalid or expired token');
+        throw new UnauthorizedException("Invalid or expired token");
       }
 
       // Check if the strategy is allowed for this route
@@ -70,28 +70,32 @@ export class StrategyAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      this.logger.warn('Authentication failed', error);
-      throw new UnauthorizedException('Authentication failed');
+      this.logger.warn("Authentication failed", error);
+      throw new UnauthorizedException("Authentication failed");
     }
   }
 
   /**
    * Extract JWT token from Authorization header
    */
-  private extractTokenFromHeader(request: { headers?: { authorization?: string } }): string | undefined {
+  private extractTokenFromHeader(request: {
+    headers?: { authorization?: string };
+  }): string | undefined {
     const authHeader = request.headers?.authorization;
     if (!authHeader) {
       return undefined;
     }
 
-    const [type, token] = authHeader.split(' ');
-    return type === 'Bearer' ? token : undefined;
+    const [type, token] = authHeader.split(" ");
+    return type === "Bearer" ? token : undefined;
   }
 
   /**
    * Try to validate token with all enabled strategies
    */
-  private async validateTokenWithStrategies(token: string): Promise<AuthPayload | null> {
+  private async validateTokenWithStrategies(
+    token: string,
+  ): Promise<AuthPayload | null> {
     const strategies = this.strategyRegistry.getAll();
 
     for (const strategy of strategies) {

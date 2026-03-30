@@ -1,11 +1,11 @@
-import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, Min } from "class-validator";
 
 export enum SupportedChain {
-  ETHEREUM = 'ethereum',
-  POLYGON = 'polygon',
-  BSC = 'bsc',
-  ARBITRUM = 'arbitrum',
-  AVALANCHE = 'avalanche',
+  ETHEREUM = "ethereum",
+  POLYGON = "polygon",
+  BSC = "bsc",
+  ARBITRUM = "arbitrum",
+  AVALANCHE = "avalanche",
 }
 
 export class InitiateSwapDto {
@@ -35,7 +35,7 @@ export class InitiateSwapDto {
 
 export class SwapStatusDto {
   swapId: string;
-  status: 'pending' | 'bridging' | 'completed' | 'failed';
+  status: "pending" | "bridging" | "completed" | "failed";
   sourceChain: SupportedChain;
   destinationChain: SupportedChain;
   sourceTxHash?: string;

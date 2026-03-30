@@ -1,54 +1,54 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from "typeorm";
 
 export class AddRecommendationTables1709000000000 implements MigrationInterface {
-  name = 'AddRecommendationTables1709000000000';
+  name = "AddRecommendationTables1709000000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create recommendation_feedback table
     await queryRunner.createTable(
       new Table({
-        name: 'recommendation_feedback',
+        name: "recommendation_feedback",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
-            generationStrategy: 'uuid',
-            default: 'gen_random_uuid()',
+            name: "id",
+            type: "uuid",
+            generationStrategy: "uuid",
+            default: "gen_random_uuid()",
             isPrimary: true,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'agentId',
-            type: 'varchar',
+            name: "agentId",
+            type: "varchar",
           },
           {
-            name: 'feedbackType',
-            type: 'enum',
-            enum: ['explicit_rating', 'click', 'dismiss', 'usage'],
+            name: "feedbackType",
+            type: "enum",
+            enum: ["explicit_rating", "click", "dismiss", "usage"],
           },
           {
-            name: 'rating',
-            type: 'int',
+            name: "rating",
+            type: "int",
             isNullable: true,
           },
           {
-            name: 'metadata',
-            type: 'jsonb',
+            name: "metadata",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'sessionId',
-            type: 'varchar',
+            name: "sessionId",
+            type: "varchar",
             isNullable: true,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "createdAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
         ],
       }),
@@ -56,67 +56,67 @@ export class AddRecommendationTables1709000000000 implements MigrationInterface 
     );
 
     // Create indexes for recommendation_feedback
-    await queryRunner.createIndices('recommendation_feedback', [
+    await queryRunner.createIndices("recommendation_feedback", [
       new TableIndex({
-        name: 'IDX_RECOMMENDATION_FEEDBACK_USER_AGENT',
-        columnNames: ['userId', 'agentId'],
+        name: "IDX_RECOMMENDATION_FEEDBACK_USER_AGENT",
+        columnNames: ["userId", "agentId"],
       }),
       new TableIndex({
-        name: 'IDX_RECOMMENDATION_FEEDBACK_CREATED_AT',
-        columnNames: ['createdAt'],
+        name: "IDX_RECOMMENDATION_FEEDBACK_CREATED_AT",
+        columnNames: ["createdAt"],
       }),
     ]);
 
     // Create recommendation_interactions table
     await queryRunner.createTable(
       new Table({
-        name: 'recommendation_interactions',
+        name: "recommendation_interactions",
         columns: [
           {
-            name: 'id',
-            type: 'uuid',
-            generationStrategy: 'uuid',
-            default: 'gen_random_uuid()',
+            name: "id",
+            type: "uuid",
+            generationStrategy: "uuid",
+            default: "gen_random_uuid()",
             isPrimary: true,
           },
           {
-            name: 'userId',
-            type: 'uuid',
+            name: "userId",
+            type: "uuid",
             isNullable: true,
           },
           {
-            name: 'agentId',
-            type: 'varchar',
+            name: "agentId",
+            type: "varchar",
           },
           {
-            name: 'interactionType',
-            type: 'enum',
-            enum: ['impression', 'click', 'dismiss', 'conversion'],
+            name: "interactionType",
+            type: "enum",
+            enum: ["impression", "click", "dismiss", "conversion"],
           },
           {
-            name: 'position',
-            type: 'int',
+            name: "position",
+            type: "int",
             isNullable: true,
           },
           {
-            name: 'sessionId',
-            type: 'varchar',
+            name: "sessionId",
+            type: "varchar",
             isNullable: true,
           },
           {
-            name: 'context',
-            type: 'jsonb',
+            name: "context",
+            type: "jsonb",
             isNullable: true,
           },
           {
-            name: 'viewDurationMs',
-            type: 'bigint',
+            name: "viewDurationMs",
+            type: "bigint",
             isNullable: true,
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
+            name: "createdAt",
+            type: "timestamp",
+            default: "CURRENT_TIMESTAMP",
           },
         ],
       }),
@@ -124,18 +124,18 @@ export class AddRecommendationTables1709000000000 implements MigrationInterface 
     );
 
     // Create indexes for recommendation_interactions
-    await queryRunner.createIndices('recommendation_interactions', [
+    await queryRunner.createIndices("recommendation_interactions", [
       new TableIndex({
-        name: 'IDX_RECOMMENDATION_INTERACTIONS_USER_AGENT',
-        columnNames: ['userId', 'agentId'],
+        name: "IDX_RECOMMENDATION_INTERACTIONS_USER_AGENT",
+        columnNames: ["userId", "agentId"],
       }),
       new TableIndex({
-        name: 'IDX_RECOMMENDATION_INTERACTIONS_SESSION',
-        columnNames: ['sessionId'],
+        name: "IDX_RECOMMENDATION_INTERACTIONS_SESSION",
+        columnNames: ["sessionId"],
       }),
       new TableIndex({
-        name: 'IDX_RECOMMENDATION_INTERACTIONS_CREATED_AT',
-        columnNames: ['createdAt'],
+        name: "IDX_RECOMMENDATION_INTERACTIONS_CREATED_AT",
+        columnNames: ["createdAt"],
       }),
     ]);
 
@@ -167,7 +167,7 @@ export class AddRecommendationTables1709000000000 implements MigrationInterface 
     `);
 
     // Drop tables
-    await queryRunner.dropTable('recommendation_interactions');
-    await queryRunner.dropTable('recommendation_feedback');
+    await queryRunner.dropTable("recommendation_interactions");
+    await queryRunner.dropTable("recommendation_feedback");
   }
 }

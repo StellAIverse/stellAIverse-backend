@@ -5,38 +5,38 @@ import {
   ManyToOne,
   CreateDateColumn,
   Index,
-} from 'typeorm';
-import { DeFiPosition } from './defi-position.entity';
+} from "typeorm";
+import { DeFiPosition } from "./defi-position.entity";
 
 export enum RiskLevel {
-  VERY_LOW = 'very_low',
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  VERY_HIGH = 'very_high',
-  CRITICAL = 'critical',
+  VERY_LOW = "very_low",
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  VERY_HIGH = "very_high",
+  CRITICAL = "critical",
 }
 
-@Entity('defi_risk_assessments')
-@Index(['position_id', 'created_at'])
-@Index(['risk_level', 'created_at'])
+@Entity("defi_risk_assessments")
+@Index(["position_id", "created_at"])
+@Index(["risk_level", "created_at"])
 export class DeFiRiskAssessment {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @ManyToOne(() => DeFiPosition)
   position: DeFiPosition;
 
-  @Column('uuid')
+  @Column("uuid")
   position_id: string;
 
-  @Column('enum', { enum: RiskLevel })
+  @Column("enum", { enum: RiskLevel })
   overall_risk_level: RiskLevel;
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column("decimal", { precision: 5, scale: 2 })
   risk_score: number; // 0-100
 
-  @Column('json')
+  @Column("json")
   risk_components: {
     smartContractRisk: number;
     liquidationRisk: number;
@@ -47,7 +47,7 @@ export class DeFiRiskAssessment {
     composabilityRisk?: number;
   };
 
-  @Column('json')
+  @Column("json")
   protocol_metrics: {
     protocolLaunchDate?: string;
     totalValueLocked?: number;
@@ -57,7 +57,7 @@ export class DeFiRiskAssessment {
     insuranceAmount?: number;
   };
 
-  @Column('json')
+  @Column("json")
   position_metrics: {
     ltvRatio?: number;
     healthFactor?: number;
@@ -67,24 +67,24 @@ export class DeFiRiskAssessment {
     exposureToToken?: number;
   };
 
-  @Column('json', { nullable: true })
+  @Column("json", { nullable: true })
   warnings: string[];
 
-  @Column('json', { nullable: true })
+  @Column("json", { nullable: true })
   recommendations: string[];
 
-  @Column('boolean', { default: false })
+  @Column("boolean", { default: false })
   liquidation_risk_detected: boolean;
 
-  @Column('decimal', { precision: 5, scale: 2, nullable: true })
+  @Column("decimal", { precision: 5, scale: 2, nullable: true })
   estimated_liquidation_price: number;
 
-  @Column('integer', { nullable: true })
+  @Column("integer", { nullable: true })
   estimated_hours_to_liquidation: number;
 
   @CreateDateColumn()
   created_at: Date;
 
-  @Column('timestamp', { nullable: true })
+  @Column("timestamp", { nullable: true })
   effective_until: Date;
 }

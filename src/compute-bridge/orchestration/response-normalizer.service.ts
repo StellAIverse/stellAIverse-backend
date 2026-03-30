@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { AIProviderType } from '../provider.interface';
-import { NormalizedProviderResponse } from './orchestration.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { AIProviderType } from "../provider.interface";
+import { NormalizedProviderResponse } from "./orchestration.interface";
 
 /**
  * Response Normalizer Service
@@ -34,7 +34,11 @@ export class ResponseNormalizerService {
         case AIProviderType.CUSTOM:
           return this.normalizeCustomResponse(rawResponse, latencyMs);
         default:
-          return this.normalizeGenericResponse(provider, rawResponse, latencyMs);
+          return this.normalizeGenericResponse(
+            provider,
+            rawResponse,
+            latencyMs,
+          );
       }
     } catch (error: any) {
       this.logger.error(`Failed to normalize ${provider} response:`, error);
@@ -50,12 +54,12 @@ export class ResponseNormalizerService {
     latencyMs: number,
   ): NormalizedProviderResponse {
     const choice = rawResponse.choices?.[0];
-    
+
     return {
       id: rawResponse.id || `openai-${Date.now()}`,
       provider: AIProviderType.OPENAI,
-      model: rawResponse.model || 'unknown',
-      content: this.extractContent(choice?.message) || '',
+      model: rawResponse.model || "unknown",
+      content: this.extractContent(choice?.message) || "",
       rawResponse,
       usage: {
         promptTokens: rawResponse.usage?.prompt_tokens || 0,
@@ -78,14 +82,14 @@ export class ResponseNormalizerService {
     return {
       id: rawResponse.id || `anthropic-${Date.now()}`,
       provider: AIProviderType.ANTHROPIC,
-      model: rawResponse.model || 'unknown',
-      content: this.extractContent(rawResponse.content) || '',
+      model: rawResponse.model || "unknown",
+      content: this.extractContent(rawResponse.content) || "",
       rawResponse,
       usage: {
         promptTokens: rawResponse.usage?.input_tokens || 0,
         completionTokens: rawResponse.usage?.output_tokens || 0,
-        totalTokens: 
-          (rawResponse.usage?.input_tokens || 0) + 
+        totalTokens:
+          (rawResponse.usage?.input_tokens || 0) +
           (rawResponse.usage?.output_tokens || 0),
       },
       latencyMs,
@@ -103,12 +107,12 @@ export class ResponseNormalizerService {
   ): NormalizedProviderResponse {
     const candidate = rawResponse.candidates?.[0];
     const content = candidate?.content;
-    
+
     return {
       id: rawResponse.id || `google-${Date.now()}`,
       provider: AIProviderType.GOOGLE,
-      model: rawResponse.modelVersion || 'unknown',
-      content: this.extractContent(content) || '',
+      model: rawResponse.modelVersion || "unknown",
+      content: this.extractContent(content) || "",
       rawResponse,
       usage: {
         promptTokens: rawResponse.usageMetadata?.promptTokenCount || 0,
@@ -129,15 +133,17 @@ export class ResponseNormalizerService {
     latencyMs: number,
   ): NormalizedProviderResponse {
     // Hugging Face can have various response formats depending on the model
-    const content = Array.isArray(rawResponse) 
-      ? rawResponse[0]?.generated_text 
-      : rawResponse.generated_text || rawResponse.text || JSON.stringify(rawResponse);
-    
+    const content = Array.isArray(rawResponse)
+      ? rawResponse[0]?.generated_text
+      : rawResponse.generated_text ||
+        rawResponse.text ||
+        JSON.stringify(rawResponse);
+
     return {
       id: `huggingface-${Date.now()}`,
       provider: AIProviderType.HUGGINGFACE,
-      model: rawResponse.model || 'unknown',
-      content: content || '',
+      model: rawResponse.model || "unknown",
+      content: content || "",
       rawResponse,
       usage: {
         promptTokens: rawResponse.usage?.prompt_tokens || 0,
@@ -160,8 +166,8 @@ export class ResponseNormalizerService {
     return {
       id: rawResponse.id || `custom-${Date.now()}`,
       provider: AIProviderType.CUSTOM,
-      model: rawResponse.model || 'unknown',
-      content: this.extractContent(rawResponse) || '',
+      model: rawResponse.model || "unknown",
+      content: this.extractContent(rawResponse) || "",
       rawResponse,
       usage: {
         promptTokens: rawResponse.usage?.prompt_tokens || 0,
@@ -185,7 +191,7 @@ export class ResponseNormalizerService {
     return {
       id: rawResponse.id || `${provider}-${Date.now()}`,
       provider,
-      model: rawResponse.model || 'unknown',
+      model: rawResponse.model || "unknown",
       content: this.extractContent(rawResponse) || JSON.stringify(rawResponse),
       rawResponse,
       usage: {
@@ -210,8 +216,8 @@ export class ResponseNormalizerService {
     return {
       id: `${provider}-error-${Date.now()}`,
       provider,
-      model: 'unknown',
-      content: '',
+      model: "unknown",
+      content: "",
       rawResponse: null,
       usage: {
         promptTokens: 0,
@@ -230,46 +236,46 @@ export class ResponseNormalizerService {
    */
   private extractContent(message: any): string | null {
     if (!message) return null;
-    
+
     // Direct string content
-    if (typeof message === 'string') {
+    if (typeof message === "string") {
       return message;
     }
-    
+
     // OpenAI/Anthropic style message
     if (message.content) {
-      if (typeof message.content === 'string') {
+      if (typeof message.content === "string") {
         return message.content;
       }
       // Handle content array (multimodal)
       if (Array.isArray(message.content)) {
         return message.content
-          .filter((c: any) => c.type === 'text')
+          .filter((c: any) => c.type === "text")
           .map((c: any) => c.text)
-          .join('');
+          .join("");
       }
     }
-    
+
     // Google style parts
     if (message.parts) {
       if (Array.isArray(message.parts)) {
         return message.parts
           .filter((p: any) => p.text)
           .map((p: any) => p.text)
-          .join('');
+          .join("");
       }
     }
-    
+
     // Direct text field
     if (message.text) {
       return message.text;
     }
-    
+
     // Generated text (Hugging Face)
     if (message.generated_text) {
       return message.generated_text;
     }
-    
+
     return null;
   }
 
@@ -277,23 +283,26 @@ export class ResponseNormalizerService {
    * Compare two responses for similarity
    * Returns similarity score between 0 and 1
    */
-  calculateSimilarity(response1: NormalizedProviderResponse, response2: NormalizedProviderResponse): number {
+  calculateSimilarity(
+    response1: NormalizedProviderResponse,
+    response2: NormalizedProviderResponse,
+  ): number {
     const text1 = response1.content.toLowerCase().trim();
     const text2 = response2.content.toLowerCase().trim();
-    
+
     // Exact match
     if (text1 === text2) return 1.0;
-    
+
     // Empty strings
     if (!text1 || !text2) return 0.0;
-    
+
     // Jaccard similarity on word sets
     const words1 = new Set(text1.split(/\s+/));
     const words2 = new Set(text2.split(/\s+/));
-    
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -301,28 +310,34 @@ export class ResponseNormalizerService {
    * Calculate semantic similarity using simple heuristics
    * For production, consider using embeddings or more sophisticated methods
    */
-  calculateSemanticSimilarity(response1: NormalizedProviderResponse, response2: NormalizedProviderResponse): number {
+  calculateSemanticSimilarity(
+    response1: NormalizedProviderResponse,
+    response2: NormalizedProviderResponse,
+  ): number {
     const text1 = response1.content.toLowerCase().trim();
     const text2 = response2.content.toLowerCase().trim();
-    
+
     // Normalize whitespace
-    const normalized1 = text1.replace(/\s+/g, ' ');
-    const normalized2 = text2.replace(/\s+/g, ' ');
-    
+    const normalized1 = text1.replace(/\s+/g, " ");
+    const normalized2 = text2.replace(/\s+/g, " ");
+
     // Check for substring relationship
-    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+    if (
+      normalized1.includes(normalized2) ||
+      normalized2.includes(normalized1)
+    ) {
       const longer = Math.max(normalized1.length, normalized2.length);
       const shorter = Math.min(normalized1.length, normalized2.length);
       return shorter / longer;
     }
-    
+
     // Word overlap with position weighting
-    const words1 = normalized1.split(' ');
-    const words2 = normalized2.split(' ');
-    
+    const words1 = normalized1.split(" ");
+    const words2 = normalized2.split(" ");
+
     let matchScore = 0;
     const maxLength = Math.max(words1.length, words2.length);
-    
+
     for (let i = 0; i < Math.min(words1.length, words2.length); i++) {
       if (words1[i] === words2[i]) {
         // Exact position match gets higher score
@@ -332,7 +347,7 @@ export class ResponseNormalizerService {
         matchScore += 0.5;
       }
     }
-    
+
     return Math.min(matchScore / maxLength, 1.0);
   }
 }

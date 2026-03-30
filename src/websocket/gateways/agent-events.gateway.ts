@@ -224,17 +224,13 @@ export class AgentEventsGateway
 
   // Job event handlers
   @UseGuards(WebSocketAuthGuard)
-  @SubscribeMessage('job:subscribe')
+  @SubscribeMessage("job:subscribe")
   async handleJobSubscribe(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { jobId: string },
   ) {
     try {
-      await this.subscriptionService.subscribe(
-        client.id,
-        data.jobId,
-        'job',
-      );
+      await this.subscriptionService.subscribe(client.id, data.jobId, "job");
 
       // Join room for job-specific events
       client.join(`job:${data.jobId}`);
@@ -253,7 +249,7 @@ export class AgentEventsGateway
   }
 
   @UseGuards(WebSocketAuthGuard)
-  @SubscribeMessage('job:unsubscribe')
+  @SubscribeMessage("job:unsubscribe")
   async handleJobUnsubscribe(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { jobId: string },
@@ -277,7 +273,7 @@ export class AgentEventsGateway
 
   // Public methods for emitting job events to clients
   emitJobProgress(jobId: string, progress: number, data?: any) {
-    this.server.to(`job:${jobId}`).emit('job.progress', {
+    this.server.to(`job:${jobId}`).emit("job.progress", {
       jobId,
       progress,
       data,
@@ -285,8 +281,12 @@ export class AgentEventsGateway
     });
   }
 
-  emitJobLog(jobId: string, log: string, level: 'info' | 'warn' | 'error' = 'info') {
-    this.server.to(`job:${jobId}`).emit('job.log', {
+  emitJobLog(
+    jobId: string,
+    log: string,
+    level: "info" | "warn" | "error" = "info",
+  ) {
+    this.server.to(`job:${jobId}`).emit("job.log", {
       jobId,
       log,
       level,
@@ -295,7 +295,7 @@ export class AgentEventsGateway
   }
 
   emitJobComplete(jobId: string, result?: any) {
-    this.server.to(`job:${jobId}`).emit('job.complete', {
+    this.server.to(`job:${jobId}`).emit("job.complete", {
       jobId,
       result,
       timestamp: new Date().toISOString(),
@@ -303,7 +303,7 @@ export class AgentEventsGateway
   }
 
   emitJobError(jobId: string, error: string) {
-    this.server.to(`job:${jobId}`).emit('job.error', {
+    this.server.to(`job:${jobId}`).emit("job.error", {
       jobId,
       error,
       timestamp: new Date().toISOString(),

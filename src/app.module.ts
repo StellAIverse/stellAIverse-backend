@@ -24,6 +24,7 @@ import { ObservabilityModule } from "./observability/observability.module";
 import { CrossChainModule } from "./cross-chain/cross-chain.module";
 import { PricePredictionModule } from "./price-prediction/price-prediction.module";
 import { RiskManagementModule } from "./risk-management/risk-management.module";
+import { ComplianceModule } from "./compliance/compliance.module";
 import { SocialTradingModule } from "./social-trading/social-trading.module";
 import { PortfolioModule } from "./portfolio/portfolio.module";
 import { DeFiModule } from "./defi/defi.module";
@@ -139,6 +140,7 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
     CrossChainModule,
     PricePredictionModule,
     RiskManagementModule,
+    ComplianceModule,
     SocialTradingModule,
   ],
 

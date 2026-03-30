@@ -1,7 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AIProviderType, ICompletionProvider } from '../provider.interface';
-import { CompletionRequestDto } from '../base.dto';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { AIProviderType, ICompletionProvider } from "../provider.interface";
+import { CompletionRequestDto } from "../base.dto";
 import {
   OrchestrationStrategy,
   OrchestratedRequestConfig,
@@ -13,12 +13,12 @@ import {
   BestOfNConfig,
   NormalizedProviderResponse,
   OrchestrationHealthStatus,
-} from './orchestration.interface';
-import { ConsensusService } from './consensus.service';
-import { ResponseNormalizerService } from './response-normalizer.service';
-import { AuditService } from './audit.service';
-import { ProviderRouterService } from '../router/provider-router.service';
-import { CircuitBreakerService } from '../router/circuit-breaker.service';
+} from "./orchestration.interface";
+import { ConsensusService } from "./consensus.service";
+import { ResponseNormalizerService } from "./response-normalizer.service";
+import { AuditService } from "./audit.service";
+import { ProviderRouterService } from "../router/provider-router.service";
+import { CircuitBreakerService } from "../router/circuit-breaker.service";
 
 /**
  * Multi-Provider Orchestration Service
@@ -31,7 +31,10 @@ import { CircuitBreakerService } from '../router/circuit-breaker.service';
 export class MultiProviderOrchestrationService implements OnModuleInit {
   private readonly logger = new Logger(MultiProviderOrchestrationService.name);
   private readonly providers = new Map<AIProviderType, ICompletionProvider>();
-  private readonly runtimeConfigs = new Map<AIProviderType, ProviderRuntimeConfig>();
+  private readonly runtimeConfigs = new Map<
+    AIProviderType,
+    ProviderRuntimeConfig
+  >();
   private activeRequests = 0;
 
   constructor(
@@ -44,15 +47,18 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.logger.log('Multi-Provider Orchestration Service initializing...');
+    this.logger.log("Multi-Provider Orchestration Service initializing...");
     this.initializeProviderConfigs();
-    this.logger.log('Multi-Provider Orchestration Service initialized');
+    this.logger.log("Multi-Provider Orchestration Service initialized");
   }
 
   /**
    * Register a provider for orchestration
    */
-  registerProvider(provider: ICompletionProvider, config: ProviderRuntimeConfig): void {
+  registerProvider(
+    provider: ICompletionProvider,
+    config: ProviderRuntimeConfig,
+  ): void {
     const providerType = provider.getProviderType();
     this.providers.set(providerType, provider);
     this.runtimeConfigs.set(providerType, config);
@@ -69,7 +75,9 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     const requestId = this.generateRequestId();
     const startTime = Date.now();
 
-    this.logger.log(`Starting orchestrated request ${requestId} with strategy: ${config.strategy}`);
+    this.logger.log(
+      `Starting orchestrated request ${requestId} with strategy: ${config.strategy}`,
+    );
     this.activeRequests++;
 
     try {
@@ -106,8 +114,12 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     const targetProviders = this.getTargetProviders(config);
 
     for (const provider of targetProviders) {
-      const result = await this.executeWithProvider(provider, request, requestId);
-      
+      const result = await this.executeWithProvider(
+        provider,
+        request,
+        requestId,
+      );
+
       if (result.success && result.response) {
         return {
           requestId,
@@ -121,7 +133,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       }
     }
 
-    throw new Error('All providers failed');
+    throw new Error("All providers failed");
   }
 
   /**
@@ -135,20 +147,20 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     const startTime = Date.now();
     const targetProviders = this.getTargetProviders(config);
 
-    const promises = targetProviders.map(provider => 
-      this.executeWithProvider(provider, request, requestId)
+    const promises = targetProviders.map((provider) =>
+      this.executeWithProvider(provider, request, requestId),
     );
 
     const results = await Promise.all(promises);
-    const successfulResults = results.filter(r => r.success && r.response);
+    const successfulResults = results.filter((r) => r.success && r.response);
 
     if (successfulResults.length === 0) {
-      throw new Error('All providers failed');
+      throw new Error("All providers failed");
     }
 
     // Select the fastest successful response
     const fastest = successfulResults.reduce((best, current) =>
-      current.latencyMs < best.latencyMs ? current : best
+      current.latencyMs < best.latencyMs ? current : best,
     );
 
     return {
@@ -156,7 +168,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       strategy: OrchestrationStrategy.PARALLEL,
       selectedResponse: fastest.response!,
       allResponses: results,
-      selectionReason: 'Fastest response selected',
+      selectionReason: "Fastest response selected",
       totalExecutionTimeMs: Date.now() - startTime,
       timestamp: new Date(),
     };
@@ -173,22 +185,22 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     const startTime = Date.now();
     const targetProviders = this.getTargetProviders(config);
 
-    const promises = targetProviders.map(provider => 
-      this.executeWithProvider(provider, request, requestId)
+    const promises = targetProviders.map((provider) =>
+      this.executeWithProvider(provider, request, requestId),
     );
 
     const results = await Promise.all(promises);
     const successfulResponses = results
-      .filter(r => r.success && r.response)
-      .map(r => r.response!);
+      .filter((r) => r.success && r.response)
+      .map((r) => r.response!);
 
     if (successfulResponses.length === 0) {
-      throw new Error('All providers failed');
+      throw new Error("All providers failed");
     }
 
     // Apply consensus algorithm
     const consensusConfig: ConsensusConfig = config.consensusConfig || {
-      algorithm: 'majority_vote' as any,
+      algorithm: "majority_vote" as any,
       minAgreementPercentage: 0.5,
     };
 
@@ -198,9 +210,9 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     );
 
     // Find the response that matches the consensus winner
-    const winningResponse = successfulResponses.find(
-      r => r.content === consensusResult.winner
-    ) || successfulResponses[0];
+    const winningResponse =
+      successfulResponses.find((r) => r.content === consensusResult.winner) ||
+      successfulResponses[0];
 
     return {
       requestId,
@@ -223,45 +235,55 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     config: OrchestratedRequestConfig,
   ): Promise<OrchestratedResponse> {
     const startTime = Date.now();
-    const bestOfNConfig: BestOfNConfig = config.bestOfNConfig || { n: 3, criteria: 'fastest' };
-    
+    const bestOfNConfig: BestOfNConfig = config.bestOfNConfig || {
+      n: 3,
+      criteria: "fastest",
+    };
+
     const targetProviders = this.getTargetProviders(config);
     const selectedProviders = targetProviders.slice(0, bestOfNConfig.n);
 
-    const promises = selectedProviders.map(provider => 
-      this.executeWithProvider(provider, request, requestId)
+    const promises = selectedProviders.map((provider) =>
+      this.executeWithProvider(provider, request, requestId),
     );
 
     const results = await Promise.all(promises);
-    const successfulResults = results.filter(r => r.success && r.response);
+    const successfulResults = results.filter((r) => r.success && r.response);
 
     if (successfulResults.length === 0) {
-      throw new Error('All providers failed');
+      throw new Error("All providers failed");
     }
 
     // Select based on criteria
     let selected: ProviderExecutionResult;
-    
+
     switch (bestOfNConfig.criteria) {
-      case 'fastest':
+      case "fastest":
         selected = successfulResults.reduce((best, current) =>
-          current.latencyMs < best.latencyMs ? current : best
+          current.latencyMs < best.latencyMs ? current : best,
         );
         break;
-      case 'cheapest':
+      case "cheapest":
         selected = successfulResults.reduce((best, current) =>
-          (current.response!.usage.totalTokens < best.response!.usage.totalTokens) ? current : best
+          current.response!.usage.totalTokens < best.response!.usage.totalTokens
+            ? current
+            : best,
         );
         break;
-      case 'highest_quality':
+      case "highest_quality":
         // Use longest response as proxy for quality (simplistic)
         selected = successfulResults.reduce((best, current) =>
-          (current.response!.content.length > best.response!.content.length) ? current : best
+          current.response!.content.length > best.response!.content.length
+            ? current
+            : best,
         );
         break;
-      case 'most_tokens':
+      case "most_tokens":
         selected = successfulResults.reduce((best, current) =>
-          (current.response!.usage.completionTokens > best.response!.usage.completionTokens) ? current : best
+          current.response!.usage.completionTokens >
+          best.response!.usage.completionTokens
+            ? current
+            : best,
         );
         break;
       default:
@@ -289,7 +311,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
   ): Promise<OrchestratedResponse> {
     const startTime = Date.now();
     const targetProviders = this.getTargetProviders(config);
-    
+
     // Simple round-robin: use the first available provider
     // In production, this would track state across requests
     const provider = targetProviders[0];
@@ -304,7 +326,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       strategy: OrchestrationStrategy.ROUND_ROBIN,
       selectedResponse: result.response,
       allResponses: [result],
-      selectionReason: 'Round-robin selection',
+      selectionReason: "Round-robin selection",
       totalExecutionTimeMs: Date.now() - startTime,
       timestamp: new Date(),
     };
@@ -320,10 +342,10 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
   ): Promise<OrchestratedResponse> {
     const startTime = Date.now();
     const targetProviders = this.getTargetProviders(config);
-    
+
     const randomIndex = Math.floor(Math.random() * targetProviders.length);
     const provider = targetProviders[randomIndex];
-    
+
     const result = await this.executeWithProvider(provider, request, requestId);
 
     if (!result.success || !result.response) {
@@ -335,7 +357,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       strategy: OrchestrationStrategy.RANDOM,
       selectedResponse: result.response,
       allResponses: [result],
-      selectionReason: 'Random selection',
+      selectionReason: "Random selection",
       totalExecutionTimeMs: Date.now() - startTime,
       timestamp: new Date(),
     };
@@ -357,7 +379,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       return {
         provider,
         success: false,
-        error: 'Provider is disabled',
+        error: "Provider is disabled",
         latencyMs: 0,
         timestamp: new Date(),
         retryCount: 0,
@@ -369,7 +391,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       return {
         provider,
         success: false,
-        error: 'Circuit breaker is open',
+        error: "Circuit breaker is open",
         latencyMs: 0,
         timestamp: new Date(),
         retryCount: 0,
@@ -381,7 +403,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
       return {
         provider,
         success: false,
-        error: 'Provider not registered',
+        error: "Provider not registered",
         latencyMs: 0,
         timestamp: new Date(),
         retryCount: 0,
@@ -404,7 +426,11 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
         const latencyMs = Date.now() - execStartTime;
 
         // Normalize response
-        const normalizedResponse = this.normalizer.normalize(provider, rawResponse, latencyMs);
+        const normalizedResponse = this.normalizer.normalize(
+          provider,
+          rawResponse,
+          latencyMs,
+        );
 
         // Record success
         this.circuitBreaker.recordSuccess(provider);
@@ -422,7 +448,9 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
         };
       } catch (error: any) {
         retryCount++;
-        this.logger.warn(`Provider ${provider} attempt ${retryCount} failed: ${error.message}`);
+        this.logger.warn(
+          `Provider ${provider} attempt ${retryCount} failed: ${error.message}`,
+        );
 
         if (retryCount >= maxRetries) {
           // Record failure
@@ -447,7 +475,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     return {
       provider,
       success: false,
-      error: 'Max retries exceeded',
+      error: "Max retries exceeded",
       latencyMs: Date.now() - startTime,
       timestamp: new Date(),
       retryCount,
@@ -457,9 +485,11 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
   /**
    * Get target providers for a request
    */
-  private getTargetProviders(config: OrchestratedRequestConfig): AIProviderType[] {
+  private getTargetProviders(
+    config: OrchestratedRequestConfig,
+  ): AIProviderType[] {
     if (config.targetProviders && config.targetProviders.length > 0) {
-      return config.targetProviders.filter(p => this.isProviderEnabled(p));
+      return config.targetProviders.filter((p) => this.isProviderEnabled(p));
     }
 
     // Return all enabled providers
@@ -491,7 +521,9 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
    * Get provider execution mode
    */
   getProviderMode(provider: AIProviderType): ProviderExecutionMode {
-    return this.runtimeConfigs.get(provider)?.mode || ProviderExecutionMode.DISABLED;
+    return (
+      this.runtimeConfigs.get(provider)?.mode || ProviderExecutionMode.DISABLED
+    );
   }
 
   /**
@@ -499,7 +531,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
    */
   getHealthStatus(): OrchestrationHealthStatus {
     const providerStatuses = new Map();
-    
+
     for (const [provider, config] of this.runtimeConfigs) {
       providerStatuses.set(provider, {
         provider,
@@ -512,7 +544,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
     }
 
     return {
-      status: 'healthy',
+      status: "healthy",
       providers: providerStatuses,
       activeRequests: this.activeRequests,
       averageResponseTimeMs: 0,
@@ -564,7 +596,7 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
           apiConfig: {
             apiKey: this.configService.get<string>(
               `${provider.toUpperCase()}_API_KEY`,
-              '',
+              "",
             ),
             baseUrl: this.configService.get<string>(
               `${provider.toUpperCase()}_BASE_URL`,
@@ -590,6 +622,6 @@ export class MultiProviderOrchestrationService implements OnModuleInit {
    * Delay helper
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

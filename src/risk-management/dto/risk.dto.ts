@@ -1,10 +1,17 @@
-import { IsString, IsNumber, IsOptional, IsEnum, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  Min,
+  Max,
+} from "class-validator";
 
 export enum RiskModel {
-  VAR = 'VaR',
-  CVAR = 'CVaR',
-  SHARPE = 'sharpe',
-  DRAWDOWN = 'drawdown',
+  VAR = "VaR",
+  CVAR = "CVaR",
+  SHARPE = "sharpe",
+  DRAWDOWN = "drawdown",
 }
 
 export class RiskConfigDto {
@@ -49,8 +56,13 @@ export class PortfolioRiskDto {
 }
 
 export class RiskAlertDto {
-  type: 'stop_loss' | 'take_profit' | 'drawdown' | 'concentration' | 'volatility';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "stop_loss"
+    | "take_profit"
+    | "drawdown"
+    | "concentration"
+    | "volatility";
+  severity: "low" | "medium" | "high" | "critical";
   message: string;
   asset?: string;
   threshold: number;

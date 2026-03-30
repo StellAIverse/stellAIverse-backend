@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import {
   CreateTraderProfileDto,
   FollowTraderDto,
@@ -7,7 +12,7 @@ import {
   CopyTradeDto,
   SocialInteractionDto,
   LeaderboardQueryDto,
-} from './dto/social-trading.dto';
+} from "./dto/social-trading.dto";
 
 interface TraderProfile extends TraderProfileDto {
   followers: Set<string>;
@@ -17,9 +22,9 @@ interface TraderProfile extends TraderProfileDto {
 interface SocialInteraction {
   id: string;
   userId: string;
-  type: 'like' | 'comment' | 'share';
+  type: "like" | "comment" | "share";
   targetId: string;
-  targetType: 'trade' | 'strategy' | 'profile';
+  targetType: "trade" | "strategy" | "profile";
   content?: string;
   createdAt: Date;
 }
@@ -35,7 +40,9 @@ export class SocialTradingService {
 
   createProfile(dto: CreateTraderProfileDto): TraderProfileDto {
     if (this.profiles.has(dto.userId)) {
-      throw new BadRequestException(`Profile already exists for user ${dto.userId}`);
+      throw new BadRequestException(
+        `Profile already exists for user ${dto.userId}`,
+      );
     }
 
     const profile: TraderProfile = {
@@ -65,14 +72,17 @@ export class SocialTradingService {
 
   getProfile(userId: string): TraderProfileDto {
     const profile = this.profiles.get(userId);
-    if (!profile) throw new NotFoundException(`Trader profile not found for ${userId}`);
+    if (!profile)
+      throw new NotFoundException(`Trader profile not found for ${userId}`);
     return this.toDto(profile);
   }
 
   followTrader(dto: FollowTraderDto): { success: boolean; message: string } {
     const trader = this.profiles.get(dto.traderId);
-    if (!trader) throw new NotFoundException(`Trader ${dto.traderId} not found`);
-    if (dto.followerId === dto.traderId) throw new BadRequestException('Cannot follow yourself');
+    if (!trader)
+      throw new NotFoundException(`Trader ${dto.traderId} not found`);
+    if (dto.followerId === dto.traderId)
+      throw new BadRequestException("Cannot follow yourself");
 
     trader.followers.add(dto.followerId);
     trader.totalFollowers = trader.followers.size;
@@ -85,9 +95,14 @@ export class SocialTradingService {
     }
 
     this.updateTier(trader);
-    this.logger.log(`${dto.followerId} followed ${dto.traderId} (autoCopy: ${dto.autoCopy})`);
+    this.logger.log(
+      `${dto.followerId} followed ${dto.traderId} (autoCopy: ${dto.autoCopy})`,
+    );
 
-    return { success: true, message: `Successfully followed trader ${dto.traderId}` };
+    return {
+      success: true,
+      message: `Successfully followed trader ${dto.traderId}`,
+    };
   }
 
   unfollowTrader(followerId: string, traderId: string): { success: boolean } {
@@ -109,7 +124,7 @@ export class SocialTradingService {
     traderId: string,
     tradeId: string,
     asset: string,
-    side: 'buy' | 'sell',
+    side: "buy" | "sell",
     amount: number,
     price: number,
   ): CopyTradeDto[] {
@@ -138,7 +153,7 @@ export class SocialTradingService {
         originalAmount: amount,
         copiedAmount,
         price,
-        status: 'executed',
+        status: "executed",
         executedAt: new Date(),
       };
 
@@ -146,7 +161,9 @@ export class SocialTradingService {
       copiedTrades.push(copyTrade);
     }
 
-    this.logger.log(`Copied trade ${tradeId} to ${copiedTrades.length} followers`);
+    this.logger.log(
+      `Copied trade ${tradeId} to ${copiedTrades.length} followers`,
+    );
     return copiedTrades;
   }
 
@@ -161,7 +178,7 @@ export class SocialTradingService {
   }
 
   getLeaderboard(query: LeaderboardQueryDto): TraderProfileDto[] {
-    const sortBy = query.sortBy ?? 'totalReturn';
+    const sortBy = query.sortBy ?? "totalReturn";
     const limit = query.limit ?? 50;
 
     let profiles = Array.from(this.profiles.values());
@@ -176,12 +193,24 @@ export class SocialTradingService {
   }
 
   getCopyTrades(userId: string): CopyTradeDto[] {
-    return this.copyTrades.filter((t) => t.followerId === userId || t.traderId === userId);
+    return this.copyTrades.filter(
+      (t) => t.followerId === userId || t.traderId === userId,
+    );
   }
 
   updateTraderStats(
     userId: string,
-    stats: Partial<Pick<TraderProfileDto, 'winRate' | 'totalReturn' | 'monthlyReturn' | 'sharpeRatio' | 'maxDrawdown' | 'totalTrades'>>,
+    stats: Partial<
+      Pick<
+        TraderProfileDto,
+        | "winRate"
+        | "totalReturn"
+        | "monthlyReturn"
+        | "sharpeRatio"
+        | "maxDrawdown"
+        | "totalTrades"
+      >
+    >,
   ): TraderProfileDto {
     const profile = this.profiles.get(userId);
     if (!profile) throw new NotFoundException(`Trader ${userId} not found`);

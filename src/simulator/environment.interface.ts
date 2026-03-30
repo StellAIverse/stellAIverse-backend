@@ -1,6 +1,6 @@
 /**
  * Standard interface for pluggable simulation environments
- * 
+ *
  * This interface defines the contract that all simulation environments must implement
  * to be dynamically loaded and executed by the simulator system.
  */
@@ -161,15 +161,15 @@ export interface EnvironmentInstanceState {
  * Environment status enum
  */
 export enum EnvironmentStatus {
-  UNINITIALIZED = 'uninitialized',
-  INITIALIZING = 'initializing',
-  READY = 'ready',
-  RUNNING = 'running',
-  PAUSED = 'paused',
-  COMPLETED = 'completed',
-  ERROR = 'error',
-  TEARING_DOWN = 'tearing_down',
-  DESTROYED = 'destroyed',
+  UNINITIALIZED = "uninitialized",
+  INITIALIZING = "initializing",
+  READY = "ready",
+  RUNNING = "running",
+  PAUSED = "paused",
+  COMPLETED = "completed",
+  ERROR = "error",
+  TEARING_DOWN = "tearing_down",
+  DESTROYED = "destroyed",
 }
 
 /**
@@ -187,7 +187,7 @@ export interface AuditLogEntry {
   /** Environment version */
   version: string;
   /** Action performed */
-  action: 'init' | 'run' | 'step' | 'pause' | 'resume' | 'teardown' | 'error';
+  action: "init" | "run" | "step" | "pause" | "resume" | "teardown" | "error";
   /** Input data */
   input?: any;
   /** Output data */
@@ -253,7 +253,10 @@ export interface ISimulationEnvironment {
    * @param config - Configuration to validate
    * @returns Validation result with errors if invalid
    */
-  validateConfig?(config: EnvironmentInitConfig): { valid: boolean; errors?: string[] };
+  validateConfig?(config: EnvironmentInitConfig): {
+    valid: boolean;
+    errors?: string[];
+  };
 
   /**
    * Get environment schema for UI generation

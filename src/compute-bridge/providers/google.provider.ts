@@ -1,9 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
-import { BaseAIProvider } from '../base-provider.service';
-import { AIProviderType, ICompletionProvider, IModelInfo } from '../provider.interface';
-import { CompletionRequestDto, CompletionResponseDto, MessageRole } from '../base.dto';
-import { Provider } from '../provider.decorator';
+import { Injectable } from "@nestjs/common";
+import axios, { AxiosInstance } from "axios";
+import { BaseAIProvider } from "../base-provider.service";
+import {
+  AIProviderType,
+  ICompletionProvider,
+  IModelInfo,
+} from "../provider.interface";
+import {
+  CompletionRequestDto,
+  CompletionResponseDto,
+  MessageRole,
+} from "../base.dto";
+import { Provider } from "../provider.decorator";
 
 /**
  * Google AI Provider Adapter
@@ -13,14 +21,17 @@ import { Provider } from '../provider.decorator';
  */
 @Provider(AIProviderType.GOOGLE)
 @Injectable()
-export class GoogleProvider extends BaseAIProvider implements ICompletionProvider {
+export class GoogleProvider
+  extends BaseAIProvider
+  implements ICompletionProvider
+{
   private client: AxiosInstance;
-  private apiVersion: string = 'v1';
+  private apiVersion: string = "v1";
 
   private readonly models: IModelInfo[] = [
     {
-      id: 'gemini-1.5-pro',
-      name: 'Gemini 1.5 Pro',
+      id: "gemini-1.5-pro",
+      name: "Gemini 1.5 Pro",
       provider: AIProviderType.GOOGLE,
       capabilities: {
         textGeneration: true,
@@ -34,8 +45,8 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
       costPerOutputToken: 0.0105,
     },
     {
-      id: 'gemini-1.5-flash',
-      name: 'Gemini 1.5 Flash',
+      id: "gemini-1.5-flash",
+      name: "Gemini 1.5 Flash",
       provider: AIProviderType.GOOGLE,
       capabilities: {
         textGeneration: true,
@@ -49,8 +60,8 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
       costPerOutputToken: 0.00105,
     },
     {
-      id: 'gemini-1.0-pro',
-      name: 'Gemini 1.0 Pro',
+      id: "gemini-1.0-pro",
+      name: "Gemini 1.0 Pro",
       provider: AIProviderType.GOOGLE,
       capabilities: {
         textGeneration: true,
@@ -75,32 +86,34 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
 
   protected async initializeProvider(): Promise<void> {
     const config = this.getConfig();
-    
+
     // Determine if using Vertex AI or Gemini API
-    const isVertexAI = config.apiEndpoint?.includes('vertexai.googleapis.com');
-    
+    const isVertexAI = config.apiEndpoint?.includes("vertexai.googleapis.com");
+
     if (isVertexAI) {
       // Vertex AI endpoint format
       this.client = axios.create({
         baseURL: config.apiEndpoint,
         headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${config.apiKey}`,
+          "Content-Type": "application/json",
         },
         timeout: config.timeout || 60000,
       });
     } else {
       // Gemini API endpoint
       this.client = axios.create({
-        baseURL: config.apiEndpoint || 'https://generativelanguage.googleapis.com/v1beta',
+        baseURL:
+          config.apiEndpoint ||
+          "https://generativelanguage.googleapis.com/v1beta",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         timeout: config.timeout || 60000,
       });
     }
 
-    this.logger.log('Google provider initialized');
+    this.logger.log("Google provider initialized");
   }
 
   async listModels(): Promise<IModelInfo[]> {
@@ -108,24 +121,26 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
   }
 
   async getModelInfo(modelId: string): Promise<IModelInfo> {
-    const model = this.models.find(m => m.id === modelId);
+    const model = this.models.find((m) => m.id === modelId);
     if (!model) {
       throw new Error(`Model ${modelId} not found`);
     }
     return model;
   }
 
-  async complete(request: CompletionRequestDto): Promise<CompletionResponseDto> {
+  async complete(
+    request: CompletionRequestDto,
+  ): Promise<CompletionResponseDto> {
     if (!this.client) {
-      throw new Error('Provider not initialized');
+      throw new Error("Provider not initialized");
     }
 
     const config = this.getConfig();
-    const isVertexAI = config.apiEndpoint?.includes('vertexai.googleapis.com');
+    const isVertexAI = config.apiEndpoint?.includes("vertexai.googleapis.com");
 
     const response = await this.executeWithRetry(async () => {
       const contents = this.convertMessagesToContents(request.messages);
-      
+
       let url: string;
       let body: any;
 
@@ -164,11 +179,11 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
 
   async *streamComplete(request: CompletionRequestDto): AsyncGenerator<any> {
     if (!this.client) {
-      throw new Error('Provider not initialized');
+      throw new Error("Provider not initialized");
     }
 
     const config = this.getConfig();
-    const isVertexAI = config.apiEndpoint?.includes('vertexai.googleapis.com');
+    const isVertexAI = config.apiEndpoint?.includes("vertexai.googleapis.com");
     const contents = this.convertMessagesToContents(request.messages);
 
     let url: string;
@@ -197,7 +212,7 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
     }
 
     const response = await this.client.post(url, body, {
-      responseType: 'stream',
+      responseType: "stream",
     });
 
     for await (const chunk of response.data) {
@@ -214,15 +229,15 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
     try {
       // Check by listing models or a simple request
       const config = this.getConfig();
-      if (config.apiEndpoint?.includes('vertexai.googleapis.com')) {
-        await this.client.get('/models');
+      if (config.apiEndpoint?.includes("vertexai.googleapis.com")) {
+        await this.client.get("/models");
       } else {
         // For Gemini API, try a minimal request
         await this.client.get(`/models?key=${config.apiKey}&pageSize=1`);
       }
       return true;
     } catch (error: any) {
-      this.logger.warn('Google health check failed:', error.message);
+      this.logger.warn("Google health check failed:", error.message);
       return false;
     }
   }
@@ -232,11 +247,11 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
    */
   private convertMessagesToContents(messages: any[]): any[] {
     const contents = [];
-    let currentRole = '';
+    let currentRole = "";
     let currentParts: any[] = [];
 
     for (const message of messages) {
-      const role = message.role === MessageRole.ASSISTANT ? 'model' : 'user';
+      const role = message.role === MessageRole.ASSISTANT ? "model" : "user";
 
       if (role !== currentRole && currentParts.length > 0) {
         contents.push({
@@ -263,21 +278,23 @@ export class GoogleProvider extends BaseAIProvider implements ICompletionProvide
   private transformResponse(data: any): CompletionResponseDto {
     const candidate = data.candidates?.[0];
     const content = candidate?.content;
-    
+
     return {
       id: data.id || `google-${Date.now()}`,
-      object: 'chat.completion',
+      object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
-      model: data.modelVersion || 'gemini',
+      model: data.modelVersion || "gemini",
       provider: AIProviderType.GOOGLE,
-      choices: [{
-        index: 0,
-        message: {
-          role: MessageRole.ASSISTANT,
-          content: content?.parts?.map((p: any) => p.text).join('') || '',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: MessageRole.ASSISTANT,
+            content: content?.parts?.map((p: any) => p.text).join("") || "",
+          },
+          finishReason: candidate?.finishReason?.toLowerCase() || "stop",
         },
-        finishReason: candidate?.finishReason?.toLowerCase() || 'stop',
-      }],
+      ],
       usage: {
         promptTokens: data.usageMetadata?.promptTokenCount || 0,
         completionTokens: data.usageMetadata?.candidatesTokenCount || 0,

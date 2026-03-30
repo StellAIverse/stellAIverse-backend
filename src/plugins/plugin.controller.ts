@@ -1,12 +1,6 @@
 // src/plugins/plugin.controller.ts
 
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-} from "@nestjs/common";
+import { Controller, Post, Body, Get, Param } from "@nestjs/common";
 import { PluginManagerService } from "./plugin-manager.service";
 
 @Controller("plugins")

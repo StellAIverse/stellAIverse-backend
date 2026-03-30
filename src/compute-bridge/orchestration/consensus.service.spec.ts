@@ -1,36 +1,35 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConsensusService } from './consensus.service';
-import { ResponseNormalizerService } from './response-normalizer.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ConsensusService } from "./consensus.service";
+import { ResponseNormalizerService } from "./response-normalizer.service";
 import {
   ConsensusAlgorithm,
   ConsensusConfig,
   NormalizedProviderResponse,
-} from './orchestration.interface';
-import { AIProviderType } from '../provider.interface';
+} from "./orchestration.interface";
+import { AIProviderType } from "../provider.interface";
 
-describe('ConsensusService', () => {
+describe("ConsensusService", () => {
   let service: ConsensusService;
   let normalizer: ResponseNormalizerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ConsensusService,
-        ResponseNormalizerService,
-      ],
+      providers: [ConsensusService, ResponseNormalizerService],
     }).compile();
 
     service = module.get<ConsensusService>(ConsensusService);
-    normalizer = module.get<ResponseNormalizerService>(ResponseNormalizerService);
+    normalizer = module.get<ResponseNormalizerService>(
+      ResponseNormalizerService,
+    );
   });
 
-  describe('majorityVote', () => {
-    it('should return consensus when majority agree', async () => {
+  describe("majorityVote", () => {
+    it("should return consensus when majority agree", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'The answer is 42'),
-        createMockResponse(AIProviderType.ANTHROPIC, 'The answer is 42'),
-        createMockResponse(AIProviderType.GOOGLE, 'The answer is 42'),
-        createMockResponse(AIProviderType.HUGGINGFACE, 'Different answer'),
+        createMockResponse(AIProviderType.OPENAI, "The answer is 42"),
+        createMockResponse(AIProviderType.ANTHROPIC, "The answer is 42"),
+        createMockResponse(AIProviderType.GOOGLE, "The answer is 42"),
+        createMockResponse(AIProviderType.HUGGINGFACE, "Different answer"),
       ];
 
       const config: ConsensusConfig = {
@@ -41,17 +40,17 @@ describe('ConsensusService', () => {
       const result = await service.reachConsensus(responses, config);
 
       expect(result.consensusReached).toBe(true);
-      expect(result.winner).toBe('The answer is 42');
+      expect(result.winner).toBe("The answer is 42");
       expect(result.agreementCount).toBe(3);
       expect(result.agreementPercentage).toBe(0.75);
     });
 
-    it('should fail consensus when agreement is below threshold', async () => {
+    it("should fail consensus when agreement is below threshold", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'Answer A'),
-        createMockResponse(AIProviderType.ANTHROPIC, 'Answer B'),
-        createMockResponse(AIProviderType.GOOGLE, 'Answer C'),
-        createMockResponse(AIProviderType.HUGGINGFACE, 'Answer D'),
+        createMockResponse(AIProviderType.OPENAI, "Answer A"),
+        createMockResponse(AIProviderType.ANTHROPIC, "Answer B"),
+        createMockResponse(AIProviderType.GOOGLE, "Answer C"),
+        createMockResponse(AIProviderType.HUGGINGFACE, "Answer D"),
       ];
 
       const config: ConsensusConfig = {
@@ -65,9 +64,9 @@ describe('ConsensusService', () => {
       expect(result.agreementPercentage).toBe(0.25);
     });
 
-    it('should handle single response', async () => {
+    it("should handle single response", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'Only answer'),
+        createMockResponse(AIProviderType.OPENAI, "Only answer"),
       ];
 
       const config: ConsensusConfig = {
@@ -78,11 +77,11 @@ describe('ConsensusService', () => {
       const result = await service.reachConsensus(responses, config);
 
       expect(result.consensusReached).toBe(true);
-      expect(result.winner).toBe('Only answer');
+      expect(result.winner).toBe("Only answer");
       expect(result.agreementCount).toBe(1);
     });
 
-    it('should handle no valid responses', async () => {
+    it("should handle no valid responses", async () => {
       const responses: NormalizedProviderResponse[] = [];
 
       const config: ConsensusConfig = {
@@ -93,16 +92,16 @@ describe('ConsensusService', () => {
       const result = await service.reachConsensus(responses, config);
 
       expect(result.consensusReached).toBe(false);
-      expect(result.winner).toBe('');
+      expect(result.winner).toBe("");
     });
   });
 
-  describe('weightedVote', () => {
-    it('should weight votes according to provider weights', async () => {
+  describe("weightedVote", () => {
+    it("should weight votes according to provider weights", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'Answer A'),
-        createMockResponse(AIProviderType.ANTHROPIC, 'Answer B'),
-        createMockResponse(AIProviderType.GOOGLE, 'Answer B'),
+        createMockResponse(AIProviderType.OPENAI, "Answer A"),
+        createMockResponse(AIProviderType.ANTHROPIC, "Answer B"),
+        createMockResponse(AIProviderType.GOOGLE, "Answer B"),
       ];
 
       const weights = new Map([
@@ -120,17 +119,19 @@ describe('ConsensusService', () => {
       const result = await service.reachConsensus(responses, config);
 
       // Answer A should win due to higher weight (3 vs 2)
-      expect(result.winner).toBe('Answer A');
-      expect(result.votes.find(v => v.provider === AIProviderType.OPENAI)?.weight).toBe(3);
+      expect(result.winner).toBe("Answer A");
+      expect(
+        result.votes.find((v) => v.provider === AIProviderType.OPENAI)?.weight,
+      ).toBe(3);
     });
   });
 
-  describe('exactMatch', () => {
-    it('should require exact string match', async () => {
+  describe("exactMatch", () => {
+    it("should require exact string match", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'Exact match'),
-        createMockResponse(AIProviderType.ANTHROPIC, 'Exact match'),
-        createMockResponse(AIProviderType.GOOGLE, 'exact match'), // Different case
+        createMockResponse(AIProviderType.OPENAI, "Exact match"),
+        createMockResponse(AIProviderType.ANTHROPIC, "Exact match"),
+        createMockResponse(AIProviderType.GOOGLE, "exact match"), // Different case
       ];
 
       const config: ConsensusConfig = {
@@ -146,12 +147,18 @@ describe('ConsensusService', () => {
     });
   });
 
-  describe('semanticClustering', () => {
-    it('should group semantically similar responses', async () => {
+  describe("semanticClustering", () => {
+    it("should group semantically similar responses", async () => {
       const responses: NormalizedProviderResponse[] = [
-        createMockResponse(AIProviderType.OPENAI, 'The quick brown fox'),
-        createMockResponse(AIProviderType.ANTHROPIC, 'The quick brown fox jumps'),
-        createMockResponse(AIProviderType.GOOGLE, 'Completely different content here'),
+        createMockResponse(AIProviderType.OPENAI, "The quick brown fox"),
+        createMockResponse(
+          AIProviderType.ANTHROPIC,
+          "The quick brown fox jumps",
+        ),
+        createMockResponse(
+          AIProviderType.GOOGLE,
+          "Completely different content here",
+        ),
       ];
 
       const config: ConsensusConfig = {
@@ -175,7 +182,7 @@ describe('ConsensusService', () => {
     return {
       id: `${provider}-${Date.now()}`,
       provider,
-      model: 'test-model',
+      model: "test-model",
       content,
       rawResponse: {},
       usage: {

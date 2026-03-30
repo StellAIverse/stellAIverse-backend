@@ -1,12 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ProviderRouterService } from '../router/provider-router.service';
-import { ProviderHealthService } from '../router/provider-health.service';
-import { CircuitBreakerService } from '../router/circuit-breaker.service';
-import { ProviderMetricsService } from '../router/provider-metrics.service';
-import { ComputeBridgeService } from '../compute-bridge.service';
-import { AIProviderType, IAIProvider, IProviderConfig } from '../provider.interface';
-import { CompletionRequestDto, MessageRole } from '../base.dto';
-import { LoadBalancingStrategy, RoutingContext } from '../router/routing.interface';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ProviderRouterService } from "../router/provider-router.service";
+import { ProviderHealthService } from "../router/provider-health.service";
+import { CircuitBreakerService } from "../router/circuit-breaker.service";
+import { ProviderMetricsService } from "../router/provider-metrics.service";
+import { ComputeBridgeService } from "../compute-bridge.service";
+import {
+  AIProviderType,
+  IAIProvider,
+  IProviderConfig,
+} from "../provider.interface";
+import { CompletionRequestDto, MessageRole } from "../base.dto";
+import {
+  LoadBalancingStrategy,
+  RoutingContext,
+} from "../router/routing.interface";
 
 /**
  * Mock AI Provider for testing
@@ -18,7 +25,7 @@ class MockAIProvider implements IAIProvider {
 
   constructor(
     private readonly providerType: AIProviderType,
-    options: { shouldFail?: boolean; responseTime?: number } = {}
+    options: { shouldFail?: boolean; responseTime?: number } = {},
   ) {
     this.shouldFail = options.shouldFail || false;
     this.responseTime = options.responseTime || 100;
@@ -40,13 +47,19 @@ class MockAIProvider implements IAIProvider {
     if (this.shouldFail) {
       throw new Error(`Provider ${this.providerType} failed`);
     }
-    
+
     // Simulate response time
-    await new Promise(resolve => setTimeout(resolve, this.responseTime));
-    
+    await new Promise((resolve) => setTimeout(resolve, this.responseTime));
+
     return [
-      { id: `${this.providerType}-model-1`, name: `${this.providerType} Model 1` },
-      { id: `${this.providerType}-model-2`, name: `${this.providerType} Model 2` }
+      {
+        id: `${this.providerType}-model-1`,
+        name: `${this.providerType} Model 1`,
+      },
+      {
+        id: `${this.providerType}-model-2`,
+        name: `${this.providerType} Model 2`,
+      },
     ];
   }
 
@@ -61,8 +74,8 @@ class MockAIProvider implements IAIProvider {
         functionCalling: true,
         streaming: true,
         embeddings: true,
-        maxContextTokens: 4096
-      }
+        maxContextTokens: 4096,
+      },
     };
   }
 
@@ -80,7 +93,7 @@ class MockAIProvider implements IAIProvider {
   }
 }
 
-describe('ProviderRouter Integration Tests', () => {
+describe("ProviderRouter Integration Tests", () => {
   let module: TestingModule;
   let computeBridgeService: ComputeBridgeService;
   let providerRouter: ProviderRouterService;
@@ -100,14 +113,17 @@ describe('ProviderRouter Integration Tests', () => {
         ProviderRouterService,
         ProviderHealthService,
         CircuitBreakerService,
-        ProviderMetricsService
-      ]
+        ProviderMetricsService,
+      ],
     }).compile();
 
-    computeBridgeService = module.get<ComputeBridgeService>(ComputeBridgeService);
+    computeBridgeService =
+      module.get<ComputeBridgeService>(ComputeBridgeService);
     providerRouter = module.get<ProviderRouterService>(ProviderRouterService);
     healthService = module.get<ProviderHealthService>(ProviderHealthService);
-    circuitBreakerService = module.get<CircuitBreakerService>(CircuitBreakerService);
+    circuitBreakerService = module.get<CircuitBreakerService>(
+      CircuitBreakerService,
+    );
     metricsService = module.get<ProviderMetricsService>(ProviderMetricsService);
 
     // Initialize services
@@ -125,57 +141,62 @@ describe('ProviderRouter Integration Tests', () => {
     mockGoogle = new MockAIProvider(AIProviderType.GOOGLE);
   });
 
-  describe('Basic Provider Registration and Routing', () => {
-    it('should register providers successfully', async () => {
+  describe("Basic Provider Registration and Routing", () => {
+    it("should register providers successfully", async () => {
       const config: IProviderConfig = {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       };
 
       await computeBridgeService.registerProvider(mockOpenAI, config);
-      
-      expect(computeBridgeService.hasProvider(AIProviderType.OPENAI)).toBe(true);
-      expect(computeBridgeService.listProviders()).toContain(AIProviderType.OPENAI);
+
+      expect(computeBridgeService.hasProvider(AIProviderType.OPENAI)).toBe(
+        true,
+      );
+      expect(computeBridgeService.listProviders()).toContain(
+        AIProviderType.OPENAI,
+      );
     });
 
-    it('should route completion request successfully', async () => {
+    it("should route completion request successfully", async () => {
       // Register providers
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       const routingContext: Partial<RoutingContext> = {
         strategy: LoadBalancingStrategy.HEALTH_AWARE,
-        maxRetries: 2
+        maxRetries: 2,
       };
 
-      const response = await computeBridgeService.complete(request, routingContext);
+      const response = await computeBridgeService.complete(
+        request,
+        routingContext,
+      );
 
       expect(response).toBeDefined();
       expect(response.provider).toBe(AIProviderType.OPENAI);
       expect(response.choices).toHaveLength(1);
-      expect(response.choices[0].message.content).toContain('Mock response');
+      expect(response.choices[0].message.content).toContain("Mock response");
     });
 
-    it('should fallback to alternative provider on failure', async () => {
+    it("should fallback to alternative provider on failure", async () => {
       // Register providers
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
-      
+
       await computeBridgeService.registerProvider(mockAnthropic, {
         type: AIProviderType.ANTHROPIC,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       // Configure OpenAI to fail
@@ -183,19 +204,20 @@ describe('ProviderRouter Integration Tests', () => {
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       const routingContext: Partial<RoutingContext> = {
         strategy: LoadBalancingStrategy.HEALTH_AWARE,
         fallbackChain: [AIProviderType.OPENAI, AIProviderType.ANTHROPIC],
-        maxRetries: 3
+        maxRetries: 3,
       };
 
-      const response = await computeBridgeService.complete(request, routingContext);
+      const response = await computeBridgeService.complete(
+        request,
+        routingContext,
+      );
 
       expect(response).toBeDefined();
       // Should fallback to Anthropic
@@ -203,11 +225,11 @@ describe('ProviderRouter Integration Tests', () => {
     });
   });
 
-  describe('Circuit Breaker Functionality', () => {
-    it('should open circuit breaker after consecutive failures', async () => {
+  describe("Circuit Breaker Functionality", () => {
+    it("should open circuit breaker after consecutive failures", async () => {
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       // Configure provider to fail
@@ -215,10 +237,8 @@ describe('ProviderRouter Integration Tests', () => {
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       // Make multiple failed requests to trigger circuit breaker
@@ -231,25 +251,25 @@ describe('ProviderRouter Integration Tests', () => {
       }
 
       // Circuit breaker should be open now
-      const circuitState = circuitBreakerService.getState(AIProviderType.OPENAI);
-      expect(circuitState).toBe('open');
+      const circuitState = circuitBreakerService.getState(
+        AIProviderType.OPENAI,
+      );
+      expect(circuitState).toBe("open");
     });
 
-    it('should close circuit breaker after recovery', async () => {
+    it("should close circuit breaker after recovery", async () => {
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       // First, trigger circuit breaker
       mockOpenAI.setShouldFail(true);
-      
+
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       // Trigger failures
@@ -262,14 +282,16 @@ describe('ProviderRouter Integration Tests', () => {
       }
 
       // Verify circuit is open
-      expect(circuitBreakerService.getState(AIProviderType.OPENAI)).toBe('open');
+      expect(circuitBreakerService.getState(AIProviderType.OPENAI)).toBe(
+        "open",
+      );
 
       // Reset provider to succeed
       mockOpenAI.setShouldFail(false);
 
       // Wait for recovery timeout and try successful request
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       try {
         await computeBridgeService.complete(request);
       } catch (error) {
@@ -282,85 +304,105 @@ describe('ProviderRouter Integration Tests', () => {
     });
   });
 
-  describe('Load Balancing Strategies', () => {
+  describe("Load Balancing Strategies", () => {
     beforeEach(async () => {
       // Register multiple providers
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
-      
+
       await computeBridgeService.registerProvider(mockAnthropic, {
         type: AIProviderType.ANTHROPIC,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
-      
+
       await computeBridgeService.registerProvider(mockGoogle, {
         type: AIProviderType.GOOGLE,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
     });
 
-    it('should use health-aware routing strategy', async () => {
+    it("should use health-aware routing strategy", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       const routingContext: Partial<RoutingContext> = {
         strategy: LoadBalancingStrategy.HEALTH_AWARE,
-        preferredProviders: [AIProviderType.OPENAI, AIProviderType.ANTHROPIC, AIProviderType.GOOGLE]
+        preferredProviders: [
+          AIProviderType.OPENAI,
+          AIProviderType.ANTHROPIC,
+          AIProviderType.GOOGLE,
+        ],
       };
 
-      const response = await computeBridgeService.complete(request, routingContext);
+      const response = await computeBridgeService.complete(
+        request,
+        routingContext,
+      );
 
       expect(response).toBeDefined();
-      expect([AIProviderType.OPENAI, AIProviderType.ANTHROPIC, AIProviderType.GOOGLE]).toContain(response.provider);
+      expect([
+        AIProviderType.OPENAI,
+        AIProviderType.ANTHROPIC,
+        AIProviderType.GOOGLE,
+      ]).toContain(response.provider);
     });
 
-    it('should use round-robin routing strategy', async () => {
+    it("should use round-robin routing strategy", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       const routingContext: Partial<RoutingContext> = {
         strategy: LoadBalancingStrategy.ROUND_ROBIN,
-        preferredProviders: [AIProviderType.OPENAI, AIProviderType.ANTHROPIC, AIProviderType.GOOGLE]
+        preferredProviders: [
+          AIProviderType.OPENAI,
+          AIProviderType.ANTHROPIC,
+          AIProviderType.GOOGLE,
+        ],
       };
 
-      const response = await computeBridgeService.complete(request, routingContext);
+      const response = await computeBridgeService.complete(
+        request,
+        routingContext,
+      );
 
       expect(response).toBeDefined();
-      expect([AIProviderType.OPENAI, AIProviderType.ANTHROPIC, AIProviderType.GOOGLE]).toContain(response.provider);
+      expect([
+        AIProviderType.OPENAI,
+        AIProviderType.ANTHROPIC,
+        AIProviderType.GOOGLE,
+      ]).toContain(response.provider);
     });
   });
 
-  describe('Health Monitoring', () => {
-    it('should monitor provider health', async () => {
+  describe("Health Monitoring", () => {
+    it("should monitor provider health", async () => {
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       // Wait for health checks to run
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const healthMetrics = healthService.getHealthMetrics(AIProviderType.OPENAI);
+      const healthMetrics = healthService.getHealthMetrics(
+        AIProviderType.OPENAI,
+      );
       expect(healthMetrics).toBeDefined();
       expect(healthMetrics?.status).toBeDefined();
     });
 
-    it('should update health metrics based on request performance', async () => {
+    it("should update health metrics based on request performance", async () => {
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       // Set specific response time
@@ -368,41 +410,39 @@ describe('ProviderRouter Integration Tests', () => {
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       await computeBridgeService.complete(request);
 
-      const healthMetrics = healthService.getHealthMetrics(AIProviderType.OPENAI);
+      const healthMetrics = healthService.getHealthMetrics(
+        AIProviderType.OPENAI,
+      );
       expect(healthMetrics?.responseTime).toBeGreaterThan(0);
       expect(healthMetrics?.totalRequests).toBeGreaterThan(0);
     });
   });
 
-  describe('Metrics Collection', () => {
-    it('should collect request metrics', async () => {
+  describe("Metrics Collection", () => {
+    it("should collect request metrics", async () => {
       await computeBridgeService.registerProvider(mockOpenAI, {
         type: AIProviderType.OPENAI,
-        apiKey: 'test-key'
+        apiKey: "test-key",
       });
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [
-          { role: MessageRole.USER, content: 'Hello, world!' }
-        ]
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello, world!" }],
       };
 
       await computeBridgeService.complete(request);
 
       // Verify metrics are being collected
       const metricsText = await metricsService.getMetricsAsText();
-      expect(metricsText).toContain('compute_requests_total');
-      expect(metricsText).toContain('compute_request_duration_seconds');
+      expect(metricsText).toContain("compute_requests_total");
+      expect(metricsText).toContain("compute_request_duration_seconds");
     });
   });
 });

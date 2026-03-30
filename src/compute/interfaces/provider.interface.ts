@@ -5,10 +5,10 @@
  */
 
 export enum ProviderType {
-  OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  GOOGLE = 'google',
-  MOCK = 'mock',
+  OPENAI = "openai",
+  ANTHROPIC = "anthropic",
+  GOOGLE = "google",
+  MOCK = "mock",
 }
 
 export interface IComputeProvider {

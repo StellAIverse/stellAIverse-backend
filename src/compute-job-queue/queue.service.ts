@@ -203,17 +203,23 @@ export class QueueService {
     }
 
     const state = await job.getState();
-    
+
     return {
       id: job.id,
       type: job.data.type,
       state,
       progress: job.progress || 0,
       attemptsMade: job.attemptsMade,
-      createdAt: job.timestamp ? new Date(job.timestamp).toISOString() : undefined,
-      processedOn: job.processedOn ? new Date(job.processedOn).toISOString() : undefined,
-      finishedOn: job.finishedOn ? new Date(job.finishedOn).toISOString() : undefined,
-      result: state === 'completed' ? job.returnvalue : undefined,
+      createdAt: job.timestamp
+        ? new Date(job.timestamp).toISOString()
+        : undefined,
+      processedOn: job.processedOn
+        ? new Date(job.processedOn).toISOString()
+        : undefined,
+      finishedOn: job.finishedOn
+        ? new Date(job.finishedOn).toISOString()
+        : undefined,
+      result: state === "completed" ? job.returnvalue : undefined,
       failedReason: job.failedReason,
       metadata: job.data.metadata,
     };
@@ -222,17 +228,21 @@ export class QueueService {
   /**
    * Pause an individual job
    */
-  async pauseJob(jobId: string): Promise<{ previousState: string; newState: string }> {
+  async pauseJob(
+    jobId: string,
+  ): Promise<{ previousState: string; newState: string }> {
     const job = await this.getJob(jobId);
     if (!job) {
       throw new Error(`Job ${jobId} not found`);
     }
 
     const previousState = await job.getState();
-    
+
     // Only allow pausing waiting or delayed jobs
-    if (previousState !== 'waiting' && previousState !== 'delayed') {
-      throw new Error(`Cannot pause job in state: ${previousState}. Only waiting or delayed jobs can be paused.`);
+    if (previousState !== "waiting" && previousState !== "delayed") {
+      throw new Error(
+        `Cannot pause job in state: ${previousState}. Only waiting or delayed jobs can be paused.`,
+      );
     }
 
     // Update metadata to mark as paused and move to delayed state
@@ -251,14 +261,16 @@ export class QueueService {
     await (job as any).moveToDelayed(delay, true);
 
     this.logger.log(`Job ${jobId} paused (previous state: ${previousState})`);
-    
-    return { previousState, newState: 'paused' };
+
+    return { previousState, newState: "paused" };
   }
 
   /**
    * Resume a paused job
    */
-  async resumeJob(jobId: string): Promise<{ previousState: string; newState: string }> {
+  async resumeJob(
+    jobId: string,
+  ): Promise<{ previousState: string; newState: string }> {
     const job = await this.getJob(jobId);
     if (!job) {
       throw new Error(`Job ${jobId} not found`);
@@ -269,11 +281,11 @@ export class QueueService {
       throw new Error(`Job ${jobId} is not paused`);
     }
 
-    const previousState = job.data.metadata?.previousState || 'delayed';
-    
+    const previousState = job.data.metadata?.previousState || "delayed";
+
     // Promote the job back to waiting state
     await job.promote();
-    
+
     // Update metadata to mark as resumed
     await job.update({
       ...job.data,
@@ -285,9 +297,11 @@ export class QueueService {
       },
     });
 
-    this.logger.log(`Job ${jobId} resumed (returning to state: ${previousState})`);
-    
-    return { previousState: 'paused', newState: 'waiting' };
+    this.logger.log(
+      `Job ${jobId} resumed (returning to state: ${previousState})`,
+    );
+
+    return { previousState: "paused", newState: "waiting" };
   }
 
   /**
@@ -300,21 +314,23 @@ export class QueueService {
     }
 
     const previousState = await job.getState();
-    
+
     // Cannot cancel completed jobs
-    if (previousState === 'completed') {
+    if (previousState === "completed") {
       throw new Error(`Cannot cancel completed job ${jobId}`);
     }
 
     // If job is active, we need to handle it differently
-    if (previousState === 'active') {
-      this.logger.warn(`Attempting to cancel active job ${jobId}. This may not stop execution immediately.`);
+    if (previousState === "active") {
+      this.logger.warn(
+        `Attempting to cancel active job ${jobId}. This may not stop execution immediately.`,
+      );
     }
 
     await job.remove();
-    
+
     this.logger.log(`Job ${jobId} cancelled (was in state: ${previousState})`);
-    
+
     return { previousState };
   }
 
@@ -395,7 +411,10 @@ export class QueueService {
     queueLength.set({ queue_name: "compute", state: "completed" }, completed);
     queueLength.set({ queue_name: "compute", state: "failed" }, failed);
     queueLength.set({ queue_name: "compute", state: "delayed" }, delayed);
-    queueLength.set({ queue_name: "dead_letter", state: "waiting" }, deadLetterCount);
+    queueLength.set(
+      { queue_name: "dead_letter", state: "waiting" },
+      deadLetterCount,
+    );
 
     return {
       compute: { waiting, active, completed, failed, delayed },

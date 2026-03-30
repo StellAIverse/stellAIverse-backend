@@ -1,6 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { AuthStrategy, AuthStrategyConfig } from './interfaces/auth-strategy.interface';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  AuthStrategy,
+  AuthStrategyConfig,
+} from "./interfaces/auth-strategy.interface";
 
 /**
  * Registry for managing authentication strategies
@@ -14,7 +17,7 @@ export class StrategyRegistry implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit(): void {
-    this.logger.log('Strategy registry initialized');
+    this.logger.log("Strategy registry initialized");
     this.loadStrategyConfigurations();
   }
 
@@ -24,11 +27,15 @@ export class StrategyRegistry implements OnModuleInit {
    */
   register(strategy: AuthStrategy): void {
     if (this.strategies.has(strategy.name)) {
-      this.logger.warn(`Strategy ${strategy.name} is already registered. Overwriting.`);
+      this.logger.warn(
+        `Strategy ${strategy.name} is already registered. Overwriting.`,
+      );
     }
 
     if (!strategy.isEnabled) {
-      this.logger.log(`Strategy ${strategy.name} is disabled and will not be available`);
+      this.logger.log(
+        `Strategy ${strategy.name} is disabled and will not be available`,
+      );
       return;
     }
 
@@ -69,8 +76,8 @@ export class StrategyRegistry implements OnModuleInit {
    */
   getEnabledStrategies(): string[] {
     return Array.from(this.strategies.values())
-      .filter(s => s.isEnabled)
-      .map(s => s.name);
+      .filter((s) => s.isEnabled)
+      .map((s) => s.name);
   }
 
   /**
@@ -87,13 +94,18 @@ export class StrategyRegistry implements OnModuleInit {
    * Load strategy configurations from environment
    */
   private loadStrategyConfigurations(): void {
-    const configJson = this.configService.get<string>('AUTH_STRATEGIES');
+    const configJson = this.configService.get<string>("AUTH_STRATEGIES");
     if (configJson) {
       try {
         const configs: AuthStrategyConfig[] = JSON.parse(configJson);
-        this.logger.log(`Loaded ${configs.length} strategy configurations from environment`);
+        this.logger.log(
+          `Loaded ${configs.length} strategy configurations from environment`,
+        );
       } catch (error) {
-        this.logger.error('Failed to parse AUTH_STRATEGIES configuration', error);
+        this.logger.error(
+          "Failed to parse AUTH_STRATEGIES configuration",
+          error,
+        );
       }
     }
   }
@@ -103,6 +115,6 @@ export class StrategyRegistry implements OnModuleInit {
    */
   clear(): void {
     this.strategies.clear();
-    this.logger.log('All strategies cleared from registry');
+    this.logger.log("All strategies cleared from registry");
   }
 }

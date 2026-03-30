@@ -6,77 +6,77 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '../user/entities/user.entity';
+} from "typeorm";
+import { User } from "../user/entities/user.entity";
 
 /**
  * Priority levels for notifications
  */
 export enum NotificationPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 /**
  * Notification channel types
  */
 export enum NotificationChannel {
-  IN_APP = 'in_app',
-  EMAIL = 'email',
-  BOTH = 'both',
+  IN_APP = "in_app",
+  EMAIL = "email",
+  BOTH = "both",
 }
 
 /**
  * In-app notification entity
  */
-@Entity('notifications')
-@Index(['userId'])
-@Index(['type'])
-@Index(['isRead'])
-@Index(['createdAt'])
+@Entity("notifications")
+@Index(["userId"])
+@Index(["type"])
+@Index(["isRead"])
+@Index(["createdAt"])
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * User who receives the notification
    */
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   @Index()
   userId: string;
 
   /**
    * Reference to the user entity
    */
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   /**
    * Type/category of notification
    */
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   @Index()
   type: string;
 
   /**
    * Notification title
    */
-  @Column({ type: 'varchar' })
+  @Column({ type: "varchar" })
   title: string;
 
   /**
    * Notification message body
    */
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   message: string;
 
   /**
    * Optional data/context for the notification
    */
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   data?: Record<string, any>;
 
   /**
@@ -89,14 +89,14 @@ export class Notification {
   /**
    * When the notification was read (null if not read)
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   readAt?: Date;
 
   /**
    * Priority level
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: NotificationPriority,
     default: NotificationPriority.MEDIUM,
   })
@@ -106,7 +106,7 @@ export class Notification {
    * Channel through which notification was sent
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: NotificationChannel,
     default: NotificationChannel.IN_APP,
   })
@@ -115,7 +115,7 @@ export class Notification {
   /**
    * Optional action URL/link
    */
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: "varchar", nullable: true })
   actionUrl?: string;
 
   /**

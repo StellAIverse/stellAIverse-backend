@@ -1,21 +1,15 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import {
   BacktestResult,
   BacktestStatus,
-} from '../entities/backtest-result.entity';
-import { CreateBacktestDto } from '../dto/backtest.dto';
+} from "../entities/backtest-result.entity";
+import { CreateBacktestDto } from "../dto/backtest.dto";
 
 @Injectable()
 export class BacktestingService {
-  private readonly logger = new Logger(
-    BacktestingService.name,
-  );
+  private readonly logger = new Logger(BacktestingService.name);
 
   constructor(
     @InjectRepository(BacktestResult)
@@ -37,15 +31,11 @@ export class BacktestingService {
       endDate: new Date(dto.endDate),
     });
 
-    const saved = await this.backtestRepository.save(
-      backtest,
-    );
+    const saved = await this.backtestRepository.save(backtest);
 
     // Run backtest asynchronously
     this.runBacktest(saved.id).catch((error) => {
-      this.logger.error(
-        `Backtest ${saved.id} failed: ${error.message}`,
-      );
+      this.logger.error(`Backtest ${saved.id} failed: ${error.message}`);
     });
 
     return saved;
@@ -60,7 +50,7 @@ export class BacktestingService {
     });
 
     if (!backtest) {
-      throw new BadRequestException('Backtest not found');
+      throw new BadRequestException("Backtest not found");
     }
 
     try {
@@ -68,9 +58,7 @@ export class BacktestingService {
       await this.backtestRepository.save(backtest);
 
       // Simulate backtest
-      const results = await this.simulatePortfolioBacktest(
-        backtest,
-      );
+      const results = await this.simulatePortfolioBacktest(backtest);
 
       // Update backtest with results
       Object.assign(backtest, results);
@@ -87,9 +75,7 @@ export class BacktestingService {
       backtest.errorMessage = error.message;
       await this.backtestRepository.save(backtest);
 
-      this.logger.error(
-        `Backtest ${backtestId} failed: ${error.message}`,
-      );
+      this.logger.error(`Backtest ${backtestId} failed: ${error.message}`);
     }
   }
 
@@ -99,15 +85,10 @@ export class BacktestingService {
   private async simulatePortfolioBacktest(
     backtest: BacktestResult,
   ): Promise<any> {
-    const {
-      startDate,
-      endDate,
-      initialCapital,
-      assets,
-    } = backtest;
+    const { startDate, endDate, initialCapital, assets } = backtest;
 
     if (!assets || assets.length === 0) {
-      throw new Error('No assets specified for backtest');
+      throw new Error("No assets specified for backtest");
     }
 
     // Generate simulated price data
@@ -133,9 +114,9 @@ export class BacktestingService {
       action: string;
       price: number;
     }> = [];
-    let totalTrades = 0;
-    let winningTrades = 0;
-    let losingTrades = 0;
+    const totalTrades = 0;
+    const winningTrades = 0;
+    const losingTrades = 0;
 
     // Simulate daily trading
     for (let i = 0; i < priceData.length; i++) {
@@ -145,38 +126,29 @@ export class BacktestingService {
       let dayValue = 0;
       for (let j = 0; j < assets.length; j++) {
         const assetValue =
-          (initialCapital *
-            (assets[j].weight / 100) *
-            prices[j]) /
-          100;
+          (initialCapital * (assets[j].weight / 100) * prices[j]) / 100;
         dayValue += assetValue;
       }
 
       // Add some random factor
-      portfolioValue =
-        previousValue * (1 + (Math.random() - 0.5) * 0.02);
+      portfolioValue = previousValue * (1 + (Math.random() - 0.5) * 0.02);
 
-      const dayReturn =
-        (portfolioValue - previousValue) / previousValue;
+      const dayReturn = (portfolioValue - previousValue) / previousValue;
       dailyReturns.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split("T")[0],
         return: dayReturn,
         value: portfolioValue,
       });
 
       // Track monthly returns
-      const monthKey = date
-        .toISOString()
-        .substring(0, 7);
+      const monthKey = date.toISOString().substring(0, 7);
       if (!monthlyReturns[monthKey]) {
         monthlyReturns[monthKey] = 0;
       }
       monthlyReturns[monthKey] += dayReturn;
 
       // Track yearly returns
-      const yearKey = date
-        .toISOString()
-        .substring(0, 4);
+      const yearKey = date.toISOString().substring(0, 4);
       if (!yearlyReturns[yearKey]) {
         yearlyReturns[yearKey] = 0;
       }
@@ -186,35 +158,25 @@ export class BacktestingService {
     }
 
     // Calculate metrics
-    const totalReturn =
-      (portfolioValue - initialCapital) /
-      initialCapital;
+    const totalReturn = (portfolioValue - initialCapital) / initialCapital;
     const daysDays =
-      (endDate.getTime() - startDate.getTime()) /
-      (1000 * 60 * 60 * 24);
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
     const years = daysDays / 365;
-    const annualizedReturn =
-      Math.pow(1 + totalReturn, 1 / years) - 1;
+    const annualizedReturn = Math.pow(1 + totalReturn, 1 / years) - 1;
 
     // Calculate volatility from daily returns
     const returns = dailyReturns.map((r) => r.return);
-    const meanReturn =
-      returns.reduce((a, b) => a + b, 0) / returns.length;
+    const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
     const variance =
-      returns.reduce(
-        (sum, r) => sum + (r - meanReturn) ** 2,
-        0,
-      ) / returns.length;
+      returns.reduce((sum, r) => sum + (r - meanReturn) ** 2, 0) /
+      returns.length;
     const dailyVolatility = Math.sqrt(variance);
-    const volatility =
-      dailyVolatility * Math.sqrt(252);
+    const volatility = dailyVolatility * Math.sqrt(252);
 
     // Calculate Sharpe ratio
     const riskFreeRate = 0.02;
     const sharpeRatio =
-      volatility > 0
-        ? (annualizedReturn - riskFreeRate) / volatility
-        : 0;
+      volatility > 0 ? (annualizedReturn - riskFreeRate) / volatility : 0;
 
     // Calculate max drawdown
     let maxValue = initialCapital;
@@ -223,45 +185,29 @@ export class BacktestingService {
       if (daily.value > maxValue) {
         maxValue = daily.value;
       }
-      const drawdown =
-        (maxValue - daily.value) / maxValue;
+      const drawdown = (maxValue - daily.value) / maxValue;
       if (drawdown > maxDrawdown) {
         maxDrawdown = drawdown;
       }
     }
 
     // Calculate VaR
-    const sortedReturns = [...returns].sort(
-      (a, b) => a - b,
-    );
+    const sortedReturns = [...returns].sort((a, b) => a - b);
     const varIndex = Math.floor(sortedReturns.length * 0.05);
-    const valueAtRisk95 =
-      sortedReturns[varIndex] || 0;
+    const valueAtRisk95 = sortedReturns[varIndex] || 0;
 
     // Calculate Sortige ratio
-    const downside = returns.filter(
-      (r) => r < 0,
-    );
+    const downside = returns.filter((r) => r < 0);
     const downsideVariance =
       downside.length > 0
-        ? downside.reduce(
-            (sum, r) => sum + r ** 2,
-            0,
-          ) / downside.length
+        ? downside.reduce((sum, r) => sum + r ** 2, 0) / downside.length
         : 0;
-    const downDeviation =
-      Math.sqrt(downsideVariance);
+    const downDeviation = Math.sqrt(downsideVariance);
     const sortinoRatio =
-      downDeviation > 0
-        ? (annualizedReturn - riskFreeRate) /
-          downDeviation
-        : 0;
+      downDeviation > 0 ? (annualizedReturn - riskFreeRate) / downDeviation : 0;
 
     // Calculate Calmar ratio
-    const calmarRatio =
-      maxDrawdown > 0
-        ? annualizedReturn / maxDrawdown
-        : 0;
+    const calmarRatio = maxDrawdown > 0 ? annualizedReturn / maxDrawdown : 0;
 
     return {
       totalReturn,
@@ -273,8 +219,7 @@ export class BacktestingService {
       calmarRatio,
       maxDrawdown,
       valueAtRisk95,
-      conditionalValueAtRisk95:
-        valueAtRisk95 * 1.2,
+      conditionalValueAtRisk95: valueAtRisk95 * 1.2,
       dailyReturns,
       monthlyReturns,
       yearlyReturns,
@@ -283,12 +228,8 @@ export class BacktestingService {
       totalTrades,
       winningTrades,
       losingTrades,
-      winRate:
-        totalTrades > 0
-          ? winningTrades / totalTrades
-          : 0,
-      assetPerformance:
-        this.calculateAssetPerformance(assets),
+      winRate: totalTrades > 0 ? winningTrades / totalTrades : 0,
+      assetPerformance: this.calculateAssetPerformance(assets),
     };
   }
 
@@ -310,9 +251,7 @@ export class BacktestingService {
       const dayPrices: number[] = [];
       for (let i = 0; i < numAssets; i++) {
         // Random walk simulation
-        dayPrices.push(
-          100 * Math.exp((Math.random() - 0.5) * 2),
-        );
+        dayPrices.push(100 * Math.exp((Math.random() - 0.5) * 2));
       }
 
       prices.push({
@@ -366,15 +305,12 @@ export class BacktestingService {
    * Get backtest result
    */
   async getBacktest(backtestId: string): Promise<BacktestResult> {
-    const backtest =
-      await this.backtestRepository.findOne({
-        where: { id: backtestId },
-      });
+    const backtest = await this.backtestRepository.findOne({
+      where: { id: backtestId },
+    });
 
     if (!backtest) {
-      throw new BadRequestException(
-        'Backtest not found',
-      );
+      throw new BadRequestException("Backtest not found");
     }
 
     return backtest;
@@ -389,7 +325,7 @@ export class BacktestingService {
   ): Promise<BacktestResult[]> {
     return this.backtestRepository.find({
       where: { userId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -397,9 +333,7 @@ export class BacktestingService {
   /**
    * Compare backtests
    */
-  async compareBacktests(
-    backtestIds: string[],
-  ): Promise<any> {
+  async compareBacktests(backtestIds: string[]): Promise<any> {
     const backtests = await Promise.all(
       backtestIds.map((id) => this.getBacktest(id)),
     );

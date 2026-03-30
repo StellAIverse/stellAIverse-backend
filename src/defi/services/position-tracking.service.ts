@@ -1,14 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DeFiPosition, PositionStatus, PositionType } from '../entities/defi-position.entity';
-import { DeFiTransaction, TransactionStatus, TransactionType } from '../entities/defi-transaction.entity';
-import { DeFiYieldRecord } from '../entities/defi-yield-record.entity';
-import { ProtocolRegistry } from '../protocols/protocol-registry';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  DeFiPosition,
+  PositionStatus,
+  PositionType,
+} from "../entities/defi-position.entity";
+import {
+  DeFiTransaction,
+  TransactionStatus,
+  TransactionType,
+} from "../entities/defi-transaction.entity";
+import { DeFiYieldRecord } from "../entities/defi-yield-record.entity";
+import { ProtocolRegistry } from "../protocols/protocol-registry";
 
 @Injectable()
 export class PositionTrackingService {
-  private logger = new Logger('PositionTrackingService');
+  private logger = new Logger("PositionTrackingService");
 
   constructor(
     @InjectRepository(DeFiPosition)
@@ -23,19 +31,24 @@ export class PositionTrackingService {
   /**
    * Get all DeFi positions for a user
    */
-  async getUserPositions(userId: string, filter?: PositionFilter): Promise<PositionSummary[]> {
+  async getUserPositions(
+    userId: string,
+    filter?: PositionFilter,
+  ): Promise<PositionSummary[]> {
     let query = this.positionRepository
-      .createQueryBuilder('p')
-      .where('p.user_id = :userId', { userId })
-      .leftJoinAndSelect('p.yield_records', 'yr')
-      .leftJoinAndSelect('p.transactions', 't');
+      .createQueryBuilder("p")
+      .where("p.user_id = :userId", { userId })
+      .leftJoinAndSelect("p.yield_records", "yr")
+      .leftJoinAndSelect("p.transactions", "t");
 
     if (filter?.protocol) {
-      query = query.andWhere('p.protocol = :protocol', { protocol: filter.protocol });
+      query = query.andWhere("p.protocol = :protocol", {
+        protocol: filter.protocol,
+      });
     }
 
     if (filter?.status) {
-      query = query.andWhere('p.status = :status', { status: filter.status });
+      query = query.andWhere("p.status = :status", { status: filter.status });
     }
 
     const positions = await query.getMany();
@@ -49,7 +62,7 @@ export class PositionTrackingService {
   async getPortfolioAnalytics(userId: string): Promise<PortfolioAnalytics> {
     const positions = await this.positionRepository.find({
       where: { user_id: userId },
-      relations: ['yield_records', 'transactions'],
+      relations: ["yield_records", "transactions"],
     });
 
     const totalValue = positions.reduce((sum, p) => sum + p.current_amount, 0);
@@ -61,8 +74,14 @@ export class PositionTrackingService {
       .reduce((sum, p) => sum + p.borrowed_amount, 0);
     const netValue = totalCollateral - totalBorrowed;
 
-    const totalYield = positions.reduce((sum, p) => sum + p.accumulated_yield, 0);
-    const averageAPY = positions.length > 0 ? positions.reduce((sum, p) => sum + p.apy, 0) / positions.length : 0;
+    const totalYield = positions.reduce(
+      (sum, p) => sum + p.accumulated_yield,
+      0,
+    );
+    const averageAPY =
+      positions.length > 0
+        ? positions.reduce((sum, p) => sum + p.apy, 0) / positions.length
+        : 0;
 
     // Group by protocol
     const byProtocol: Record<string, any> = {};
@@ -82,7 +101,10 @@ export class PositionTrackingService {
 
     // Recalculate averages
     for (const protocol in byProtocol) {
-      byProtocol[protocol].averageAPY = byProtocol[protocol].count > 0 ? byProtocol[protocol].totalYield / byProtocol[protocol].totalValue : 0;
+      byProtocol[protocol].averageAPY =
+        byProtocol[protocol].count > 0
+          ? byProtocol[protocol].totalYield / byProtocol[protocol].totalValue
+          : 0;
     }
 
     // Group by type
@@ -97,15 +119,24 @@ export class PositionTrackingService {
 
     // Calculate unclaimed rewards
     const allRewards = positions.flatMap((p) => p.yield_records || []);
-    const unclaimedRewards = allRewards.filter((r) => !r.claimed).reduce((sum, r) => sum + r.token_value, 0);
+    const unclaimedRewards = allRewards
+      .filter((r) => !r.claimed)
+      .reduce((sum, r) => sum + r.token_value, 0);
 
     // Calculate risk factors
-    const riskyPositions = positions.filter((p) => p.status === PositionStatus.LIQUIDATION_RISK);
+    const riskyPositions = positions.filter(
+      (p) => p.status === PositionStatus.LIQUIDATION_RISK,
+    );
     const liquidationRiskCount = riskyPositions.length;
 
     // Health factor (aggregate)
-    const healthFactors = positions.filter((p) => p.metadata?.healthFactor).map((p) => p.metadata.healthFactor);
-    const averageHealthFactor = healthFactors.length > 0 ? healthFactors.reduce((a, b) => a + b, 0) / healthFactors.length : 10;
+    const healthFactors = positions
+      .filter((p) => p.metadata?.healthFactor)
+      .map((p) => p.metadata.healthFactor);
+    const averageHealthFactor =
+      healthFactors.length > 0
+        ? healthFactors.reduce((a, b) => a + b, 0) / healthFactors.length
+        : 10;
 
     return {
       totalPositions: positions.length,
@@ -128,7 +159,10 @@ export class PositionTrackingService {
   /**
    * Track a new position
    */
-  async trackPosition(userId: string, positionData: any): Promise<DeFiPosition> {
+  async trackPosition(
+    userId: string,
+    positionData: any,
+  ): Promise<DeFiPosition> {
     const position = this.positionRepository.create({
       user_id: userId,
       protocol: positionData.protocol,
@@ -138,7 +172,8 @@ export class PositionTrackingService {
       wallet_address: positionData.wallet_address,
       token_symbol: positionData.token_symbol,
       principal_amount: positionData.principal_amount,
-      current_amount: positionData.current_amount || positionData.principal_amount,
+      current_amount:
+        positionData.current_amount || positionData.principal_amount,
       apy: positionData.apy || 0,
       accumulated_yield: 0,
       auto_compound_enabled: positionData.auto_compound_enabled || false,
@@ -155,34 +190,52 @@ export class PositionTrackingService {
       where: { id: positionId },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const adapter = this.protocolRegistry.getAdapter(position.protocol as any);
 
     try {
       // Fetch current position data from protocol
-      const currentData = await adapter.getPosition(position.wallet_address, position.token_symbol, 'ethereum');
+      const currentData = await adapter.getPosition(
+        position.wallet_address,
+        position.token_symbol,
+        "ethereum",
+      );
 
       // Update position
       position.current_amount = currentData.balance;
       position.apy = currentData.apy;
-      position.accumulated_yield = (position.accumulated_yield || 0) + (currentData.valueUSD - position.current_amount);
+      position.accumulated_yield =
+        (position.accumulated_yield || 0) +
+        (currentData.valueUSD - position.current_amount);
       position.last_updated_on_chain = new Date();
 
       // Update risk score if available
       if (position.borrowed_amount) {
         try {
-          const riskMetrics = await adapter.getRiskMetrics(position.wallet_address, position.token_symbol, 'ethereum');
+          const riskMetrics = await adapter.getRiskMetrics(
+            position.wallet_address,
+            position.token_symbol,
+            "ethereum",
+          );
           // Calculate risk score from components
-          position.risk_score = (Object.values(riskMetrics).reduce((a: number, b: number) => a + b, 0) / Object.keys(riskMetrics).length) as any;
+          position.risk_score = (Object.values(riskMetrics).reduce(
+            (a: number, b: number) => a + b,
+            0,
+          ) / Object.keys(riskMetrics).length) as any;
         } catch (error) {
-          this.logger.warn(`Error updating risk metrics for position ${positionId}`);
+          this.logger.warn(
+            `Error updating risk metrics for position ${positionId}`,
+          );
         }
       }
 
       return this.positionRepository.save(position);
     } catch (error) {
-      this.logger.error(`Error syncing position ${positionId} with chain`, error);
+      this.logger.error(
+        `Error syncing position ${positionId} with chain`,
+        error,
+      );
       throw error;
     }
   }
@@ -190,12 +243,15 @@ export class PositionTrackingService {
   /**
    * Record a transaction for a position
    */
-  async recordTransaction(positionId: string, transactionData: any): Promise<DeFiTransaction> {
+  async recordTransaction(
+    positionId: string,
+    transactionData: any,
+  ): Promise<DeFiTransaction> {
     const position = await this.positionRepository.findOne({
       where: { id: positionId },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const transaction = this.transactionRepository.create({
       position_id: positionId,
@@ -208,7 +264,7 @@ export class PositionTrackingService {
       gas_used: transactionData.gas_used || 0,
       gas_price_gwei: transactionData.gas_price_gwei || 0,
       gas_cost_usd: transactionData.gas_cost_usd || 0,
-      network: transactionData.network || 'ethereum',
+      network: transactionData.network || "ethereum",
     });
 
     return this.transactionRepository.save(transaction);
@@ -217,12 +273,15 @@ export class PositionTrackingService {
   /**
    * Execute a pending transaction
    */
-  async executeTransaction(transactionId: string, txHash: string): Promise<DeFiTransaction> {
+  async executeTransaction(
+    transactionId: string,
+    txHash: string,
+  ): Promise<DeFiTransaction> {
     const transaction = await this.transactionRepository.findOne({
       where: { id: transactionId },
     });
 
-    if (!transaction) throw new Error('Transaction not found');
+    if (!transaction) throw new Error("Transaction not found");
 
     transaction.transaction_hash = txHash;
     transaction.status = TransactionStatus.SUBMITTED;
@@ -234,7 +293,10 @@ export class PositionTrackingService {
   /**
    * Record yield/reward earnings
    */
-  async recordYield(positionId: string, yieldData: any): Promise<DeFiYieldRecord> {
+  async recordYield(
+    positionId: string,
+    yieldData: any,
+  ): Promise<DeFiYieldRecord> {
     const yield_record = this.yieldRepository.create({
       position_id: positionId,
       amount: yieldData.amount,
@@ -250,7 +312,10 @@ export class PositionTrackingService {
   /**
    * Claim yields and update position state
    */
-  async claimYield(positionId: string, yieldIds: string[]): Promise<ClaimResult> {
+  async claimYield(
+    positionId: string,
+    yieldIds: string[],
+  ): Promise<ClaimResult> {
     const records = await this.yieldRepository.find({
       where: { id: { $in: yieldIds } as any },
     });
@@ -269,7 +334,8 @@ export class PositionTrackingService {
       where: { id: positionId },
     });
     if (position) {
-      position.accumulated_yield = (position.accumulated_yield || 0) + totalClaimed;
+      position.accumulated_yield =
+        (position.accumulated_yield || 0) + totalClaimed;
       await this.positionRepository.save(position);
     }
 
@@ -283,12 +349,15 @@ export class PositionTrackingService {
   /**
    * Close or withdraw from a position
    */
-  async closePosition(positionId: string, finalAmount?: number): Promise<DeFiPosition> {
+  async closePosition(
+    positionId: string,
+    finalAmount?: number,
+  ): Promise<DeFiPosition> {
     const position = await this.positionRepository.findOne({
       where: { id: positionId },
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     position.status = PositionStatus.CLOSED;
     if (finalAmount !== undefined) {
@@ -301,13 +370,16 @@ export class PositionTrackingService {
   /**
    * Get position performance over time
    */
-  async getPositionPerformance(positionId: string, days: number = 30): Promise<PerformanceData[]> {
+  async getPositionPerformance(
+    positionId: string,
+    days: number = 30,
+  ): Promise<PerformanceData[]> {
     const position = await this.positionRepository.findOne({
       where: { id: positionId },
-      relations: ['yield_records', 'transactions'],
+      relations: ["yield_records", "transactions"],
     });
 
-    if (!position) throw new Error('Position not found');
+    if (!position) throw new Error("Position not found");
 
     const performance: PerformanceData[] = [];
     const startDate = new Date();
@@ -317,8 +389,9 @@ export class PositionTrackingService {
     const yieldsByDate: Record<string, number> = {};
     for (const record of position.yield_records || []) {
       if (record.created_at >= startDate) {
-        const dateKey = record.created_at.toISOString().split('T')[0];
-        yieldsByDate[dateKey] = (yieldsByDate[dateKey] || 0) + record.token_value;
+        const dateKey = record.created_at.toISOString().split("T")[0];
+        yieldsByDate[dateKey] =
+          (yieldsByDate[dateKey] || 0) + record.token_value;
       }
     }
 
@@ -326,7 +399,7 @@ export class PositionTrackingService {
     for (let i = days; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = date.toISOString().split("T")[0];
 
       performance.push({
         date,
@@ -377,42 +450,54 @@ export class PositionTrackingService {
     };
   }
 
-  private async getRecentTransactions(userId: string, limit: number = 10): Promise<DeFiTransaction[]> {
+  private async getRecentTransactions(
+    userId: string,
+    limit: number = 10,
+  ): Promise<DeFiTransaction[]> {
     return this.transactionRepository
-      .createQueryBuilder('t')
-      .innerJoin(DeFiPosition, 'p', 't.position_id = p.id')
-      .where('p.user_id = :userId', { userId })
-      .orderBy('t.created_at', 'DESC')
+      .createQueryBuilder("t")
+      .innerJoin(DeFiPosition, "p", "t.position_id = p.id")
+      .where("p.user_id = :userId", { userId })
+      .orderBy("t.created_at", "DESC")
       .limit(limit)
       .getMany();
   }
 
-  private async getYieldHistory(userId: string, days: number = 30): Promise<any[]> {
+  private async getYieldHistory(
+    userId: string,
+    days: number = 30,
+  ): Promise<any[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const records = await this.yieldRepository
-      .createQueryBuilder('yr')
-      .innerJoin(DeFiPosition, 'p', 'yr.position_id = p.id')
-      .where('p.user_id = :userId', { userId })
-      .andWhere('yr.created_at >= :startDate', { startDate })
-      .orderBy('yr.created_at', 'DESC')
+      .createQueryBuilder("yr")
+      .innerJoin(DeFiPosition, "p", "yr.position_id = p.id")
+      .where("p.user_id = :userId", { userId })
+      .andWhere("yr.created_at >= :startDate", { startDate })
+      .orderBy("yr.created_at", "DESC")
       .getMany();
 
     return records;
   }
 
-  private calculateRiskLevel(ltv: number | null, maxLtv: number | null): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-    if (!ltv || !maxLtv) return 'LOW';
+  private calculateRiskLevel(
+    ltv: number | null,
+    maxLtv: number | null,
+  ): "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" {
+    if (!ltv || !maxLtv) return "LOW";
     const ratio = ltv / maxLtv;
-    if (ratio > 0.9) return 'CRITICAL';
-    if (ratio > 0.8) return 'HIGH';
-    if (ratio > 0.6) return 'MEDIUM';
-    return 'LOW';
+    if (ratio > 0.9) return "CRITICAL";
+    if (ratio > 0.8) return "HIGH";
+    if (ratio > 0.6) return "MEDIUM";
+    return "LOW";
   }
 
-  private estimateHoursToLiquidation(position: DeFiPosition): number | undefined {
-    if (!position.ltv || !position.max_ltv || !position.metadata?.volatility) return undefined;
+  private estimateHoursToLiquidation(
+    position: DeFiPosition,
+  ): number | undefined {
+    if (!position.ltv || !position.max_ltv || !position.metadata?.volatility)
+      return undefined;
     const margin = (position.max_ltv - position.ltv) / position.ltv;
     const hours = (margin / (position.metadata.volatility / 100)) * 24;
     return Math.round(Math.max(0, hours));
@@ -476,6 +561,6 @@ export interface RiskPosition {
   maxLtv: number;
   collateralValue: number;
   borrowedValue: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   hoursToLiquidation?: number;
 }

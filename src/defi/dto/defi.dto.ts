@@ -1,6 +1,16 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsJSON, IsBoolean, Min, Max, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { DeFiProtocol, PositionType } from '../entities/defi-position.entity';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  IsJSON,
+  IsBoolean,
+  Min,
+  Max,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { DeFiProtocol, PositionType } from "../entities/defi-position.entity";
 
 export class CreateDeFiPositionDto {
   @IsEnum(DeFiProtocol)
@@ -92,7 +102,16 @@ export class CreateDeFiTransactionDto {
   position_id: string;
 
   @IsString()
-  @IsEnum(['deposit', 'withdraw', 'borrow', 'repay', 'claim_reward', 'swap', 'stake', 'unstake'])
+  @IsEnum([
+    "deposit",
+    "withdraw",
+    "borrow",
+    "repay",
+    "claim_reward",
+    "swap",
+    "stake",
+    "unstake",
+  ])
   transaction_type: string;
 
   @IsNumber()
@@ -230,7 +249,10 @@ export class DeFiPortfolioSummaryDto {
   accumulated_yield: number;
   total_unclaimed_rewards: number;
   risk_score: number;
-  positions_by_protocol: Record<string, { count: number; value: number; apy: number }>;
+  positions_by_protocol: Record<
+    string,
+    { count: number; value: number; apy: number }
+  >;
   positions_by_type: Record<string, { count: number; value: number }>;
   liquidation_risks: number;
   health_factor: number;

@@ -2,7 +2,12 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bull";
 import { Queue, JobCounts } from "bull";
 import { ConfigService } from "@nestjs/config";
-import { BlockRange, IndexerEvent, QueueStats, IIndexerQueueService } from "../interfaces/indexer.interface";
+import {
+  BlockRange,
+  IndexerEvent,
+  QueueStats,
+  IIndexerQueueService,
+} from "../interfaces/indexer.interface";
 
 @Injectable()
 export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
@@ -16,9 +21,12 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
     private readonly eventQueue: Queue,
     @InjectQueue("indexer-dead-letter")
     private readonly deadLetterQueue: Queue,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {
-    this.maxQueueDepth = this.configService.get<number>("INDEXER_MAX_QUEUE_DEPTH", 10000);
+    this.maxQueueDepth = this.configService.get<number>(
+      "INDEXER_MAX_QUEUE_DEPTH",
+      10000,
+    );
   }
 
   async onModuleInit() {
@@ -32,14 +40,16 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    */
   async addBlockRange(range: BlockRange): Promise<void> {
     const queueDepth = await this.getBlockQueueDepth();
-    
+
     if (queueDepth >= this.maxQueueDepth) {
-      this.logger.warn(`Block queue depth (${queueDepth}) exceeds limit, delaying range addition`);
+      this.logger.warn(
+        `Block queue depth (${queueDepth}) exceeds limit, delaying range addition`,
+      );
       // Add with delay to allow processing to catch up
       await this.blockQueue.add(
         "fetch-range",
         { range, instanceId: range.instanceId },
-        { delay: 5000 }
+        { delay: 5000 },
       );
       return;
     }
@@ -49,7 +59,9 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
       instanceId: range.instanceId,
     });
 
-    this.logger.debug(`Added block range ${range.fromBlock}-${range.toBlock} to queue`);
+    this.logger.debug(
+      `Added block range ${range.fromBlock}-${range.toBlock} to queue`,
+    );
   }
 
   /**
@@ -59,13 +71,15 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
     if (events.length === 0) return;
 
     const queueDepth = await this.getEventQueueDepth();
-    
+
     if (queueDepth >= this.maxQueueDepth) {
-      this.logger.warn(`Event queue depth (${queueDepth}) exceeds limit, delaying batch`);
+      this.logger.warn(
+        `Event queue depth (${queueDepth}) exceeds limit, delaying batch`,
+      );
       await this.eventQueue.add(
         "batch-ingest",
         { events, shardId: events[0]?.shardId || "unknown" },
-        { delay: 5000 }
+        { delay: 5000 },
       );
       return;
     }
@@ -86,7 +100,10 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
   /**
    * Add a reorg check job
    */
-  async addReorgCheck(blockNumber: number, expectedHash: string): Promise<void> {
+  async addReorgCheck(
+    blockNumber: number,
+    expectedHash: string,
+  ): Promise<void> {
     await this.blockQueue.add("check-reorg", {
       blockNumber,
       expectedHash,
@@ -120,13 +137,16 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    */
   async getQueueStats(): Promise<QueueStats> {
     const allStats = await this.getAllQueueStats();
-    
+
     // Combine all queue stats
     return {
       waiting: allStats.blocks.waiting + allStats.events.waiting,
       active: allStats.blocks.active + allStats.events.active,
       completed: allStats.blocks.completed + allStats.events.completed,
-      failed: allStats.blocks.failed + allStats.events.failed + allStats.deadLetter.failed,
+      failed:
+        allStats.blocks.failed +
+        allStats.events.failed +
+        allStats.deadLetter.failed,
       delayed: allStats.blocks.delayed + allStats.events.delayed,
     };
   }
@@ -135,10 +155,7 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    * Pause all queues (for maintenance)
    */
   async pauseAll(): Promise<void> {
-    await Promise.all([
-      this.blockQueue.pause(),
-      this.eventQueue.pause(),
-    ]);
+    await Promise.all([this.blockQueue.pause(), this.eventQueue.pause()]);
     this.logger.log("All indexer queues paused");
   }
 
@@ -146,10 +163,7 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    * Resume all queues
    */
   async resumeAll(): Promise<void> {
-    await Promise.all([
-      this.blockQueue.resume(),
-      this.eventQueue.resume(),
-    ]);
+    await Promise.all([this.blockQueue.resume(), this.eventQueue.resume()]);
     this.logger.log("All indexer queues resumed");
   }
 
@@ -172,14 +186,16 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
   /**
    * Get jobs from the dead letter queue for analysis
    */
-  async getDeadLetterJobs(limit: number = 100): Promise<{
-    id: string;
-    data: any;
-    failedReason: string;
-    attemptsMade: number;
-  }[]> {
+  async getDeadLetterJobs(limit: number = 100): Promise<
+    {
+      id: string;
+      data: any;
+      failedReason: string;
+      attemptsMade: number;
+    }[]
+  > {
     const jobs = await this.deadLetterQueue.getFailed(0, limit);
-    
+
     return jobs.map((job) => ({
       id: String(job.id),
       data: job.data,
@@ -193,7 +209,7 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    */
   async retryDeadLetterJob(jobId: string): Promise<boolean> {
     const job = await this.deadLetterQueue.getJob(jobId);
-    
+
     if (!job) {
       return false;
     }
@@ -213,7 +229,7 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
 
     // Remove from dead letter queue
     await job.remove();
-    
+
     return true;
   }
 
@@ -283,15 +299,20 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
   /**
    * Group events by shard ID
    */
-  private groupEventsByShard(events: IndexerEvent[]): Record<string, IndexerEvent[]> {
-    return events.reduce((acc, event) => {
-      const shardId = event.shardId || "default";
-      if (!acc[shardId]) {
-        acc[shardId] = [];
-      }
-      acc[shardId].push(event);
-      return acc;
-    }, {} as Record<string, IndexerEvent[]>);
+  private groupEventsByShard(
+    events: IndexerEvent[],
+  ): Record<string, IndexerEvent[]> {
+    return events.reduce(
+      (acc, event) => {
+        const shardId = event.shardId || "default";
+        if (!acc[shardId]) {
+          acc[shardId] = [];
+        }
+        acc[shardId].push(event);
+        return acc;
+      },
+      {} as Record<string, IndexerEvent[]>,
+    );
   }
 
   /**
@@ -299,7 +320,7 @@ export class IndexerQueueService implements OnModuleInit, IIndexerQueueService {
    */
   private async getStats(queue: Queue): Promise<QueueStats> {
     const counts: JobCounts = await queue.getJobCounts();
-    
+
     return {
       waiting: counts.waiting || 0,
       active: counts.active || 0,

@@ -1,9 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { SimulationStateManager } from "./state/simulation-state.manager";
-import {
-  StepResult,
-  SimulationEvent,
-} from "./simulation.interface";
+import { StepResult, SimulationEvent } from "./simulation.interface";
 import { EnvironmentConfigService } from "./enviroment-config.service";
 import { MockProviderFactory } from "./mock-provider.factory";
 

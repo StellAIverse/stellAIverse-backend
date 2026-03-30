@@ -1,6 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
-import { IAIProvider, AIProviderType, IProviderConfig } from "./provider.interface";
+import {
+  IAIProvider,
+  AIProviderType,
+  IProviderConfig,
+} from "./provider.interface";
 
 /**
  * Provider metadata for registration

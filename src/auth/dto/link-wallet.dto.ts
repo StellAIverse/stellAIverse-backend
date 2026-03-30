@@ -1,4 +1,9 @@
-import { IsString, IsEthereumAddress, Length, IsOptional } from "class-validator";
+import {
+  IsString,
+  IsEthereumAddress,
+  Length,
+  IsOptional,
+} from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class LinkWalletDto {

@@ -1,10 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Notification, NotificationPriority, NotificationChannel } from './entities/notification.entity';
-import { NotificationPreferences } from './entities/notification-preferences.entity';
-import { User } from '../user/entities/user.entity';
-import { EmailService } from '../auth/email.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  Notification,
+  NotificationPriority,
+  NotificationChannel,
+} from "./entities/notification.entity";
+import { NotificationPreferences } from "./entities/notification-preferences.entity";
+import { User } from "../user/entities/user.entity";
+import { EmailService } from "../auth/email.service";
 
 /**
  * DTO for creating a notification
@@ -40,42 +44,53 @@ export class NotificationService {
   /**
    * Send a notification based on user preferences
    */
-  async sendNotification(dto: CreateNotificationDto): Promise<Notification | null> {
-    const user = await this.userRepository.findOne({ where: { id: dto.userId } });
-    
+  async sendNotification(
+    dto: CreateNotificationDto,
+  ): Promise<Notification | null> {
+    const user = await this.userRepository.findOne({
+      where: { id: dto.userId },
+    });
+
     if (!user) {
       this.logger.warn(`User ${dto.userId} not found for notification`);
       return null;
     }
 
     // Get or create user preferences
-    let preferences = await this.getPreferences(user.id);
+    const preferences = await this.getPreferences(user.id);
 
     // Check if notification is allowed
     const allowInApp = preferences.isInAppAllowed(dto.type);
     const allowEmail = preferences.isEmailAllowed(dto.type);
 
     if (!allowInApp && !allowEmail) {
-      this.logger.debug(`Notification ${dto.type} blocked by user preferences for user ${user.id}`);
+      this.logger.debug(
+        `Notification ${dto.type} blocked by user preferences for user ${user.id}`,
+      );
       return null;
     }
 
     // Determine channel
-    const channel = dto.channel || (allowInApp ? NotificationChannel.IN_APP : NotificationChannel.EMAIL);
+    const channel =
+      dto.channel ||
+      (allowInApp ? NotificationChannel.IN_APP : NotificationChannel.EMAIL);
 
     // Create in-app notification if allowed
     let notification: Notification | null = null;
     if (allowInApp || channel === NotificationChannel.BOTH) {
       notification = await this.createInAppNotification({
         ...dto,
-        channel: channel === NotificationChannel.BOTH ? NotificationChannel.BOTH : NotificationChannel.IN_APP,
+        channel:
+          channel === NotificationChannel.BOTH
+            ? NotificationChannel.BOTH
+            : NotificationChannel.IN_APP,
       });
     }
 
     // Send email if allowed
     if (allowEmail || channel === NotificationChannel.BOTH) {
       await this.sendEmailNotification(user, dto);
-      
+
       if (notification) {
         notification.channel = NotificationChannel.BOTH;
         await this.notificationRepository.save(notification);
@@ -88,7 +103,9 @@ export class NotificationService {
   /**
    * Create an in-app notification
    */
-  async createInAppNotification(dto: CreateNotificationDto): Promise<Notification> {
+  async createInAppNotification(
+    dto: CreateNotificationDto,
+  ): Promise<Notification> {
     const notification = this.notificationRepository.create({
       userId: dto.userId,
       type: dto.type,
@@ -102,7 +119,9 @@ export class NotificationService {
 
     await this.notificationRepository.save(notification);
 
-    this.logger.log(`In-app notification created: ${dto.type} for user ${dto.userId}`);
+    this.logger.log(
+      `In-app notification created: ${dto.type} for user ${dto.userId}`,
+    );
 
     return notification;
   }
@@ -110,10 +129,15 @@ export class NotificationService {
   /**
    * Send email notification
    */
-  private async sendEmailNotification(user: User, dto: CreateNotificationDto): Promise<void> {
+  private async sendEmailNotification(
+    user: User,
+    dto: CreateNotificationDto,
+  ): Promise<void> {
     try {
       if (!user.email) {
-        this.logger.debug(`User ${user.id} has no email address, skipping email notification`);
+        this.logger.debug(
+          `User ${user.id} has no email address, skipping email notification`,
+        );
         return;
       }
 
@@ -125,9 +149,14 @@ export class NotificationService {
         text: dto.message,
       });
 
-      this.logger.log(`Email notification sent to ${user.email}: ${info.messageId}`);
+      this.logger.log(
+        `Email notification sent to ${user.email}: ${info.messageId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to send email notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send email notification: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -155,7 +184,7 @@ export class NotificationService {
             </div>
             <div class="content">
               <p>${this.escapeHtml(dto.message)}</p>
-              ${dto.actionUrl ? `<p style="text-align: center;"><a href="${dto.actionUrl}" class="button">View Details</a></p>` : ''}
+              ${dto.actionUrl ? `<p style="text-align: center;"><a href="${dto.actionUrl}" class="button">View Details</a></p>` : ""}
             </div>
             <div class="footer">
               <p>© ${new Date().getFullYear()} StellAIverse. All rights reserved.</p>
@@ -172,11 +201,11 @@ export class NotificationService {
    */
   private escapeHtml(text: string): string {
     const map: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;',
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
@@ -185,7 +214,9 @@ export class NotificationService {
    * Get or create user notification preferences
    */
   async getPreferences(userId: string): Promise<NotificationPreferences> {
-    let preferences = await this.preferencesRepository.findOne({ where: { userId } });
+    let preferences = await this.preferencesRepository.findOne({
+      where: { userId },
+    });
 
     if (!preferences) {
       preferences = this.preferencesRepository.create({
@@ -225,13 +256,16 @@ export class NotificationService {
   /**
    * Mark notification as read
    */
-  async markAsRead(notificationId: string, userId: string): Promise<Notification> {
+  async markAsRead(
+    notificationId: string,
+    userId: string,
+  ): Promise<Notification> {
     const notification = await this.notificationRepository.findOne({
       where: { id: notificationId, userId },
     });
 
     if (!notification) {
-      throw new Error('Notification not found');
+      throw new Error("Notification not found");
     }
 
     notification.isRead = true;
@@ -254,10 +288,13 @@ export class NotificationService {
   /**
    * Get unread notifications for a user
    */
-  async getUnreadNotifications(userId: string, limit = 20): Promise<Notification[]> {
+  async getUnreadNotifications(
+    userId: string,
+    limit = 20,
+  ): Promise<Notification[]> {
     return this.notificationRepository.find({
       where: { userId, isRead: false },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -268,7 +305,7 @@ export class NotificationService {
   async getNotifications(userId: string, limit = 50): Promise<Notification[]> {
     return this.notificationRepository.find({
       where: { userId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -276,7 +313,10 @@ export class NotificationService {
   /**
    * Delete a notification
    */
-  async deleteNotification(notificationId: string, userId: string): Promise<void> {
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+  ): Promise<void> {
     await this.notificationRepository.delete({ id: notificationId, userId });
   }
 
@@ -288,10 +328,10 @@ export class NotificationService {
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
     const result = await this.notificationRepository
-      .createQueryBuilder('notification')
+      .createQueryBuilder("notification")
       .delete()
-      .where('notification.createdAt < :cutoffDate', { cutoffDate })
-      .andWhere('notification.isRead = :isRead', { isRead: true })
+      .where("notification.createdAt < :cutoffDate", { cutoffDate })
+      .andWhere("notification.isRead = :isRead", { isRead: true })
       .execute();
 
     this.logger.log(`Cleaned up ${result.affected} old notifications`);

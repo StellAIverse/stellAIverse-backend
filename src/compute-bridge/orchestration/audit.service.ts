@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as crypto from 'crypto';
-import { AIProviderType } from '../provider.interface';
-import { CompletionRequestDto } from '../base.dto';
+import { Injectable, Logger } from "@nestjs/common";
+import * as crypto from "crypto";
+import { AIProviderType } from "../provider.interface";
+import { CompletionRequestDto } from "../base.dto";
 import {
   ProviderAuditLogEntry,
   OrchestrationStrategy,
   NormalizedProviderResponse,
-} from './orchestration.interface';
+} from "./orchestration.interface";
 
 /**
  * Audit Service
@@ -23,9 +23,10 @@ export class AuditService {
   private readonly signingKey: string;
 
   constructor() {
-    this.maxLogSize = parseInt(process.env.AUDIT_MAX_LOG_SIZE || '10000', 10);
+    this.maxLogSize = parseInt(process.env.AUDIT_MAX_LOG_SIZE || "10000", 10);
     // In production, this should be loaded from a secure key management system
-    this.signingKey = process.env.AUDIT_SIGNING_KEY || this.generateSigningKey();
+    this.signingKey =
+      process.env.AUDIT_SIGNING_KEY || this.generateSigningKey();
   }
 
   /**
@@ -42,11 +43,11 @@ export class AuditService {
     },
   ): string {
     const auditId = this.generateAuditId();
-    
+
     // Sanitize request data (remove sensitive info like API keys)
     const sanitizedRequest = this.sanitizeRequest(request);
-    
-    const entry: Omit<ProviderAuditLogEntry, 'signature'> = {
+
+    const entry: Omit<ProviderAuditLogEntry, "signature"> = {
       auditId,
       requestId,
       timestamp: new Date(),
@@ -57,28 +58,25 @@ export class AuditService {
 
     // Generate digital signature
     const signature = this.generateSignature(entry);
-    
+
     const fullEntry: ProviderAuditLogEntry = {
       ...entry,
       signature,
     };
 
     this.addToLog(fullEntry);
-    
+
     this.logger.debug(`Audit log created: ${auditId} for request ${requestId}`);
-    
+
     return auditId;
   }
 
   /**
    * Log a provider response
    */
-  logResponse(
-    auditId: string,
-    response: NormalizedProviderResponse,
-  ): void {
-    const existingEntry = this.auditLog.find(e => e.auditId === auditId);
-    
+  logResponse(auditId: string, response: NormalizedProviderResponse): void {
+    const existingEntry = this.auditLog.find((e) => e.auditId === auditId);
+
     if (!existingEntry) {
       this.logger.warn(`Cannot log response: audit entry ${auditId} not found`);
       return;
@@ -102,12 +100,9 @@ export class AuditService {
   /**
    * Log a provider error
    */
-  logError(
-    auditId: string,
-    error: string,
-  ): void {
-    const existingEntry = this.auditLog.find(e => e.auditId === auditId);
-    
+  logError(auditId: string, error: string): void {
+    const existingEntry = this.auditLog.find((e) => e.auditId === auditId);
+
     if (!existingEntry) {
       this.logger.warn(`Cannot log error: audit entry ${auditId} not found`);
       return;
@@ -136,19 +131,19 @@ export class AuditService {
     let entries = [...this.auditLog];
 
     if (options?.requestId) {
-      entries = entries.filter(e => e.requestId === options.requestId);
+      entries = entries.filter((e) => e.requestId === options.requestId);
     }
 
     if (options?.provider) {
-      entries = entries.filter(e => e.provider === options.provider);
+      entries = entries.filter((e) => e.provider === options.provider);
     }
 
     if (options?.startTime) {
-      entries = entries.filter(e => e.timestamp >= options.startTime!);
+      entries = entries.filter((e) => e.timestamp >= options.startTime!);
     }
 
     if (options?.endTime) {
-      entries = entries.filter(e => e.timestamp <= options.endTime!);
+      entries = entries.filter((e) => e.timestamp <= options.endTime!);
     }
 
     // Sort by timestamp descending
@@ -157,7 +152,7 @@ export class AuditService {
     // Apply pagination
     const offset = options?.offset || 0;
     const limit = options?.limit || entries.length;
-    
+
     return entries.slice(offset, offset + limit);
   }
 
@@ -165,7 +160,7 @@ export class AuditService {
    * Get a single audit entry by ID
    */
   getAuditEntry(auditId: string): ProviderAuditLogEntry | undefined {
-    return this.auditLog.find(e => e.auditId === auditId);
+    return this.auditLog.find((e) => e.auditId === auditId);
   }
 
   /**
@@ -173,7 +168,7 @@ export class AuditService {
    */
   verifyIntegrity(auditId: string): boolean {
     const entry = this.getAuditEntry(auditId);
-    
+
     if (!entry) {
       return false;
     }
@@ -190,14 +185,14 @@ export class AuditService {
   exportAuditLog(options?: {
     startTime?: Date;
     endTime?: Date;
-    format?: 'json' | 'csv';
+    format?: "json" | "csv";
   }): string {
     const entries = this.getAuditLog({
       startTime: options?.startTime,
       endTime: options?.endTime,
     });
 
-    if (options?.format === 'csv') {
+    if (options?.format === "csv") {
       return this.exportToCSV(entries);
     }
 
@@ -207,10 +202,7 @@ export class AuditService {
   /**
    * Get audit statistics
    */
-  getStatistics(options?: {
-    startTime?: Date;
-    endTime?: Date;
-  }): {
+  getStatistics(options?: { startTime?: Date; endTime?: Date }): {
     totalEntries: number;
     entriesByProvider: Record<string, number>;
     successRate: number;
@@ -229,7 +221,8 @@ export class AuditService {
 
     for (const entry of entries) {
       // Count by provider
-      entriesByProvider[entry.provider] = (entriesByProvider[entry.provider] || 0) + 1;
+      entriesByProvider[entry.provider] =
+        (entriesByProvider[entry.provider] || 0) + 1;
 
       // Success rate
       if (entry.response && !entry.error) {
@@ -261,32 +254,34 @@ export class AuditService {
    */
   clearAuditLog(): void {
     this.auditLog.length = 0;
-    this.logger.warn('Audit log cleared');
+    this.logger.warn("Audit log cleared");
   }
 
   /**
    * Generate a unique audit ID
    */
   private generateAuditId(): string {
-    return `audit-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+    return `audit-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
   }
 
   /**
    * Generate a signing key
    */
   private generateSigningKey(): string {
-    return crypto.randomBytes(32).toString('hex');
+    return crypto.randomBytes(32).toString("hex");
   }
 
   /**
    * Generate a digital signature for an audit entry
    */
-  private generateSignature(entry: Omit<ProviderAuditLogEntry, 'signature'>): string {
+  private generateSignature(
+    entry: Omit<ProviderAuditLogEntry, "signature">,
+  ): string {
     const data = JSON.stringify(entry);
     return crypto
-      .createHmac('sha256', this.signingKey)
+      .createHmac("sha256", this.signingKey)
       .update(data)
-      .digest('hex');
+      .digest("hex");
   }
 
   /**
@@ -323,36 +318,36 @@ export class AuditService {
    */
   private exportToCSV(entries: ProviderAuditLogEntry[]): string {
     const headers = [
-      'auditId',
-      'requestId',
-      'timestamp',
-      'provider',
-      'model',
-      'messageCount',
-      'responseId',
-      'tokensUsed',
-      'latencyMs',
-      'error',
-      'signature',
+      "auditId",
+      "requestId",
+      "timestamp",
+      "provider",
+      "model",
+      "messageCount",
+      "responseId",
+      "tokensUsed",
+      "latencyMs",
+      "error",
+      "signature",
     ];
 
-    const rows = entries.map(entry => [
+    const rows = entries.map((entry) => [
       entry.auditId,
       entry.requestId,
       entry.timestamp.toISOString(),
       entry.provider,
       entry.request.model,
       entry.request.messageCount,
-      entry.response?.id || '',
+      entry.response?.id || "",
       entry.response?.tokensUsed || 0,
       entry.response?.latencyMs || 0,
-      entry.error || '',
+      entry.error || "",
       entry.signature,
     ]);
 
     return [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
   }
 }

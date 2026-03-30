@@ -7,31 +7,31 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '../user/entities/user.entity';
+} from "typeorm";
+import { User } from "../user/entities/user.entity";
 
 /**
  * User notification preferences
  * Controls which notifications users receive and through which channels
  */
-@Entity('notification_preferences')
-@Index(['userId'], { unique: true })
+@Entity("notification_preferences")
+@Index(["userId"], { unique: true })
 export class NotificationPreferences {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * User who owns these preferences
    */
-  @Column({ type: 'uuid', unique: true })
+  @Column({ type: "uuid", unique: true })
   @Index()
   userId: string;
 
   /**
    * Reference to the user entity
    */
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   /**
@@ -50,14 +50,14 @@ export class NotificationPreferences {
    * Specific notification types the user wants to receive via email
    * If empty, all enabled notification types are allowed
    */
-  @Column({ type: 'varchar', array: true, default: () => "'{}'" })
+  @Column({ type: "varchar", array: true, default: () => "'{}'" })
   emailNotificationTypes: string[];
 
   /**
    * Specific notification types the user wants to receive in-app
    * If empty, all enabled notification types are allowed
    */
-  @Column({ type: 'varchar', array: true, default: () => "'{}'" })
+  @Column({ type: "varchar", array: true, default: () => "'{}'" })
   inAppNotificationTypes: string[];
 
   /**
@@ -95,13 +95,15 @@ export class NotificationPreferences {
    */
   isEmailAllowed(notificationType: string): boolean {
     if (!this.emailEnabled) return false;
-    
+
     // If no specific types configured, allow all
     if (this.emailNotificationTypes.length === 0) {
-      return this.referralNotificationsEnabled || 
-             notificationType.startsWith('system');
+      return (
+        this.referralNotificationsEnabled ||
+        notificationType.startsWith("system")
+      );
     }
-    
+
     return this.emailNotificationTypes.includes(notificationType);
   }
 
@@ -110,12 +112,12 @@ export class NotificationPreferences {
    */
   isInAppAllowed(notificationType: string): boolean {
     if (!this.inAppEnabled) return false;
-    
+
     // If no specific types configured, allow all
     if (this.inAppNotificationTypes.length === 0) {
       return true;
     }
-    
+
     return this.inAppNotificationTypes.includes(notificationType);
   }
 }

@@ -1,10 +1,10 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Query, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Param,
   Delete,
   Headers,
   Logger,
@@ -28,22 +28,24 @@ export class RecommendationController {
 
   @Get()
   async getRecommendations(
-    @Query('userId') userId?: string,
-    @Query('capabilities') capabilities?: string,
-    @Query('limit') limit?: number,
-    @Query('sessionId') sessionId?: string,
+    @Query("userId") userId?: string,
+    @Query("capabilities") capabilities?: string,
+    @Query("limit") limit?: number,
+    @Query("sessionId") sessionId?: string,
     @Headers() headers?: any,
   ): Promise<RecommendationResponseDto[]> {
-    const capabilityList = capabilities ? capabilities.split(',') : [];
+    const capabilityList = capabilities ? capabilities.split(",") : [];
     const parsedLimit = limit ? parseInt(limit.toString(), 10) : undefined;
 
     // Try to get user ID from session if not provided
-    const effectiveUserId = userId || (headers?.['x-user-id'] as string) || null;
-    const effectiveSessionId = sessionId || headers?.['x-session-id'] as string;
+    const effectiveUserId =
+      userId || (headers?.["x-user-id"] as string) || null;
+    const effectiveSessionId =
+      sessionId || (headers?.["x-session-id"] as string);
 
     this.logger.log(
-      `Getting recommendations for user ${effectiveUserId || 'anonymous'} ` +
-      `with capabilities: ${capabilityList.join(', ') || 'none'}`,
+      `Getting recommendations for user ${effectiveUserId || "anonymous"} ` +
+        `with capabilities: ${capabilityList.join(", ") || "none"}`,
     );
 
     return this.recommendationService.getRecommendations({
@@ -57,7 +59,7 @@ export class RecommendationController {
   /**
    * Submit feedback on a recommendation
    */
-  @Post('feedback')
+  @Post("feedback")
   async submitFeedback(@Body() body: any): Promise<any> {
     const dto: SubmitFeedbackDto = {
       userId: body.userId,
@@ -69,7 +71,7 @@ export class RecommendationController {
     };
 
     const feedback = await this.feedbackService.submitFeedback(dto);
-    
+
     this.logger.log(
       `Feedback received: ${dto.feedbackType} for agent ${dto.agentId}`,
     );
@@ -77,14 +79,14 @@ export class RecommendationController {
     return {
       success: true,
       data: feedback,
-      message: 'Feedback recorded successfully',
+      message: "Feedback recorded successfully",
     };
   }
 
   /**
    * Record an interaction with a recommendation
    */
-  @Post('interactions')
+  @Post("interactions")
   async recordInteraction(@Body() body: any): Promise<any> {
     const dto = {
       userId: body.userId,
@@ -105,17 +107,17 @@ export class RecommendationController {
     return {
       success: true,
       data: interaction,
-      message: 'Interaction recorded successfully',
+      message: "Interaction recorded successfully",
     };
   }
 
   /**
    * Get feedback statistics for an agent
    */
-  @Get('agents/:agentId/stats')
-  async getAgentStats(@Param('agentId') agentId: string): Promise<any> {
+  @Get("agents/:agentId/stats")
+  async getAgentStats(@Param("agentId") agentId: string): Promise<any> {
     const stats = await this.feedbackService.getAgentFeedbackStats(agentId);
-    
+
     return {
       success: true,
       data: stats,
@@ -125,10 +127,10 @@ export class RecommendationController {
   /**
    * Get user's feedback history
    */
-  @Get('users/:userId/feedback')
+  @Get("users/:userId/feedback")
   async getUserFeedback(
-    @Param('userId') userId: string,
-    @Query('limit') limit?: number,
+    @Param("userId") userId: string,
+    @Query("limit") limit?: number,
   ): Promise<any> {
     const parsedLimit = limit ? parseInt(limit.toString(), 10) : 50;
     const feedback = await this.feedbackService.getUserFeedbackHistory(
@@ -146,12 +148,12 @@ export class RecommendationController {
   /**
    * Train the ML model manually (admin endpoint)
    */
-  @Post('train')
+  @Post("train")
   async trainModel(): Promise<any> {
-    this.logger.log('Manual model training triggered');
-    
+    this.logger.log("Manual model training triggered");
+
     await this.mlModelService.trainModel();
-    
+
     const weights = this.mlModelService.getModelWeights();
     const importance = this.mlModelService.getFeatureImportance();
 
@@ -161,14 +163,14 @@ export class RecommendationController {
         weights,
         featureImportance: importance,
       },
-      message: 'Model trained successfully',
+      message: "Model trained successfully",
     };
   }
 
   /**
    * Get current model information (for debugging/auditing)
    */
-  @Get('model/info')
+  @Get("model/info")
   async getModelInfo(): Promise<any> {
     const weights = this.mlModelService.getModelWeights();
     const importance = this.mlModelService.getFeatureImportance();
@@ -176,10 +178,10 @@ export class RecommendationController {
     return {
       success: true,
       data: {
-        modelType: 'Logistic Regression',
+        modelType: "Logistic Regression",
         weights,
         featureImportance: importance,
-        description: 'ML-based ranking system for agent recommendations',
+        description: "ML-based ranking system for agent recommendations",
       },
     };
   }
@@ -187,9 +189,9 @@ export class RecommendationController {
   /**
    * Quick feedback endpoints for common actions
    */
-  @Post(':agentId/click')
+  @Post(":agentId/click")
   async recordClick(
-    @Param('agentId') agentId: string,
+    @Param("agentId") agentId: string,
     @Body() body: any,
   ): Promise<any> {
     await this.feedbackService.recordInteraction({
@@ -199,12 +201,12 @@ export class RecommendationController {
       sessionId: body.sessionId,
     });
 
-    return { success: true, message: 'Click recorded' };
+    return { success: true, message: "Click recorded" };
   }
 
-  @Post(':agentId/dismiss')
+  @Post(":agentId/dismiss")
   async recordDismiss(
-    @Param('agentId') agentId: string,
+    @Param("agentId") agentId: string,
     @Body() body: any,
   ): Promise<any> {
     await this.feedbackService.recordInteraction({
@@ -214,12 +216,12 @@ export class RecommendationController {
       sessionId: body.sessionId,
     });
 
-    return { success: true, message: 'Dismissal recorded' };
+    return { success: true, message: "Dismissal recorded" };
   }
 
-  @Post(':agentId/use')
+  @Post(":agentId/use")
   async recordUsage(
-    @Param('agentId') agentId: string,
+    @Param("agentId") agentId: string,
     @Body() body: any,
   ): Promise<any> {
     await this.feedbackService.submitFeedback({
@@ -229,6 +231,6 @@ export class RecommendationController {
       sessionId: body.sessionId,
     });
 
-    return { success: true, message: 'Usage recorded' };
+    return { success: true, message: "Usage recorded" };
   }
 }

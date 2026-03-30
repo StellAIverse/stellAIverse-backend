@@ -37,14 +37,17 @@ export class BlockFetchProcessor {
     private readonly eventQueue: Queue,
     @InjectQueue("indexer-blocks")
     private readonly blockQueue: Queue,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {
     const rpcUrl =
       this.configService.get<string>("INDEXER_RPC_URL") ||
       this.configService.get<string>("RPC_URL") ||
       "http://localhost:8545";
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
-    this.confirmations = this.configService.get<number>("INDEXER_CONFIRMATIONS", 6);
+    this.confirmations = this.configService.get<number>(
+      "INDEXER_CONFIRMATIONS",
+      6,
+    );
   }
 
   /**
@@ -60,14 +63,16 @@ export class BlockFetchProcessor {
     const startTime = Date.now();
 
     this.logger.log(
-      `Instance ${instanceId} fetching blocks ${range.fromBlock}-${range.toBlock} (shard: ${range.shardId})`
+      `Instance ${instanceId} fetching blocks ${range.fromBlock}-${range.toBlock} (shard: ${range.shardId})`,
     );
 
     try {
       // Extend lock to prevent expiration during long processing
       await this.blockCoordinator.extendRangeLock(range, instanceId);
 
-      const contractAddress = this.configService.get<string>("INDEXER_CONTRACT_ADDRESS");
+      const contractAddress = this.configService.get<string>(
+        "INDEXER_CONTRACT_ADDRESS",
+      );
       const topic0 = this.configService.get<string>("INDEXER_TOPIC0");
 
       const events: IndexerEvent[] = [];
@@ -75,7 +80,10 @@ export class BlockFetchProcessor {
 
       // Fetch logs in smaller batches to avoid RPC limits
       while (currentFrom <= range.toBlock) {
-        const currentTo = Math.min(currentFrom + this.batchSize - 1, range.toBlock);
+        const currentTo = Math.min(
+          currentFrom + this.batchSize - 1,
+          range.toBlock,
+        );
 
         const filter: ethers.Filter = {
           fromBlock: currentFrom,
@@ -90,14 +98,17 @@ export class BlockFetchProcessor {
 
           for (const log of logs) {
             const block = await this.provider.getBlock(Number(log.blockNumber));
-            
+
             const event: IndexerEvent = {
               blockNumber: String(Number(log.blockNumber)),
               blockHash: block ? block.hash : log.blockHash,
               txHash: log.transactionHash,
               logIndex: Number(log.index),
               address: log.address,
-              topic0: log.topics && log.topics.length > 0 ? String(log.topics[0]) : undefined,
+              topic0:
+                log.topics && log.topics.length > 0
+                  ? String(log.topics[0])
+                  : undefined,
               data: log.data,
               topics: log.topics,
               shardId: range.shardId,
@@ -107,7 +118,7 @@ export class BlockFetchProcessor {
           }
         } catch (error) {
           this.logger.error(
-            `Failed to fetch logs for blocks ${currentFrom}-${currentTo}: ${error.message}`
+            `Failed to fetch logs for blocks ${currentFrom}-${currentTo}: ${error.message}`,
           );
           throw error;
         }
@@ -131,7 +142,7 @@ export class BlockFetchProcessor {
 
       const duration = Date.now() - startTime;
       this.logger.log(
-        `Range ${range.fromBlock}-${range.toBlock} completed: ${events.length} events in ${duration}ms`
+        `Range ${range.fromBlock}-${range.toBlock} completed: ${events.length} events in ${duration}ms`,
       );
 
       // Emit metrics
@@ -151,7 +162,7 @@ export class BlockFetchProcessor {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to process range ${range.fromBlock}-${range.toBlock}: ${error.message}`
+        `Failed to process range ${range.fromBlock}-${range.toBlock}: ${error.message}`,
       );
 
       // Handle retry logic
@@ -164,9 +175,11 @@ export class BlockFetchProcessor {
             instanceId,
             retryCount: retryCount + 1,
           },
-          { delay }
+          { delay },
         );
-        this.logger.warn(`Re-queued range with ${delay}ms delay (retry ${retryCount + 1})`);
+        this.logger.warn(
+          `Re-queued range with ${delay}ms delay (retry ${retryCount + 1})`,
+        );
       } else {
         // Release the range so another instance can try
         await this.blockCoordinator.releaseBlockRange(range);
@@ -201,7 +214,7 @@ export class BlockFetchProcessor {
 
       if (block.hash !== expectedHash) {
         this.logger.warn(
-          `Reorg detected at block ${blockNumber}: expected ${expectedHash}, got ${block.hash}`
+          `Reorg detected at block ${blockNumber}: expected ${expectedHash}, got ${block.hash}`,
         );
 
         // Emit reorg event
@@ -217,7 +230,9 @@ export class BlockFetchProcessor {
 
       return { hasReorg: false, reorgBlock: null };
     } catch (error) {
-      this.logger.error(`Reorg check failed for block ${blockNumber}: ${error.message}`);
+      this.logger.error(
+        `Reorg check failed for block ${blockNumber}: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -227,7 +242,7 @@ export class BlockFetchProcessor {
    */
   private async queueEventsForIngestion(
     events: IndexerEvent[],
-    range: BlockRange
+    range: BlockRange,
   ): Promise<void> {
     const batchSize = 100; // Optimal batch size for database inserts
 
@@ -244,7 +259,9 @@ export class BlockFetchProcessor {
       });
     }
 
-    this.logger.debug(`Queued ${events.length} events for ingestion in ${Math.ceil(events.length / batchSize)} batches`);
+    this.logger.debug(
+      `Queued ${events.length} events for ingestion in ${Math.ceil(events.length / batchSize)} batches`,
+    );
   }
 
   /**
@@ -254,7 +271,7 @@ export class BlockFetchProcessor {
   async onFailed(job: Job<BlockFetchJob | ReorgCheckJob>, error: Error) {
     this.logger.error(
       `Block processor job ${job.id} (${job.name}) failed: ${error.message}`,
-      error.stack
+      error.stack,
     );
 
     this.eventEmitter.emit("indexer.block.failed", {

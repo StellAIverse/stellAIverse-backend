@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 /**
  * Email template for referral invitation
@@ -41,7 +41,7 @@ export class ReferralEmailTemplates {
               <p>Hello!</p>
               <p><strong>${this.escapeHtml(data.referrerName)}</strong> has invited you to join StellAIverse - the AI-powered agent platform.</p>
               
-              ${data.message ? `<div class="message-box"><p>"${this.escapeHtml(data.message)}"</p></div>` : ''}
+              ${data.message ? `<div class="message-box"><p>"${this.escapeHtml(data.message)}"</p></div>` : ""}
               
               <p>Join thousands of users leveraging AI agents for trading, analysis, and automation.</p>
               
@@ -84,7 +84,7 @@ Hello!
 
 ${data.referrerName} has invited you to join StellAIverse - the AI-powered agent platform.
 
-${data.message ? `Message from ${data.referrerName}: "${data.message}"` : ''}
+${data.message ? `Message from ${data.referrerName}: "${data.message}"` : ""}
 
 Join thousands of users leveraging AI agents for trading, analysis, and automation.
 
@@ -108,11 +108,11 @@ This invitation is exclusively for ${data.refereeEmail}.
    */
   private escapeHtml(text: string): string {
     const map: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;',
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }

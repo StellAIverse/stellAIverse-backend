@@ -1,9 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { RecommendationFeedback, FeedbackType } from './entities/recommendation-feedback.entity';
-import { RecommendationInteraction, InteractionType } from './entities/recommendation-interaction.entity';
-import { MLModelService } from './ml-model.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between } from "typeorm";
+import {
+  RecommendationFeedback,
+  FeedbackType,
+} from "./entities/recommendation-feedback.entity";
+import {
+  RecommendationInteraction,
+  InteractionType,
+} from "./entities/recommendation-interaction.entity";
+import { MLModelService } from "./ml-model.service";
 
 /**
  * DTO for submitting feedback
@@ -48,11 +54,13 @@ export class FeedbackService {
   /**
    * Submit explicit or implicit feedback
    */
-  async submitFeedback(dto: SubmitFeedbackDto): Promise<RecommendationFeedback> {
+  async submitFeedback(
+    dto: SubmitFeedbackDto,
+  ): Promise<RecommendationFeedback> {
     // Validate rating if provided
     if (dto.rating !== undefined && dto.rating !== null) {
       if (dto.rating < 1 || dto.rating > 5) {
-        throw new Error('Rating must be between 1 and 5');
+        throw new Error("Rating must be between 1 and 5");
       }
     }
 
@@ -69,16 +77,16 @@ export class FeedbackService {
 
     this.logger.log(
       `Feedback received: ${dto.feedbackType} for agent ${dto.agentId}` +
-      (dto.userId ? ` from user ${dto.userId}` : ''),
+        (dto.userId ? ` from user ${dto.userId}` : ""),
     );
 
     // Trigger model retraining periodically (every 100 feedback items)
     const feedbackCount = await this.feedbackRepository.count();
     if (feedbackCount % 100 === 0) {
-      this.logger.log('Triggering periodic model retraining...');
-      this.mlModelService.trainModel().catch(err => 
-        this.logger.error('Failed to train model', err),
-      );
+      this.logger.log("Triggering periodic model retraining...");
+      this.mlModelService
+        .trainModel()
+        .catch((err) => this.logger.error("Failed to train model", err));
     }
 
     return feedback;
@@ -87,7 +95,9 @@ export class FeedbackService {
   /**
    * Record a user interaction with a recommendation
    */
-  async recordInteraction(dto: RecordInteractionDto): Promise<RecommendationInteraction> {
+  async recordInteraction(
+    dto: RecordInteractionDto,
+  ): Promise<RecommendationInteraction> {
     const interaction = this.interactionRepository.create({
       userId: dto.userId || null,
       agentId: dto.agentId,
@@ -102,7 +112,7 @@ export class FeedbackService {
 
     this.logger.log(
       `Interaction recorded: ${dto.interactionType} for agent ${dto.agentId}` +
-      (dto.userId ? ` from user ${dto.userId}` : ''),
+        (dto.userId ? ` from user ${dto.userId}` : ""),
     );
 
     return interaction;
@@ -123,24 +133,37 @@ export class FeedbackService {
     });
 
     const ratings = feedbackList
-      .filter(f => f.feedbackType === FeedbackType.EXPLICIT_RATING && f.rating)
-      .map(f => f.rating!);
+      .filter(
+        (f) => f.feedbackType === FeedbackType.EXPLICIT_RATING && f.rating,
+      )
+      .map((f) => f.rating!);
 
-    const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    ratings.forEach(r => distribution[r]++);
+    const distribution: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+    ratings.forEach((r) => distribution[r]++);
 
-    const averageRating = ratings.length > 0
-      ? ratings.reduce((a, b) => a + b, 0) / ratings.length
-      : 0;
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+        : 0;
 
     const positiveCount = feedbackList.filter(
-      f => f.feedbackType === FeedbackType.USAGE || 
-           (f.feedbackType === FeedbackType.EXPLICIT_RATING && (f.rating ?? 0) >= 4)
+      (f) =>
+        f.feedbackType === FeedbackType.USAGE ||
+        (f.feedbackType === FeedbackType.EXPLICIT_RATING &&
+          (f.rating ?? 0) >= 4),
     ).length;
 
     const negativeCount = feedbackList.filter(
-      f => f.feedbackType === FeedbackType.DISMISS || 
-           (f.feedbackType === FeedbackType.EXPLICIT_RATING && (f.rating ?? 0) <= 2)
+      (f) =>
+        f.feedbackType === FeedbackType.DISMISS ||
+        (f.feedbackType === FeedbackType.EXPLICIT_RATING &&
+          (f.rating ?? 0) <= 2),
     ).length;
 
     return {
@@ -161,7 +184,7 @@ export class FeedbackService {
   ): Promise<RecommendationFeedback[]> {
     return this.feedbackRepository.find({
       where: { userId },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -175,7 +198,7 @@ export class FeedbackService {
     limit = 100,
   ): Promise<RecommendationInteraction[]> {
     const where: any = {};
-    
+
     if (userId) {
       where.userId = userId;
     } else if (sessionId) {
@@ -184,7 +207,7 @@ export class FeedbackService {
 
     return this.interactionRepository.find({
       where,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
   }
@@ -200,14 +223,16 @@ export class FeedbackService {
       where: {
         createdAt: Between(past, now),
       },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
   }
 
   /**
    * Get recent interactions for analytics
    */
-  async getRecentInteractions(hours = 24): Promise<RecommendationInteraction[]> {
+  async getRecentInteractions(
+    hours = 24,
+  ): Promise<RecommendationInteraction[]> {
     const now = new Date();
     const past = new Date(now.getTime() - hours * 60 * 60 * 1000);
 
@@ -215,7 +240,7 @@ export class FeedbackService {
       where: {
         createdAt: Between(past, now),
       },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
   }
 
@@ -236,7 +261,7 @@ export class FeedbackService {
 
     // This is a simplified example - in production, you'd want to batch delete
     this.logger.log(`Clearing data older than ${daysOld} days...`);
-    
+
     // Note: TypeORM doesn't support bulk delete with date conditions easily
     // You might need to implement this differently based on your needs
   }

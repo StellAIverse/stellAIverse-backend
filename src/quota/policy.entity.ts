@@ -1,8 +1,8 @@
 export enum PolicyScope {
-  USER = 'USER',
-  AGENT = 'AGENT',
-  ENDPOINT = 'ENDPOINT',
-  GLOBAL = 'GLOBAL',
+  USER = "USER",
+  AGENT = "AGENT",
+  ENDPOINT = "ENDPOINT",
+  GLOBAL = "GLOBAL",
 }
 
 export class PolicyEntity {

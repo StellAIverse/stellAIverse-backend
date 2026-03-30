@@ -96,7 +96,11 @@ export class AgentService {
     });
   }
 
-  reportError(agentId: string, error: string, severity: "warning" | "error" | "critical" = "error") {
+  reportError(
+    agentId: string,
+    error: string,
+    severity: "warning" | "error" | "critical" = "error",
+  ) {
     this.telemetryGateway.broadcastTelemetry({
       agentId,
       type: "error",
@@ -125,7 +129,7 @@ export class AgentService {
       status: ProvenanceStatus.SUCCESS,
       clientIp: metadata?.clientIp,
       userAgent: metadata?.userAgent,
-      metadata: { event: 'request_received' },
+      metadata: { event: "request_received" },
     });
 
     this.logger.log(`Logged request received for agent ${agentId}`);
@@ -150,7 +154,7 @@ export class AgentService {
       status: ProvenanceStatus.PENDING,
       provider,
       providerModel,
-      metadata: { event: 'provider_call_initiated' },
+      metadata: { event: "provider_call_initiated" },
     });
 
     this.logger.log(`Logged provider call for agent ${agentId} to ${provider}`);
@@ -177,7 +181,7 @@ export class AgentService {
       status: ProvenanceStatus.SUCCESS,
       provider,
       processingDurationMs,
-      metadata: { event: 'result_normalized' },
+      metadata: { event: "result_normalized" },
     });
 
     this.logger.log(`Logged result normalization for agent ${agentId}`);
@@ -204,10 +208,12 @@ export class AgentService {
       status: ProvenanceStatus.SUCCESS,
       provider,
       onChainTxHash,
-      metadata: { event: 'submission_confirmed' },
+      metadata: { event: "submission_confirmed" },
     });
 
-    this.logger.log(`Logged submission for agent ${agentId} with tx ${onChainTxHash}`);
+    this.logger.log(
+      `Logged submission for agent ${agentId} with tx ${onChainTxHash}`,
+    );
     return record.id;
   }
 
@@ -230,7 +236,7 @@ export class AgentService {
       status: ProvenanceStatus.FAILED,
       error,
       provider,
-      metadata: { event: 'error_occurred' },
+      metadata: { event: "error_occurred" },
     });
 
     this.logger.log(`Logged error for agent ${agentId}: ${error}`);
@@ -254,4 +260,3 @@ export class AgentService {
     this.logger.log(`Updated provenance record ${recordId}`);
   }
 }
-

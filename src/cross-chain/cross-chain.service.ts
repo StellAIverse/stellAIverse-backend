@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import {
   InitiateSwapDto,
   SwapStatusDto,
   CrossChainPriceDto,
   SupportedChain,
-} from './dto/cross-chain.dto';
+} from "./dto/cross-chain.dto";
 
 @Injectable()
 export class CrossChainService {
@@ -29,17 +29,22 @@ export class CrossChainService {
 
     const swap: SwapStatusDto = {
       swapId,
-      status: 'pending',
+      status: "pending",
       sourceChain: dto.sourceChain,
       destinationChain: dto.destinationChain,
       estimatedGasFee: bridgeFee * dto.amount,
-      estimatedTime: this.estimateBridgeTime(dto.sourceChain, dto.destinationChain),
+      estimatedTime: this.estimateBridgeTime(
+        dto.sourceChain,
+        dto.destinationChain,
+      ),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     this.swaps.set(swapId, swap);
-    this.logger.log(`Initiated cross-chain swap ${swapId}: ${dto.sourceChain} -> ${dto.destinationChain}`);
+    this.logger.log(
+      `Initiated cross-chain swap ${swapId}: ${dto.sourceChain} -> ${dto.destinationChain}`,
+    );
 
     // Simulate async bridge processing
     this.processBridgeAsync(swapId, dto);
@@ -79,14 +84,24 @@ export class CrossChainService {
     return Object.values(SupportedChain);
   }
 
-  getSupportedBridges(): { source: SupportedChain; destination: SupportedChain; fee: number }[] {
+  getSupportedBridges(): {
+    source: SupportedChain;
+    destination: SupportedChain;
+    fee: number;
+  }[] {
     return Object.entries(this.BRIDGE_FEES).map(([key, fee]) => {
-      const [source, destination] = key.split('-') as [SupportedChain, SupportedChain];
+      const [source, destination] = key.split("-") as [
+        SupportedChain,
+        SupportedChain,
+      ];
       return { source, destination, fee };
     });
   }
 
-  private getBridgeFee(source: SupportedChain, destination: SupportedChain): number {
+  private getBridgeFee(
+    source: SupportedChain,
+    destination: SupportedChain,
+  ): number {
     return (
       this.BRIDGE_FEES[`${source}-${destination}`] ??
       this.BRIDGE_FEES[`${destination}-${source}`] ??
@@ -94,7 +109,10 @@ export class CrossChainService {
     );
   }
 
-  private estimateBridgeTime(source: SupportedChain, destination: SupportedChain): number {
+  private estimateBridgeTime(
+    source: SupportedChain,
+    destination: SupportedChain,
+  ): number {
     const times: Partial<Record<SupportedChain, number>> = {
       [SupportedChain.ETHEREUM]: 900,
       [SupportedChain.POLYGON]: 120,
@@ -110,7 +128,10 @@ export class CrossChainService {
     return Math.min(amount / 10_000_000, 0.05);
   }
 
-  private async processBridgeAsync(swapId: string, dto: InitiateSwapDto): Promise<void> {
+  private async processBridgeAsync(
+    swapId: string,
+    dto: InitiateSwapDto,
+  ): Promise<void> {
     const swap = this.swaps.get(swapId);
     if (!swap) return;
 
@@ -118,22 +139,28 @@ export class CrossChainService {
     setTimeout(() => {
       const s = this.swaps.get(swapId);
       if (s) {
-        s.status = 'bridging';
+        s.status = "bridging";
         s.sourceTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
         s.updatedAt = new Date();
       }
     }, 2000);
 
     // Simulate destination chain settlement
-    const settlementTime = this.estimateBridgeTime(dto.sourceChain, dto.destinationChain);
-    setTimeout(() => {
-      const s = this.swaps.get(swapId);
-      if (s) {
-        s.status = 'completed';
-        s.destinationTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
-        s.updatedAt = new Date();
-        this.logger.log(`Swap ${swapId} completed`);
-      }
-    }, Math.min(settlementTime * 10, 30000)); // Scaled down for demo
+    const settlementTime = this.estimateBridgeTime(
+      dto.sourceChain,
+      dto.destinationChain,
+    );
+    setTimeout(
+      () => {
+        const s = this.swaps.get(swapId);
+        if (s) {
+          s.status = "completed";
+          s.destinationTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
+          s.updatedAt = new Date();
+          this.logger.log(`Swap ${swapId} completed`);
+        }
+      },
+      Math.min(settlementTime * 10, 30000),
+    ); // Scaled down for demo
   }
 }

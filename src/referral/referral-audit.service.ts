@@ -1,20 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Referral, ReferralStatus } from '../entities/referral.entity';
-import { AbuseFlag } from '../referral.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Referral, ReferralStatus } from "../entities/referral.entity";
+import { AbuseFlag } from "../referral.service";
 
 /**
  * Audit event types for referral system
  */
 export enum ReferralAuditEvent {
-  REFERRAL_CODE_CREATED = 'referral_code_created',
-  REFERRAL_CODE_CLAIMED = 'referral_code_claimed',
-  ABUSE_FLAG_DETECTED = 'abuse_flag_detected',
-  REFERRAL_SUSPENDED = 'referral_suspended',
-  REFERRAL_REACTIVATED = 'referral_reactivated',
-  RATE_LIMIT_EXCEEDED = 'rate_limit_exceeded',
-  SUSPICIOUS_PATTERN_DETECTED = 'suspicious_pattern_detected',
+  REFERRAL_CODE_CREATED = "referral_code_created",
+  REFERRAL_CODE_CLAIMED = "referral_code_claimed",
+  ABUSE_FLAG_DETECTED = "abuse_flag_detected",
+  REFERRAL_SUSPENDED = "referral_suspended",
+  REFERRAL_REACTIVATED = "referral_reactivated",
+  RATE_LIMIT_EXCEEDED = "rate_limit_exceeded",
+  SUSPICIOUS_PATTERN_DETECTED = "suspicious_pattern_detected",
 }
 
 /**
@@ -166,7 +166,13 @@ export class ReferralAuditService {
     // For now, we can retrieve the referral with its abuse flags
     return this.referralRepository.findOne({
       where: { id: referralId },
-      select: ['id', 'abuseFlags', 'securityMetadata', 'createdAt', 'updatedAt'],
+      select: [
+        "id",
+        "abuseFlags",
+        "securityMetadata",
+        "createdAt",
+        "updatedAt",
+      ],
     });
   }
 
@@ -178,12 +184,12 @@ export class ReferralAuditService {
     endDate: Date,
   ): Promise<Referral[]> {
     return this.referralRepository
-      .createQueryBuilder('referral')
+      .createQueryBuilder("referral")
       .where('"abuseFlags" IS NOT NULL')
       .andWhere('array_length("abuseFlags", 1) > 0')
       .andWhere('"createdAt" >= :startDate', { startDate })
       .andWhere('"createdAt" <= :endDate', { endDate })
-      .orderBy('"createdAt"', 'DESC')
+      .orderBy('"createdAt"', "DESC")
       .getMany();
   }
 
@@ -202,26 +208,26 @@ export class ReferralAuditService {
   }> {
     const [total, claimed, flagged, suspended] = await Promise.all([
       this.referralRepository
-        .createQueryBuilder('referral')
+        .createQueryBuilder("referral")
         .where('"createdAt" >= :startDate', { startDate })
         .andWhere('"createdAt" <= :endDate', { endDate })
         .getCount(),
       this.referralRepository
-        .createQueryBuilder('referral')
-        .where('claimed = :claimed', { claimed: true })
+        .createQueryBuilder("referral")
+        .where("claimed = :claimed", { claimed: true })
         .andWhere('"createdAt" >= :startDate', { startDate })
         .andWhere('"createdAt" <= :endDate', { endDate })
         .getCount(),
       this.referralRepository
-        .createQueryBuilder('referral')
+        .createQueryBuilder("referral")
         .where('"abuseFlags" IS NOT NULL')
         .andWhere('array_length("abuseFlags", 1) > 0')
         .andWhere('"createdAt" >= :startDate', { startDate })
         .andWhere('"createdAt" <= :endDate', { endDate })
         .getCount(),
       this.referralRepository
-        .createQueryBuilder('referral')
-        .where('status = :status', { status: ReferralStatus.SUSPENDED })
+        .createQueryBuilder("referral")
+        .where("status = :status", { status: ReferralStatus.SUSPENDED })
         .andWhere('"createdAt" >= :startDate', { startDate })
         .andWhere('"createdAt" <= :endDate', { endDate })
         .getCount(),
@@ -229,7 +235,7 @@ export class ReferralAuditService {
 
     // Get abuse type breakdown
     const flaggedReferrals = await this.referralRepository
-      .createQueryBuilder('referral')
+      .createQueryBuilder("referral")
       .select('"abuseFlags"')
       .where('"abuseFlags" IS NOT NULL')
       .andWhere('"createdAt" >= :startDate', { startDate })

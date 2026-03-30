@@ -1,4 +1,11 @@
-import { IsString, IsNumber, IsOptional, IsObject, IsArray, IsBoolean } from "class-validator";
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsObject,
+  IsArray,
+  IsBoolean,
+} from "class-validator";
 
 export class BlockRangeDto {
   @IsNumber()

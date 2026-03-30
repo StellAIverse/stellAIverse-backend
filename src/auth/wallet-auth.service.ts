@@ -114,7 +114,12 @@ export class WalletAuthService {
     signature: string,
     walletName?: string,
     clientInfo?: { ip?: string; userAgent?: string },
-  ): Promise<{ message: string; walletId: string; walletAddress: string; type: WalletType }> {
+  ): Promise<{
+    message: string;
+    walletId: string;
+    walletAddress: string;
+    type: WalletType;
+  }> {
     // Normalize address
     const normalizedNew = newWalletAddress.toLowerCase();
 
@@ -151,7 +156,9 @@ export class WalletAuthService {
 
     if (existingWallet) {
       if (existingWallet.userId === currentUserId) {
-        throw new ConflictException("This wallet is already linked to your account");
+        throw new ConflictException(
+          "This wallet is already linked to your account",
+        );
       }
       throw new ConflictException(
         "This wallet address is already linked to another account",
@@ -164,7 +171,9 @@ export class WalletAuthService {
     });
 
     const isFirstWallet = existingWallets.length === 0;
-    const walletType = isFirstWallet ? WalletType.PRIMARY : WalletType.SECONDARY;
+    const walletType = isFirstWallet
+      ? WalletType.PRIMARY
+      : WalletType.SECONDARY;
 
     // Create new wallet record
     const wallet = this.walletRepository.create({
@@ -191,7 +200,9 @@ export class WalletAuthService {
       );
     }
 
-    this.logger.log(`Wallet linked: ${normalizedNew} for user ${currentUserId}`);
+    this.logger.log(
+      `Wallet linked: ${normalizedNew} for user ${currentUserId}`,
+    );
 
     return {
       message: "Wallet successfully linked",
@@ -207,7 +218,7 @@ export class WalletAuthService {
   async getUserWallets(userId: string): Promise<Wallet[]> {
     return this.walletRepository.find({
       where: { userId },
-      order: { isPrimary: 'DESC', createdAt: 'ASC' },
+      order: { isPrimary: "DESC", createdAt: "ASC" },
     });
   }
 
@@ -308,7 +319,7 @@ export class WalletAuthService {
     if (wallet.isPrimary) {
       const remainingWallet = await this.walletRepository.findOne({
         where: { userId, status: WalletStatus.ACTIVE, id: walletId },
-        order: { createdAt: 'ASC' },
+        order: { createdAt: "ASC" },
       });
 
       if (remainingWallet) {

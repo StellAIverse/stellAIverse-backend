@@ -1,5 +1,5 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AuthType as AuthTypeEnum } from '../strategies/interfaces/auth-strategy.interface';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { AuthType as AuthTypeEnum } from "../strategies/interfaces/auth-strategy.interface";
 
 /**
  * Decorator that extracts the authentication type from the request.

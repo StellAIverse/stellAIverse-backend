@@ -1,10 +1,20 @@
-import { Injectable, Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AuthStrategy, AuthResult, AuthPayload, OAuthCredentials } from '../interfaces/auth-strategy.interface';
-import { User } from '../../../user/entities/user.entity';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  AuthStrategy,
+  AuthResult,
+  AuthPayload,
+  OAuthCredentials,
+} from "../interfaces/auth-strategy.interface";
+import { User } from "../../../user/entities/user.entity";
 
 /**
  * OAuth provider configuration
@@ -34,7 +44,7 @@ interface OAuthUserInfo {
  */
 @Injectable()
 export class OAuthStrategy implements AuthStrategy {
-  readonly name = 'oauth';
+  readonly name = "oauth";
   private readonly logger = new Logger(OAuthStrategy.name);
   private readonly providers = new Map<string, OAuthProviderConfig>();
 
@@ -52,26 +62,30 @@ export class OAuthStrategy implements AuthStrategy {
    */
   private initializeProviders(): void {
     // Google OAuth
-    if (this.configService.get<string>('OAUTH_GOOGLE_CLIENT_ID')) {
-      this.providers.set('google', {
-        clientId: this.configService.get<string>('OAUTH_GOOGLE_CLIENT_ID')!,
-        clientSecret: this.configService.get<string>('OAUTH_GOOGLE_CLIENT_SECRET')!,
-        authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-        tokenUrl: 'https://oauth2.googleapis.com/token',
-        userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
-        scopes: ['openid', 'email', 'profile'],
+    if (this.configService.get<string>("OAUTH_GOOGLE_CLIENT_ID")) {
+      this.providers.set("google", {
+        clientId: this.configService.get<string>("OAUTH_GOOGLE_CLIENT_ID")!,
+        clientSecret: this.configService.get<string>(
+          "OAUTH_GOOGLE_CLIENT_SECRET",
+        )!,
+        authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+        userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
+        scopes: ["openid", "email", "profile"],
       });
     }
 
     // GitHub OAuth
-    if (this.configService.get<string>('OAUTH_GITHUB_CLIENT_ID')) {
-      this.providers.set('github', {
-        clientId: this.configService.get<string>('OAUTH_GITHUB_CLIENT_ID')!,
-        clientSecret: this.configService.get<string>('OAUTH_GITHUB_CLIENT_SECRET')!,
-        authorizationUrl: 'https://github.com/login/oauth/authorize',
-        tokenUrl: 'https://github.com/login/oauth/access_token',
-        userInfoUrl: 'https://api.github.com/user',
-        scopes: ['user:email', 'read:user'],
+    if (this.configService.get<string>("OAUTH_GITHUB_CLIENT_ID")) {
+      this.providers.set("github", {
+        clientId: this.configService.get<string>("OAUTH_GITHUB_CLIENT_ID")!,
+        clientSecret: this.configService.get<string>(
+          "OAUTH_GITHUB_CLIENT_SECRET",
+        )!,
+        authorizationUrl: "https://github.com/login/oauth/authorize",
+        tokenUrl: "https://github.com/login/oauth/access_token",
+        userInfoUrl: "https://api.github.com/user",
+        scopes: ["user:email", "read:user"],
       });
     }
 
@@ -82,7 +96,10 @@ export class OAuthStrategy implements AuthStrategy {
    * Check if OAuth strategy is enabled
    */
   get isEnabled(): boolean {
-    return this.configService.get<boolean>('AUTH_OAUTH_ENABLED', false) && this.providers.size > 0;
+    return (
+      this.configService.get<boolean>("AUTH_OAUTH_ENABLED", false) &&
+      this.providers.size > 0
+    );
   }
 
   /**
@@ -101,7 +118,9 @@ export class OAuthStrategy implements AuthStrategy {
     const { provider, code } = credentials as OAuthCredentials;
 
     if (!provider || !code) {
-      throw new BadRequestException('Provider and authorization code are required');
+      throw new BadRequestException(
+        "Provider and authorization code are required",
+      );
     }
 
     const providerConfig = this.providers.get(provider);
@@ -123,14 +142,16 @@ export class OAuthStrategy implements AuthStrategy {
       sub: user.id,
       email: user.email,
       username: user.username,
-      role: user.role || 'user',
+      role: user.role || "user",
       iat: Math.floor(Date.now() / 1000),
-      type: 'oauth',
+      type: "oauth",
     };
 
     const token = this.jwtService.sign(payload);
 
-    this.logger.log(`User authenticated via OAuth (${provider}): ${user.email}`);
+    this.logger.log(
+      `User authenticated via OAuth (${provider}): ${user.email}`,
+    );
 
     return {
       token,
@@ -138,8 +159,8 @@ export class OAuthStrategy implements AuthStrategy {
         id: user.id,
         email: user.email,
         username: user.username,
-        role: user.role || 'user',
-        type: 'oauth',
+        role: user.role || "user",
+        type: "oauth",
       },
     };
   }
@@ -147,39 +168,50 @@ export class OAuthStrategy implements AuthStrategy {
   /**
    * Exchange authorization code for access token
    */
-  private async exchangeCodeForToken(config: OAuthProviderConfig, code: string): Promise<string> {
+  private async exchangeCodeForToken(
+    config: OAuthProviderConfig,
+    code: string,
+  ): Promise<string> {
     try {
       const response = await fetch(config.tokenUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
         },
         body: new URLSearchParams({
           client_id: config.clientId,
           client_secret: config.clientSecret,
           code,
-          grant_type: 'authorization_code',
-          redirect_uri: this.configService.get<string>('OAUTH_REDIRECT_URI', 'http://localhost:3000/auth/oauth/callback'),
+          grant_type: "authorization_code",
+          redirect_uri: this.configService.get<string>(
+            "OAUTH_REDIRECT_URI",
+            "http://localhost:3000/auth/oauth/callback",
+          ),
         }),
       });
 
       if (!response.ok) {
-        throw new UnauthorizedException('Failed to exchange OAuth code for token');
+        throw new UnauthorizedException(
+          "Failed to exchange OAuth code for token",
+        );
       }
 
       const data = await response.json();
       return data.access_token;
     } catch (error) {
-      this.logger.error('OAuth token exchange failed', error);
-      throw new UnauthorizedException('OAuth authentication failed');
+      this.logger.error("OAuth token exchange failed", error);
+      throw new UnauthorizedException("OAuth authentication failed");
     }
   }
 
   /**
    * Get user info from OAuth provider
    */
-  private async getUserInfo(config: OAuthProviderConfig, accessToken: string): Promise<OAuthUserInfo> {
+  private async getUserInfo(
+    config: OAuthProviderConfig,
+    accessToken: string,
+  ): Promise<OAuthUserInfo> {
     try {
       const response = await fetch(config.userInfoUrl, {
         headers: {
@@ -188,7 +220,9 @@ export class OAuthStrategy implements AuthStrategy {
       });
 
       if (!response.ok) {
-        throw new UnauthorizedException('Failed to fetch user info from OAuth provider');
+        throw new UnauthorizedException(
+          "Failed to fetch user info from OAuth provider",
+        );
       }
 
       const data = await response.json();
@@ -199,15 +233,18 @@ export class OAuthStrategy implements AuthStrategy {
         picture: data.picture || data.avatar_url,
       };
     } catch (error) {
-      this.logger.error('OAuth user info fetch failed', error);
-      throw new UnauthorizedException('OAuth authentication failed');
+      this.logger.error("OAuth user info fetch failed", error);
+      throw new UnauthorizedException("OAuth authentication failed");
     }
   }
 
   /**
    * Find existing user or create new one
    */
-  private async findOrCreateUser(userInfo: OAuthUserInfo, provider: string): Promise<User> {
+  private async findOrCreateUser(
+    userInfo: OAuthUserInfo,
+    provider: string,
+  ): Promise<User> {
     // Try to find user by email
     let user = await this.userRepository.findOne({
       where: { email: userInfo.email },
@@ -237,7 +274,7 @@ export class OAuthStrategy implements AuthStrategy {
     try {
       return this.jwtService.verify(token) as AuthPayload;
     } catch (error) {
-      this.logger.warn('Token validation failed', error);
+      this.logger.warn("Token validation failed", error);
       return null;
     }
   }

@@ -2,12 +2,12 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import { QueueModule } from "./compute-job-queue.module";
 import { QueueService } from "./queue.service";
-import { 
-  register, 
-  jobDuration, 
-  jobSuccessTotal, 
-  jobFailureTotal, 
-  queueLength 
+import {
+  register,
+  jobDuration,
+  jobSuccessTotal,
+  jobFailureTotal,
+  queueLength,
 } from "../config/metrics";
 
 describe("Queue Metrics Integration", () => {
@@ -47,7 +47,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get metrics
       const metrics = await register.metrics();
-      
+
       // Verify job_duration_seconds histogram exists
       expect(metrics).toContain("stellaiverse_job_duration_seconds");
       expect(metrics).toContain('job_type="data-processing"');
@@ -70,7 +70,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get metrics
       const metrics = await register.metrics();
-      
+
       // Verify failure metrics
       expect(metrics).toContain("stellaiverse_job_duration_seconds");
       expect(metrics).toContain('job_type="email-notification"');
@@ -81,8 +81,10 @@ describe("Queue Metrics Integration", () => {
   describe("Job Success/Failure Counters", () => {
     it("should increment success counter for completed jobs", async () => {
       // Get initial count
-      const initialMetrics = await register.getSingleMetricAsString("stellaiverse_job_success_total");
-      
+      const initialMetrics = await register.getSingleMetricAsString(
+        "stellaiverse_job_success_total",
+      );
+
       // Add and complete a job
       const job = await queueService.addComputeJob({
         type: "data-processing",
@@ -93,7 +95,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get updated metrics
       const metrics = await register.metrics();
-      
+
       // Verify success counter incremented
       expect(metrics).toContain("stellaiverse_job_success_total");
       expect(metrics).toContain('job_type="data-processing"');
@@ -114,7 +116,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get metrics
       const metrics = await register.metrics();
-      
+
       // Verify failure counter with reason
       expect(metrics).toContain("stellaiverse_job_failure_total");
       expect(metrics).toContain('job_type="email-notification"');
@@ -140,7 +142,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get metrics
       const metrics = await register.metrics();
-      
+
       // Verify queue length metrics exist
       expect(metrics).toContain("stellaiverse_queue_length");
       expect(metrics).toContain('queue_name="compute"');
@@ -157,7 +159,7 @@ describe("Queue Metrics Integration", () => {
 
       // Get metrics
       const metrics = await register.metrics();
-      
+
       // Verify dead letter queue metrics
       expect(metrics).toContain("stellaiverse_queue_length");
       expect(metrics).toContain('queue_name="dead_letter"');
@@ -185,12 +187,12 @@ describe("Queue Metrics Integration", () => {
 
       // Get all metrics
       const metrics = await register.metrics();
-      
+
       // Verify all expected metrics are present
       expect(metrics).toContain("stellaiverse_job_duration_seconds");
       expect(metrics).toContain("stellaiverse_job_success_total");
       expect(metrics).toContain("stellaiverse_queue_length");
-      
+
       // Verify metrics have proper labels
       expect(metrics).toContain('job_type="data-processing"');
       expect(metrics).toContain('job_type="report-generation"');
@@ -207,7 +209,7 @@ describe("Queue Metrics Integration", () => {
       await job.finished();
 
       const metrics = await register.metrics();
-      
+
       // Verify histogram buckets are present
       expect(metrics).toContain("stellaiverse_job_duration_seconds_bucket");
       expect(metrics).toContain('le="0.1"');
@@ -220,8 +222,12 @@ describe("Queue Metrics Integration", () => {
     });
 
     it("should label metrics with job type", async () => {
-      const jobTypes = ["data-processing", "ai-computation", "report-generation"];
-      
+      const jobTypes = [
+        "data-processing",
+        "ai-computation",
+        "report-generation",
+      ];
+
       for (const type of jobTypes) {
         const job = await queueService.addComputeJob({
           type,
@@ -231,7 +237,7 @@ describe("Queue Metrics Integration", () => {
       }
 
       const metrics = await register.metrics();
-      
+
       // Verify all job types are labeled
       for (const type of jobTypes) {
         expect(metrics).toContain(`job_type="${type}"`);

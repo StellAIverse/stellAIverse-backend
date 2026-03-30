@@ -6,8 +6,11 @@ import {
   IsArray,
   IsJSON,
   IsDateString,
-} from 'class-validator';
-import { RebalanceTrigger, RebalanceStatus } from '../entities/rebalancing-event.entity';
+} from "class-validator";
+import {
+  RebalanceTrigger,
+  RebalanceStatus,
+} from "../entities/rebalancing-event.entity";
 
 export class TriggerRebalancingDto {
   @IsString()

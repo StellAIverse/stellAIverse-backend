@@ -1,5 +1,12 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsArray, IsJSON } from 'class-validator';
-import { RiskTolerance, InvestmentGoal } from '../entities/risk-profile.entity';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsArray,
+  IsJSON,
+} from "class-validator";
+import { RiskTolerance, InvestmentGoal } from "../entities/risk-profile.entity";
 
 export class CreateRiskProfileDto {
   @IsString()

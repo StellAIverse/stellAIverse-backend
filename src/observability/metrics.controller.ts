@@ -11,7 +11,6 @@ import { register } from "../config/metrics";
 
 @Controller()
 export class MetricsController {
-
   // -------------------------------------
   // PROMETHEUS METRICS ENDPOINT
   // -------------------------------------

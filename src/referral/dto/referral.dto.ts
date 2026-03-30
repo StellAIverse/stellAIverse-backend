@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsIP, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsIP, MaxLength } from "class-validator";
 
 /**
  * DTO for creating a new referral code

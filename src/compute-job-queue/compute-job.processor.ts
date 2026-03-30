@@ -45,11 +45,13 @@ export class ComputeJobProcessor {
         await this.provenanceService.createProvenance(
           String(job.id),
           job.data,
-          job.data.providerId || 'default-provider',
+          job.data.providerId || "default-provider",
           job.data.providerModel,
         );
       } catch (error) {
-        this.logger.warn(`Failed to create provenance record: ${error.message}`);
+        this.logger.warn(
+          `Failed to create provenance record: ${error.message}`,
+        );
       }
     }
 
@@ -79,12 +81,18 @@ export class ComputeJobProcessor {
 
           // Mark provenance as completed even for cached results
           if (this.provenanceService) {
-            await this.provenanceService.markJobCompleted(String(job.id), cachedResult.result);
+            await this.provenanceService.markJobCompleted(
+              String(job.id),
+              cachedResult.result,
+            );
           }
 
           // Record metrics for cached result
           const duration = (Date.now() - startTime) / 1000;
-          jobDuration.observe({ job_type: job.data.type, status: "cached" }, duration);
+          jobDuration.observe(
+            { job_type: job.data.type, status: "cached" },
+            duration,
+          );
           jobSuccessTotal.inc({ job_type: job.data.type });
 
           return {
@@ -128,7 +136,10 @@ export class ComputeJobProcessor {
 
       // Record success metrics
       const duration = (Date.now() - startTime) / 1000;
-      jobDuration.observe({ job_type: job.data.type, status: "success" }, duration);
+      jobDuration.observe(
+        { job_type: job.data.type, status: "success" },
+        duration,
+      );
       jobSuccessTotal.inc({ job_type: job.data.type });
 
       return {
@@ -140,10 +151,13 @@ export class ComputeJobProcessor {
 
       // Record failure metrics
       const duration = (Date.now() - startTime) / 1000;
-      jobDuration.observe({ job_type: job.data.type, status: "failed" }, duration);
-      jobFailureTotal.inc({ 
-        job_type: job.data.type, 
-        failure_reason: this.categorizeError(error) 
+      jobDuration.observe(
+        { job_type: job.data.type, status: "failed" },
+        duration,
+      );
+      jobFailureTotal.inc({
+        job_type: job.data.type,
+        failure_reason: this.categorizeError(error),
       });
 
       // Determine if we should retry or move to dead letter queue
@@ -408,16 +422,28 @@ export class ComputeJobProcessor {
    * Categorize error for metrics labeling
    */
   private categorizeError(error: Error): string {
-    if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
+    if (
+      error.message.includes("timeout") ||
+      error.message.includes("ETIMEDOUT")
+    ) {
       return "timeout";
     }
-    if (error.message.includes("network") || error.message.includes("ECONNREFUSED")) {
+    if (
+      error.message.includes("network") ||
+      error.message.includes("ECONNREFUSED")
+    ) {
       return "network";
     }
-    if (error.message.includes("validation") || error.message.includes("required")) {
+    if (
+      error.message.includes("validation") ||
+      error.message.includes("required")
+    ) {
       return "validation";
     }
-    if (error.message.includes("authentication") || error.message.includes("unauthorized")) {
+    if (
+      error.message.includes("authentication") ||
+      error.message.includes("unauthorized")
+    ) {
       return "authentication";
     }
     return "unknown";

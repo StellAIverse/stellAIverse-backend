@@ -1,6 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { RATE_LIMIT_KEY } from '../../common/decorators/rate-limit.decorator';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { RATE_LIMIT_KEY } from "../../common/decorators/rate-limit.decorator";
 
 /**
  * Custom guard for additional referral-specific rate limiting

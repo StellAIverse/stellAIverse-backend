@@ -6,8 +6,11 @@ import {
   IsArray,
   IsJSON,
   IsDateString,
-} from 'class-validator';
-import { OptimizationMethod, OptimizationStatus } from '../entities/optimization-history.entity';
+} from "class-validator";
+import {
+  OptimizationMethod,
+  OptimizationStatus,
+} from "../entities/optimization-history.entity";
 
 export class CreateOptimizationDto {
   @IsEnum(OptimizationMethod)

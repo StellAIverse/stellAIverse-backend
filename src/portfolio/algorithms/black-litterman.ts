@@ -40,18 +40,13 @@ export class BlackLittermanModel {
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
         portfolioVariance +=
-          marketCapWeights[i] *
-          marketCapWeights[j] *
-          covarianceMatrix[i][j];
+          marketCapWeights[i] * marketCapWeights[j] * covarianceMatrix[i][j];
       }
     }
 
     // Implied excess return (market return - risk-free rate adjusted)
     const tau = 0.025; // Scaling parameter
-    const adjustedCovMatrix = this.multiplyMatrix(
-      covarianceMatrix,
-      tau,
-    );
+    const adjustedCovMatrix = this.multiplyMatrix(covarianceMatrix, tau);
 
     // Step 3: Build view matrix and view returns
     const viewMatrix = this.buildViewMatrix(n, views);
@@ -74,10 +69,7 @@ export class BlackLittermanModel {
   /**
    * Build view matrix from investor views
    */
-  static buildViewMatrix(
-    n: number,
-    views: BlView[],
-  ): number[][] {
+  static buildViewMatrix(n: number, views: BlView[]): number[][] {
     const viewMatrix: number[][] = [];
 
     for (const view of views) {
@@ -105,9 +97,9 @@ export class BlackLittermanModel {
     const k = viewMatrix.length;
 
     // Uncertainty in views (inverse of confidence)
-    const omega = new Array(k).fill(0).map((_, i) => [
-      1 / Math.max(viewConfidence[i], 0.01),
-    ]);
+    const omega = new Array(k)
+      .fill(0)
+      .map((_, i) => [1 / Math.max(viewConfidence[i], 0.01)]);
 
     // Posterior precision = prior precision + view precision
     const precision = this.invertMatrix(tau_cov);
@@ -121,15 +113,14 @@ export class BlackLittermanModel {
     // Update based on views (simplified Bayesian update)
     for (let i = 0; i < k; i++) {
       for (let j = 0; j < n; j++) {
-        adjusted[j] +=
-          viewMatrix[i][j] * viewReturns[i] * viewConfidence[i];
+        adjusted[j] += viewMatrix[i][j] * viewReturns[i] * viewConfidence[i];
       }
     }
 
     // Normalize
     const sum = adjusted.reduce((a, b) => a + b);
     for (let i = 0; i < n; i++) {
-      adjusted[i] /= (sum / n);
+      adjusted[i] /= sum / n;
     }
 
     return adjusted;
@@ -151,24 +142,14 @@ export class BlackLittermanModel {
     }
 
     if (matrix.length === 2) {
-      const det =
-        matrix[0][0] * matrix[1][1] -
-        matrix[0][1] * matrix[1][0];
+      const det = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
       return [
-        [
-          matrix[1][1] / det,
-          -matrix[0][1] / det,
-        ],
-        [
-          -matrix[1][0] / det,
-          matrix[0][0] / det,
-        ],
+        [matrix[1][1] / det, -matrix[0][1] / det],
+        [-matrix[1][0] / det, matrix[0][0] / det],
       ];
     }
 
     // For larger matrices, use simplified approach
-    return matrix.map((row) =>
-      row.map((val) => (1 / val) * 0.1),
-    );
+    return matrix.map((row) => row.map((val) => (1 / val) * 0.1));
   }
 }

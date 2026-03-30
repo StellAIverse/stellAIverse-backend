@@ -1,20 +1,24 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
-import { MultiProviderOrchestrationService } from './multi-provider-orchestration.service';
-import { ConsensusService } from './consensus.service';
-import { ResponseNormalizerService } from './response-normalizer.service';
-import { AuditService } from './audit.service';
-import { ProviderRouterService } from '../router/provider-router.service';
-import { CircuitBreakerService } from '../router/circuit-breaker.service';
-import { ProviderHealthService } from '../router/provider-health.service';
-import { ProviderMetricsService } from '../router/provider-metrics.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
+import { MultiProviderOrchestrationService } from "./multi-provider-orchestration.service";
+import { ConsensusService } from "./consensus.service";
+import { ResponseNormalizerService } from "./response-normalizer.service";
+import { AuditService } from "./audit.service";
+import { ProviderRouterService } from "../router/provider-router.service";
+import { CircuitBreakerService } from "../router/circuit-breaker.service";
+import { ProviderHealthService } from "../router/provider-health.service";
+import { ProviderMetricsService } from "../router/provider-metrics.service";
 import {
   OrchestrationStrategy,
   OrchestratedRequestConfig,
   ProviderExecutionMode,
-} from './orchestration.interface';
-import { AIProviderType, ICompletionProvider, IProviderConfig } from '../provider.interface';
-import { CompletionRequestDto, MessageRole } from '../base.dto';
+} from "./orchestration.interface";
+import {
+  AIProviderType,
+  ICompletionProvider,
+  IProviderConfig,
+} from "../provider.interface";
+import { CompletionRequestDto, MessageRole } from "../base.dto";
 
 // Mock provider for testing
 class MockCompletionProvider implements ICompletionProvider {
@@ -65,22 +69,24 @@ class MockCompletionProvider implements ICompletionProvider {
     }
 
     if (this.responseDelay > 0) {
-      await new Promise(resolve => setTimeout(resolve, this.responseDelay));
+      await new Promise((resolve) => setTimeout(resolve, this.responseDelay));
     }
 
     return {
       id: `${this.providerType}-response-${Date.now()}`,
-      object: 'chat.completion',
+      object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
       model: request.model,
-      choices: [{
-        index: 0,
-        message: {
-          role: 'assistant',
-          content: this.responseContent,
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: this.responseContent,
+          },
+          finish_reason: "stop",
         },
-        finish_reason: 'stop',
-      }],
+      ],
       usage: {
         prompt_tokens: 10,
         completion_tokens: 20,
@@ -92,14 +98,16 @@ class MockCompletionProvider implements ICompletionProvider {
   async *streamComplete(request: CompletionRequestDto): AsyncGenerator<any> {
     yield {
       id: `${this.providerType}-stream-${Date.now()}`,
-      choices: [{
-        delta: { content: this.responseContent },
-      }],
+      choices: [
+        {
+          delta: { content: this.responseContent },
+        },
+      ],
     };
   }
 }
 
-describe('MultiProviderOrchestration Integration', () => {
+describe("MultiProviderOrchestration Integration", () => {
   let orchestrationService: MultiProviderOrchestrationService;
   let auditService: AuditService;
   let mockConfigService: Partial<ConfigService>;
@@ -138,13 +146,24 @@ describe('MultiProviderOrchestration Integration', () => {
       ],
     }).compile();
 
-    orchestrationService = module.get<MultiProviderOrchestrationService>(MultiProviderOrchestrationService);
+    orchestrationService = module.get<MultiProviderOrchestrationService>(
+      MultiProviderOrchestrationService,
+    );
     auditService = module.get<AuditService>(AuditService);
 
     // Create mock providers
-    openAIProvider = new MockCompletionProvider(AIProviderType.OPENAI, 'OpenAI response');
-    anthropicProvider = new MockCompletionProvider(AIProviderType.ANTHROPIC, 'Anthropic response');
-    googleProvider = new MockCompletionProvider(AIProviderType.GOOGLE, 'Google response');
+    openAIProvider = new MockCompletionProvider(
+      AIProviderType.OPENAI,
+      "OpenAI response",
+    );
+    anthropicProvider = new MockCompletionProvider(
+      AIProviderType.ANTHROPIC,
+      "Anthropic response",
+    );
+    googleProvider = new MockCompletionProvider(
+      AIProviderType.GOOGLE,
+      "Google response",
+    );
 
     // Register providers
     orchestrationService.registerProvider(openAIProvider, {
@@ -155,7 +174,7 @@ describe('MultiProviderOrchestration Integration', () => {
       weight: 1,
       costPer1KTokens: 0.01,
       qualityScore: 0.9,
-      apiConfig: { apiKey: 'test-openai-key' },
+      apiConfig: { apiKey: "test-openai-key" },
     });
 
     orchestrationService.registerProvider(anthropicProvider, {
@@ -166,7 +185,7 @@ describe('MultiProviderOrchestration Integration', () => {
       weight: 1,
       costPer1KTokens: 0.015,
       qualityScore: 0.9,
-      apiConfig: { apiKey: 'test-anthropic-key' },
+      apiConfig: { apiKey: "test-anthropic-key" },
     });
 
     orchestrationService.registerProvider(googleProvider, {
@@ -177,7 +196,7 @@ describe('MultiProviderOrchestration Integration', () => {
       weight: 1,
       costPer1KTokens: 0.005,
       qualityScore: 0.85,
-      apiConfig: { apiKey: 'test-google-key' },
+      apiConfig: { apiKey: "test-google-key" },
     });
   });
 
@@ -185,12 +204,12 @@ describe('MultiProviderOrchestration Integration', () => {
     auditService.clearAuditLog();
   });
 
-  describe('Single Strategy', () => {
-    it('should execute with single provider', async () => {
+  describe("Single Strategy", () => {
+    it("should execute with single provider", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -202,17 +221,17 @@ describe('MultiProviderOrchestration Integration', () => {
 
       expect(result.strategy).toBe(OrchestrationStrategy.SINGLE);
       expect(result.allResponses).toHaveLength(1);
-      expect(result.selectedResponse.content).toBe('OpenAI response');
+      expect(result.selectedResponse.content).toBe("OpenAI response");
       expect(result.requestId).toBeDefined();
     });
 
-    it('should fallback to next provider on failure', async () => {
+    it("should fallback to next provider on failure", async () => {
       openAIProvider.setShouldFail(true);
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -223,16 +242,16 @@ describe('MultiProviderOrchestration Integration', () => {
       const result = await orchestrationService.orchestrate(request, config);
 
       expect(result.selectedResponse.provider).toBe(AIProviderType.ANTHROPIC);
-      expect(result.selectedResponse.content).toBe('Anthropic response');
+      expect(result.selectedResponse.content).toBe("Anthropic response");
     });
   });
 
-  describe('Parallel Strategy', () => {
-    it('should execute in parallel to all providers', async () => {
+  describe("Parallel Strategy", () => {
+    it("should execute in parallel to all providers", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -243,10 +262,10 @@ describe('MultiProviderOrchestration Integration', () => {
 
       expect(result.strategy).toBe(OrchestrationStrategy.PARALLEL);
       expect(result.allResponses).toHaveLength(3);
-      expect(result.allResponses.every(r => r.success)).toBe(true);
+      expect(result.allResponses.every((r) => r.success)).toBe(true);
     });
 
-    it('should select fastest response', async () => {
+    it("should select fastest response", async () => {
       // Set different delays
       openAIProvider.setResponseDelay(100);
       anthropicProvider.setResponseDelay(50); // Fastest
@@ -254,8 +273,8 @@ describe('MultiProviderOrchestration Integration', () => {
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -265,27 +284,36 @@ describe('MultiProviderOrchestration Integration', () => {
       const result = await orchestrationService.orchestrate(request, config);
 
       expect(result.selectedResponse.provider).toBe(AIProviderType.ANTHROPIC);
-      expect(result.selectionReason).toContain('Fastest');
+      expect(result.selectionReason).toContain("Fastest");
     });
   });
 
-  describe('Consensus Strategy', () => {
-    it('should reach consensus when providers agree', async () => {
+  describe("Consensus Strategy", () => {
+    it("should reach consensus when providers agree", async () => {
       // Make all providers return the same response
-      openAIProvider = new MockCompletionProvider(AIProviderType.OPENAI, 'Consensus answer');
-      anthropicProvider = new MockCompletionProvider(AIProviderType.ANTHROPIC, 'Consensus answer');
-      googleProvider = new MockCompletionProvider(AIProviderType.GOOGLE, 'Consensus answer');
+      openAIProvider = new MockCompletionProvider(
+        AIProviderType.OPENAI,
+        "Consensus answer",
+      );
+      anthropicProvider = new MockCompletionProvider(
+        AIProviderType.ANTHROPIC,
+        "Consensus answer",
+      );
+      googleProvider = new MockCompletionProvider(
+        AIProviderType.GOOGLE,
+        "Consensus answer",
+      );
 
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
         strategy: OrchestrationStrategy.CONSENSUS,
         consensusConfig: {
-          algorithm: 'majority_vote' as any,
+          algorithm: "majority_vote" as any,
           minAgreementPercentage: 0.5,
         },
       };
@@ -295,23 +323,23 @@ describe('MultiProviderOrchestration Integration', () => {
       expect(result.strategy).toBe(OrchestrationStrategy.CONSENSUS);
       expect(result.consensusResult).toBeDefined();
       expect(result.consensusResult!.consensusReached).toBe(true);
-      expect(result.consensusResult!.winner).toBe('Consensus answer');
+      expect(result.consensusResult!.winner).toBe("Consensus answer");
     });
   });
 
-  describe('Best-of-N Strategy', () => {
-    it('should select best of N providers', async () => {
+  describe("Best-of-N Strategy", () => {
+    it("should select best of N providers", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
         strategy: OrchestrationStrategy.BEST_OF_N,
         bestOfNConfig: {
           n: 2,
-          criteria: 'fastest',
+          criteria: "fastest",
         },
       };
 
@@ -322,29 +350,38 @@ describe('MultiProviderOrchestration Integration', () => {
     });
   });
 
-  describe('Provider Mode Management', () => {
-    it('should disable provider at runtime', () => {
-      orchestrationService.setProviderMode(AIProviderType.OPENAI, ProviderExecutionMode.DISABLED);
-      
+  describe("Provider Mode Management", () => {
+    it("should disable provider at runtime", () => {
+      orchestrationService.setProviderMode(
+        AIProviderType.OPENAI,
+        ProviderExecutionMode.DISABLED,
+      );
+
       const mode = orchestrationService.getProviderMode(AIProviderType.OPENAI);
       expect(mode).toBe(ProviderExecutionMode.DISABLED);
     });
 
-    it('should enable provider at runtime', () => {
-      orchestrationService.setProviderMode(AIProviderType.OPENAI, ProviderExecutionMode.DISABLED);
-      orchestrationService.setProviderMode(AIProviderType.OPENAI, ProviderExecutionMode.ENABLED);
-      
+    it("should enable provider at runtime", () => {
+      orchestrationService.setProviderMode(
+        AIProviderType.OPENAI,
+        ProviderExecutionMode.DISABLED,
+      );
+      orchestrationService.setProviderMode(
+        AIProviderType.OPENAI,
+        ProviderExecutionMode.ENABLED,
+      );
+
       const mode = orchestrationService.getProviderMode(AIProviderType.OPENAI);
       expect(mode).toBe(ProviderExecutionMode.ENABLED);
     });
   });
 
-  describe('Auditing', () => {
-    it('should create audit log entries', async () => {
+  describe("Auditing", () => {
+    it("should create audit log entries", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -356,18 +393,18 @@ describe('MultiProviderOrchestration Integration', () => {
 
       const auditLog = auditService.getAuditLog();
       expect(auditLog.length).toBeGreaterThan(0);
-      
+
       const entry = auditLog[0];
       expect(entry.requestId).toBeDefined();
       expect(entry.provider).toBe(AIProviderType.OPENAI);
       expect(entry.signature).toBeDefined();
     });
 
-    it('should verify audit entry integrity', async () => {
+    it("should verify audit entry integrity", async () => {
       const request: CompletionRequestDto = {
         provider: AIProviderType.OPENAI,
-        model: 'gpt-4',
-        messages: [{ role: MessageRole.USER, content: 'Hello' }],
+        model: "gpt-4",
+        messages: [{ role: MessageRole.USER, content: "Hello" }],
       };
 
       const config: OrchestratedRequestConfig = {
@@ -385,8 +422,8 @@ describe('MultiProviderOrchestration Integration', () => {
     });
   });
 
-  describe('Health Status', () => {
-    it('should return health status', () => {
+  describe("Health Status", () => {
+    it("should return health status", () => {
       const health = orchestrationService.getHealthStatus();
 
       expect(health.status).toBeDefined();

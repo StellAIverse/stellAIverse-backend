@@ -3,8 +3,8 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from '@nestjs/common';
-import { UserRole } from '../../user/entities/user.entity';
+} from "@nestjs/common";
+import { UserRole } from "../../user/entities/user.entity";
 
 /**
  * Guard that ensures users can only access their own provenance records.
@@ -18,7 +18,7 @@ export class ProvenanceAccessGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('No authenticated user found');
+      throw new ForbiddenException("No authenticated user found");
     }
 
     // Admins can access all provenance records
@@ -32,7 +32,7 @@ export class ProvenanceAccessGuard implements CanActivate {
       // Users can only access their own records
       if (userIdParam !== user.id) {
         throw new ForbiddenException(
-          'You can only access your own provenance records',
+          "You can only access your own provenance records",
         );
       }
     }
@@ -40,9 +40,7 @@ export class ProvenanceAccessGuard implements CanActivate {
     // Check query params for userId filter
     const queryUserId = request.query.userId;
     if (queryUserId && queryUserId !== user.id) {
-      throw new ForbiddenException(
-        'You can only filter by your own user ID',
-      );
+      throw new ForbiddenException("You can only filter by your own user ID");
     }
 
     // For agent-specific endpoints, users can access if they have access to the agent
