@@ -20,6 +20,7 @@ import { HealthModule } from "./health/health.module";
 import { QuotaModule } from "./quota/quota.module";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
+import { ReferralModule } from "./referral/referral.module";
 
 import { User } from "./user/entities/user.entity";
 import { EmailVerification } from "./auth/entities/email-verification.entity";
@@ -91,6 +92,7 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
     OracleModule,
     HealthModule,
     QuotaModule,
+    ReferralModule,
   ],
 
   controllers: [AppController],

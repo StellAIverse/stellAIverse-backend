@@ -10,6 +10,7 @@ import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/entities/user.entity";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
+import { ReferralService } from "../referral/referral.service";
 
 @Injectable()
 export class AuthService {
@@ -17,10 +18,12 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly referralService: ReferralService,
   ) {}
 
   async register(
     registerDto: RegisterDto,
+    clientIp?: string,
   ): Promise<{ token: string; user: Partial<User> }> {
     const { email, password, username } = registerDto;
 
@@ -52,6 +55,19 @@ export class AuthService {
     });
 
     await this.userRepository.save(user);
+
+    // ✅ Track Referral if code provided
+    if (registerDto.referralCode) {
+      await this.referralService.trackReferral(
+        user.id,
+        registerDto.referralCode,
+        clientIp || "unknown",
+        user.email!,
+      );
+    }
+
+    // ✅ Generate Referral Code for the brand new user
+    await this.referralService.createReferralCode(user.id);
 
     // Generate JWT token
     const payload = {

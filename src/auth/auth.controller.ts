@@ -7,7 +7,14 @@ import {
   UseGuards,
   Request,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiProperty } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+  ApiProperty,
+} from "@nestjs/swagger";
 import { ChallengeService } from "./challenge.service";
 import { WalletAuthService } from "./wallet-auth.service";
 import { EmailLinkingService } from "./email-linking.service";
@@ -29,7 +36,7 @@ export class RequestChallengeDto {
   @ApiProperty({
     description: "Ethereum wallet address",
     example: "0x1234567890abcdef1234567890abcdef1234567890",
-    pattern: "^0x[a-fA-F0-9]{40}$"
+    pattern: "^0x[a-fA-F0-9]{40}$",
   })
   address: string;
 }
@@ -37,13 +44,15 @@ export class RequestChallengeDto {
 export class VerifySignatureDto {
   @ApiProperty({
     description: "Challenge message to sign",
-    example: "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z"
+    example:
+      "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z",
   })
   message: string;
 
   @ApiProperty({
     description: "ECDSA signature of the challenge message",
-    example: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    example:
+      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   })
   signature: string;
 }
@@ -63,8 +72,9 @@ export class AuthController {
   @Post("challenge")
   @ApiOperation({
     summary: "Request Authentication Challenge",
-    description: "Request a challenge message to sign for wallet authentication",
-    operationId: "requestChallenge"
+    description:
+      "Request a challenge message to sign for wallet authentication",
+    operationId: "requestChallenge",
   })
   @ApiBody({ type: RequestChallengeDto })
   @ApiResponse({
@@ -75,22 +85,23 @@ export class AuthController {
       properties: {
         message: {
           type: "string",
-          example: "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z"
+          example:
+            "Sign this message to authenticate with StellAIverse at 2024-02-25T05:30:00.000Z",
         },
         address: {
           type: "string",
-          example: "0x1234567890abcdef1234567890abcdef1234567890"
-        }
-      }
-    }
+          example: "0x1234567890abcdef1234567890abcdef1234567890",
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 400,
-    description: "Invalid wallet address format"
+    description: "Invalid wallet address format",
   })
   @ApiResponse({
     status: 429,
-    description: "Too many requests"
+    description: "Too many requests",
   })
   requestChallenge(@Body() dto: RequestChallengeDto) {
     const message = this.challengeService.issueChallengeForAddress(dto.address);
@@ -99,10 +110,42 @@ export class AuthController {
       address: dto.address,
     };
   }
+  // Traditional Authentication Endpoints
+
+  @Post("register")
+  @ApiOperation({
+    summary: "Register a new user",
+    description:
+      "Register with email, username, and password. Supports referral codes.",
+    operationId: "register",
+  })
+  @ApiResponse({ status: 201, description: "User registered successfully" })
+  @ApiResponse({ status: 409, description: "Email or username already taken" })
+  async register(@Body() registerDto: RegisterDto, @Request() req) {
+    const clientIp = req.ip || req.connection.remoteAddress;
+    return this.authService.register(registerDto, clientIp);
+  }
+
+  @Post("login")
+  @ApiOperation({
+    summary: "Login with email/password",
+    description: "Authenticate using email and password to receive a JWT token",
+    operationId: "login",
+  })
+  @ApiResponse({ status: 200, description: "Login successful" })
+  @ApiResponse({ status: 401, description: "Invalid credentials" })
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
 
   // Wallet Authentication Endpoints
 
   @Post("verify")
+  @ApiOperation({
+    summary: "Verify Wallet Signature",
+    description: "Verify the signed challenge and issue a JWT token",
+    operationId: "verifySignature",
+  })
   async verifySignature(@Body() dto: VerifySignatureDto) {
     const result = await this.walletAuthService.verifySignatureAndIssueToken(
       dto.message,
