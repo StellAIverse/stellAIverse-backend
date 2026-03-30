@@ -1,6 +1,6 @@
 /**
  * Example: Using Queue Metrics for Monitoring and Observability
- * 
+ *
  * This example demonstrates how to leverage the compute job queue metrics
  * for monitoring, alerting, and performance optimization.
  */
@@ -109,8 +109,11 @@ export class QueueMetricsUsageExample {
   }> {
     const stats = await this.queueService.getQueueStats();
     const metrics = await this.calculateProcessingMetrics();
-    const anomalies: Array<{ type: string; severity: string; message: string }> =
-      [];
+    const anomalies: Array<{
+      type: string;
+      severity: string;
+      message: string;
+    }> = [];
 
     // Check success rate
     if (metrics.successRate < 90) {

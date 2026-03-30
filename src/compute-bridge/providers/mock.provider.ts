@@ -67,7 +67,9 @@ export class MockProvider extends BaseAIProvider {
    * Generate a mock completion response
    */
   async complete(prompt: string): Promise<string> {
-    this.logger.debug(`Mock completion for prompt: ${prompt.substring(0, 50)}...`);
+    this.logger.debug(
+      `Mock completion for prompt: ${prompt.substring(0, 50)}...`,
+    );
     return `Mock response to: ${prompt}`;
   }
 }

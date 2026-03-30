@@ -81,9 +81,15 @@ async function bootstrap() {
   // Swagger/OpenAPI Documentation Setup
   const config = new DocumentBuilder()
     .setTitle("StellAIverse Backend API")
-    .setDescription("Comprehensive API documentation for StellAIverse backend services including agent management, oracle submissions, compute operations, and audit trails")
+    .setDescription(
+      "Comprehensive API documentation for StellAIverse backend services including agent management, oracle submissions, compute operations, and audit trails",
+    )
     .setVersion("1.0.0")
-    .setContact("StellAIverse Team", "https://stellaiverse.com", "api@stellaiverse.com")
+    .setContact(
+      "StellAIverse Team",
+      "https://stellaiverse.com",
+      "api@stellaiverse.com",
+    )
     .setLicense("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0")
     .addServer("http://localhost:3000/api/v1", "Development Server")
     .addServer("https://api.stellaiverse.com/api/v1", "Production Server")
@@ -150,7 +156,9 @@ async function bootstrap() {
   await app.listen(port);
 
   logger.info(`🚀 Application running on http://localhost:${port}/api/v1`);
-  logger.info(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  logger.info(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap().catch((error) => {

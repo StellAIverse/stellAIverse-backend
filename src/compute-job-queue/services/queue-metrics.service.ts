@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from "@nestjs/common";
 import { QueueService } from "../queue.service";
 
 /**
@@ -25,7 +30,7 @@ export class QueueMetricsService implements OnModuleInit, OnModuleDestroy {
    */
   private startMetricsCollection(): void {
     this.logger.log("Starting queue metrics collection");
-    
+
     // Collect metrics immediately
     this.collectMetrics();
 

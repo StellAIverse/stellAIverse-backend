@@ -6,36 +6,36 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+} from "typeorm";
+import { User } from "../../user/entities/user.entity";
 
 export enum AgentEventType {
-  CREATED = 'created',
-  UPDATED = 'updated',
-  DELETED = 'deleted',
-  EXECUTED = 'executed',
-  FAILED = 'failed',
-  PAUSED = 'paused',
-  RESUMED = 'resumed',
+  CREATED = "created",
+  UPDATED = "updated",
+  DELETED = "deleted",
+  EXECUTED = "executed",
+  FAILED = "failed",
+  PAUSED = "paused",
+  RESUMED = "resumed",
 }
 
 /**
  * Entity for tracking all agent-related events for audit purposes
  * Provides comprehensive audit trail for agent operations
  */
-@Entity('agent_events')
-@Index(['agentId', 'eventType'])
-@Index(['agentId', 'createdAt'])
-@Index(['eventType', 'createdAt'])
-@Index(['userId', 'createdAt'])
+@Entity("agent_events")
+@Index(["agentId", "eventType"])
+@Index(["agentId", "createdAt"])
+@Index(["eventType", "createdAt"])
+@Index(["userId", "createdAt"])
 export class AgentEvent {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * ID of the agent this event is related to
    */
-  @Column({ type: 'varchar', length: 36 })
+  @Column({ type: "varchar", length: 36 })
   @Index()
   agentId: string;
 
@@ -43,7 +43,7 @@ export class AgentEvent {
    * Type of event that occurred
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: AgentEventType,
   })
   @Index()
@@ -52,39 +52,39 @@ export class AgentEvent {
   /**
    * Detailed data about the event
    */
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   eventData: Record<string, any>;
 
   /**
    * Additional metadata for the event
    */
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, any> | null;
 
   /**
    * ID of the user who triggered the event (if applicable)
    */
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: "uuid", nullable: true })
   @Index()
   userId: string | null;
 
   /**
    * Reference to the user entity
    */
-  @ManyToOne(() => User, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "userId" })
   user: User | null;
 
   /**
    * IP address of the client that triggered the event
    */
-  @Column({ type: 'varchar', length: 45, nullable: true })
+  @Column({ type: "varchar", length: 45, nullable: true })
   clientIp: string | null;
 
   /**
    * User agent string of the client
    */
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   userAgent: string | null;
 
   @CreateDateColumn()

@@ -1,26 +1,26 @@
-import { AIProviderType, IModelInfo } from '../provider.interface';
-import { CompletionRequestDto, EmbeddingRequestDto } from '../base.dto';
+import { AIProviderType, IModelInfo } from "../provider.interface";
+import { CompletionRequestDto, EmbeddingRequestDto } from "../base.dto";
 
 /**
  * Provider health status
  */
 export enum ProviderHealthStatus {
-  HEALTHY = 'healthy',
-  DEGRADED = 'degraded', 
-  UNHEALTHY = 'unhealthy',
-  UNKNOWN = 'unknown'
+  HEALTHY = "healthy",
+  DEGRADED = "degraded",
+  UNHEALTHY = "unhealthy",
+  UNKNOWN = "unknown",
 }
 
 /**
  * Load balancing strategies
  */
 export enum LoadBalancingStrategy {
-  ROUND_ROBIN = 'round_robin',
-  WEIGHTED = 'weighted',
-  LEAST_CONNECTIONS = 'least_connections',
-  RANDOM = 'random',
-  HEALTH_AWARE = 'health_aware',
-  COST_OPTIMIZED = 'cost_optimized'
+  ROUND_ROBIN = "round_robin",
+  WEIGHTED = "weighted",
+  LEAST_CONNECTIONS = "least_connections",
+  RANDOM = "random",
+  HEALTH_AWARE = "health_aware",
+  COST_OPTIMIZED = "cost_optimized",
 }
 
 /**
@@ -65,7 +65,7 @@ export interface RoutingContext {
   /** Request ID for tracing */
   requestId: string;
   /** Request type */
-  requestType: 'completion' | 'embedding';
+  requestType: "completion" | "embedding";
   /** Preferred providers (in order) */
   preferredProviders?: AIProviderType[];
   /** Fallback chain */
@@ -75,7 +75,7 @@ export interface RoutingContext {
   /** Maximum retries */
   maxRetries?: number;
   /** Request priority */
-  priority?: 'low' | 'normal' | 'high';
+  priority?: "low" | "normal" | "high";
   /** Cost sensitivity (0-1, higher = more cost sensitive) */
   costSensitivity?: number;
   /** Latency sensitivity (0-1, higher = more latency sensitive) */
@@ -122,9 +122,9 @@ export interface FallbackEvent {
  * Circuit breaker state
  */
 export enum CircuitBreakerState {
-  CLOSED = 'closed',      // Normal operation
-  OPEN = 'open',          // Failing, reject requests
-  HALF_OPEN = 'half_open' // Testing recovery
+  CLOSED = "closed", // Normal operation
+  OPEN = "open", // Failing, reject requests
+  HALF_OPEN = "half_open", // Testing recovery
 }
 
 /**

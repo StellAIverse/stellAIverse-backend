@@ -1,5 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { IComputeProvider, ProviderType } from "../interfaces/provider.interface";
+import {
+  IComputeProvider,
+  ProviderType,
+} from "../interfaces/provider.interface";
 
 @Injectable()
 export class MockAdapter implements IComputeProvider {

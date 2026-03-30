@@ -42,7 +42,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const isWalletAuth = !!payload.address;
 
     if (!isTraditionalAuth && !isWalletAuth) {
-      throw new UnauthorizedException("Invalid token payload - missing user identifier");
+      throw new UnauthorizedException(
+        "Invalid token payload - missing user identifier",
+      );
     }
 
     // Check token age (additional protection)
@@ -59,16 +61,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: payload.sub,
         email: payload.email,
         username: payload.username,
-        role: payload.role || 'user',
-        type: 'traditional',
+        role: payload.role || "user",
+        type: "traditional",
       };
     } else {
       return {
         address: payload.address,
         email: payload.email,
-        role: payload.role || 'user',
-        roles: payload.role ? [payload.role] : ['user'],
-        type: 'wallet',
+        role: payload.role || "user",
+        roles: payload.role ? [payload.role] : ["user"],
+        type: "wallet",
       };
     }
   }

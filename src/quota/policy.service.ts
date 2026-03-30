@@ -1,13 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PolicyEntity, PolicyScope } from './policy.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable, Logger } from "@nestjs/common";
+import { PolicyEntity, PolicyScope } from "./policy.entity";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class PolicyService {
   private readonly logger = new Logger(PolicyService.name);
   private policies: Map<string, PolicyEntity> = new Map();
 
-  createPolicy(data: Omit<PolicyEntity, 'id' | 'createdAt' | 'updatedAt'>): PolicyEntity {
+  createPolicy(
+    data: Omit<PolicyEntity, "id" | "createdAt" | "updatedAt">,
+  ): PolicyEntity {
     const policy: PolicyEntity = {
       ...data,
       id: uuidv4(),
@@ -43,11 +45,20 @@ export class PolicyService {
   }
 
   // Enforcement hook
-  getApplicablePolicy(scope: PolicyScope, targetId?: string): PolicyEntity | null {
+  getApplicablePolicy(
+    scope: PolicyScope,
+    targetId?: string,
+  ): PolicyEntity | null {
     // Simplified: match exact scope/target, fallback to GLOBAL
     const match = Array.from(this.policies.values()).find(
-      p => p.scope === scope && (!targetId || p.targetId === targetId),
+      (p) => p.scope === scope && (!targetId || p.targetId === targetId),
     );
-    return match || Array.from(this.policies.values()).find(p => p.scope === PolicyScope.GLOBAL) || null;
+    return (
+      match ||
+      Array.from(this.policies.values()).find(
+        (p) => p.scope === PolicyScope.GLOBAL,
+      ) ||
+      null
+    );
   }
 }

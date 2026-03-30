@@ -29,7 +29,10 @@ import {
   QueueStatsDto,
 } from "./compute.job.dto";
 import { CreateBatchJobDto, BatchJobResult } from "./dto/batch-job.dto";
-import { JobStatusResponseDto, JobControlResponseDto } from "./dto/job-control.dto";
+import {
+  JobStatusResponseDto,
+  JobControlResponseDto,
+} from "./dto/job-control.dto";
 import { JwtAuthGuard } from "../auth/jwt.guard";
 import { RolesGuard } from "../common/guard/roles.guard";
 import { Roles, Role } from "../common/decorators/roles.decorator";
@@ -123,8 +126,8 @@ export class QueueController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get detailed job status" })
   @ApiParam({ name: "id", description: "Job ID" })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: "Job status retrieved",
     type: JobStatusResponseDto,
   })
@@ -144,17 +147,20 @@ export class QueueController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Pause a queued job" })
   @ApiParam({ name: "id", description: "Job ID" })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: "Job paused successfully",
     type: JobControlResponseDto,
   })
   @ApiResponse({ status: 404, description: "Job not found" })
-  @ApiResponse({ status: 400, description: "Job cannot be paused in current state" })
+  @ApiResponse({
+    status: 400,
+    description: "Job cannot be paused in current state",
+  })
   async pauseJob(@Param("id") id: string): Promise<JobControlResponseDto> {
     try {
       const { previousState, newState } = await this.queueService.pauseJob(id);
-      
+
       return {
         success: true,
         message: `Job ${id} paused successfully`,
@@ -163,7 +169,7 @@ export class QueueController {
         newState: newState as any,
       };
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         throw new NotFoundException(error.message);
       }
       throw new BadRequestException(error.message);
@@ -176,8 +182,8 @@ export class QueueController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Resume a paused job" })
   @ApiParam({ name: "id", description: "Job ID" })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: "Job resumed successfully",
     type: JobControlResponseDto,
   })
@@ -186,7 +192,7 @@ export class QueueController {
   async resumeJob(@Param("id") id: string): Promise<JobControlResponseDto> {
     try {
       const { previousState, newState } = await this.queueService.resumeJob(id);
-      
+
       return {
         success: true,
         message: `Job ${id} resumed successfully`,
@@ -195,7 +201,7 @@ export class QueueController {
         newState: newState as any,
       };
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         throw new NotFoundException(error.message);
       }
       throw new BadRequestException(error.message);
@@ -208,8 +214,8 @@ export class QueueController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Cancel a job" })
   @ApiParam({ name: "id", description: "Job ID" })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: "Job cancelled successfully",
     type: JobControlResponseDto,
   })
@@ -218,7 +224,7 @@ export class QueueController {
   async cancelJob(@Param("id") id: string): Promise<JobControlResponseDto> {
     try {
       const { previousState } = await this.queueService.cancelJob(id);
-      
+
       return {
         success: true,
         message: `Job ${id} cancelled successfully`,
@@ -227,7 +233,7 @@ export class QueueController {
         newState: undefined,
       };
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         throw new NotFoundException(error.message);
       }
       throw new BadRequestException(error.message);

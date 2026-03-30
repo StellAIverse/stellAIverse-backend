@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { AIProviderType } from '../provider.interface';
-import { 
-  CircuitBreakerState, 
+import { Injectable, Logger } from "@nestjs/common";
+import { AIProviderType } from "../provider.interface";
+import {
+  CircuitBreakerState,
   CircuitBreakerConfig,
-  ProviderHealthStatus 
-} from './routing.interface';
+  ProviderHealthStatus,
+} from "./routing.interface";
 
 /**
  * Internal circuit breaker state tracking
@@ -30,15 +30,20 @@ export interface CircuitBreakerEvent {
 
 /**
  * Circuit Breaker Service
- * 
+ *
  * Implements the circuit breaker pattern to prevent cascading failures
  * and provide automatic recovery with exponential backoff.
  */
 @Injectable()
 export class CircuitBreakerService {
   private readonly logger = new Logger(CircuitBreakerService.name);
-  private readonly circuitBreakers = new Map<AIProviderType, InternalCircuitBreakerState>();
-  private readonly eventListeners = new Set<(event: CircuitBreakerEvent) => void>();
+  private readonly circuitBreakers = new Map<
+    AIProviderType,
+    InternalCircuitBreakerState
+  >();
+  private readonly eventListeners = new Set<
+    (event: CircuitBreakerEvent) => void
+  >();
 
   constructor() {}
 
@@ -46,8 +51,8 @@ export class CircuitBreakerService {
    * Initialize circuit breaker for a provider
    */
   initializeCircuitBreaker(
-    provider: AIProviderType, 
-    config: CircuitBreakerConfig
+    provider: AIProviderType,
+    config: CircuitBreakerConfig,
   ): void {
     const state: InternalCircuitBreakerState = {
       state: CircuitBreakerState.CLOSED,
@@ -55,7 +60,7 @@ export class CircuitBreakerService {
       successCount: 0,
       lastFailureTime: new Date(),
       nextAttemptTime: new Date(),
-      currentBackoff: config.recoveryTimeout
+      currentBackoff: config.recoveryTimeout,
     };
 
     this.circuitBreakers.set(provider, state);
@@ -73,22 +78,22 @@ export class CircuitBreakerService {
     }
 
     const now = new Date();
-    
+
     switch (breaker.state) {
       case CircuitBreakerState.CLOSED:
         return true;
-        
+
       case CircuitBreakerState.OPEN:
         // Check if recovery timeout has passed
         if (now >= breaker.nextAttemptTime) {
-          this.transitionToHalfOpen(provider, 'Recovery timeout elapsed');
+          this.transitionToHalfOpen(provider, "Recovery timeout elapsed");
           return true;
         }
         return false;
-        
+
       case CircuitBreakerState.HALF_OPEN:
         return true;
-        
+
       default:
         return false;
     }
@@ -108,17 +113,19 @@ export class CircuitBreakerService {
         // Reset failure count on success
         breaker.failureCount = 0;
         break;
-        
+
       case CircuitBreakerState.HALF_OPEN:
         // Check if we've reached success threshold
         if (breaker.successCount >= this.getSuccessThreshold(provider)) {
-          this.transitionToClosed(provider, 'Success threshold reached');
+          this.transitionToClosed(provider, "Success threshold reached");
         }
         break;
-        
+
       case CircuitBreakerState.OPEN:
         // Should not happen, but handle gracefully
-        this.logger.warn(`Success recorded in OPEN state for provider: ${provider}`);
+        this.logger.warn(
+          `Success recorded in OPEN state for provider: ${provider}`,
+        );
         break;
     }
   }
@@ -137,15 +144,15 @@ export class CircuitBreakerService {
       case CircuitBreakerState.CLOSED:
         // Check if failure threshold is reached
         if (breaker.failureCount >= this.getFailureThreshold(provider)) {
-          this.transitionToOpen(provider, error || 'Failure threshold reached');
+          this.transitionToOpen(provider, error || "Failure threshold reached");
         }
         break;
-        
+
       case CircuitBreakerState.HALF_OPEN:
         // Any failure in half-open state opens the circuit
-        this.transitionToOpen(provider, error || 'Failure in half-open state');
+        this.transitionToOpen(provider, error || "Failure in half-open state");
         break;
-        
+
       case CircuitBreakerState.OPEN:
         // Already open, just update backoff
         this.updateBackoff(provider);
@@ -177,8 +184,10 @@ export class CircuitBreakerService {
   getAvailableProviders(): AIProviderType[] {
     const available: AIProviderType[] = [];
     for (const [provider, breaker] of this.circuitBreakers) {
-      if (breaker.state === CircuitBreakerState.CLOSED || 
-          breaker.state === CircuitBreakerState.HALF_OPEN) {
+      if (
+        breaker.state === CircuitBreakerState.CLOSED ||
+        breaker.state === CircuitBreakerState.HALF_OPEN
+      ) {
         available.push(provider);
       }
     }
@@ -191,7 +200,7 @@ export class CircuitBreakerService {
   resetCircuitBreaker(provider: AIProviderType): void {
     const breaker = this.circuitBreakers.get(provider);
     if (breaker) {
-      this.transitionToClosed(provider, 'Manual reset');
+      this.transitionToClosed(provider, "Manual reset");
     }
   }
 
@@ -223,7 +232,9 @@ export class CircuitBreakerService {
     breaker.currentBackoff = this.getRecoveryTimeout(provider);
 
     this.emitEvent(provider, oldState, CircuitBreakerState.CLOSED, reason);
-    this.logger.log(`Circuit breaker CLOSED for provider: ${provider} - ${reason}`);
+    this.logger.log(
+      `Circuit breaker CLOSED for provider: ${provider} - ${reason}`,
+    );
   }
 
   /**
@@ -239,7 +250,9 @@ export class CircuitBreakerService {
     breaker.nextAttemptTime = new Date(Date.now() + breaker.currentBackoff);
 
     this.emitEvent(provider, oldState, CircuitBreakerState.OPEN, reason);
-    this.logger.warn(`Circuit breaker OPEN for provider: ${provider} - ${reason}`);
+    this.logger.warn(
+      `Circuit breaker OPEN for provider: ${provider} - ${reason}`,
+    );
   }
 
   /**
@@ -254,7 +267,9 @@ export class CircuitBreakerService {
     breaker.successCount = 0;
 
     this.emitEvent(provider, oldState, CircuitBreakerState.HALF_OPEN, reason);
-    this.logger.log(`Circuit breaker HALF_OPEN for provider: ${provider} - ${reason}`);
+    this.logger.log(
+      `Circuit breaker HALF_OPEN for provider: ${provider} - ${reason}`,
+    );
   }
 
   /**
@@ -268,7 +283,7 @@ export class CircuitBreakerService {
     if (config?.backoffMultiplier) {
       breaker.currentBackoff = Math.min(
         breaker.currentBackoff * config.backoffMultiplier,
-        config.maxBackoffTime || breaker.currentBackoff * 2
+        config.maxBackoffTime || breaker.currentBackoff * 2,
       );
     }
 
@@ -282,20 +297,20 @@ export class CircuitBreakerService {
     provider: AIProviderType,
     oldState: CircuitBreakerState,
     newState: CircuitBreakerState,
-    reason: string
+    reason: string,
   ): void {
     const event: CircuitBreakerEvent = {
       provider,
       state: newState,
       timestamp: new Date(),
-      reason
+      reason,
     };
 
-    this.eventListeners.forEach(listener => {
+    this.eventListeners.forEach((listener) => {
       try {
         listener(event);
       } catch (error) {
-        this.logger.error('Error in circuit breaker event listener:', error);
+        this.logger.error("Error in circuit breaker event listener:", error);
       }
     });
   }
@@ -319,7 +334,9 @@ export class CircuitBreakerService {
     return 30000; // 30 seconds
   }
 
-  private getConfig(provider: AIProviderType): CircuitBreakerConfig | undefined {
+  private getConfig(
+    provider: AIProviderType,
+  ): CircuitBreakerConfig | undefined {
     // TODO: Get from configuration service
     return undefined;
   }

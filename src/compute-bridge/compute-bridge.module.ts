@@ -27,14 +27,14 @@ import { AIProviderType } from "./provider.interface";
     ProviderRouterService,
     ProviderHealthService,
     CircuitBreakerService,
-    ProviderMetricsService
+    ProviderMetricsService,
   ],
   exports: [
     ComputeBridgeService,
     ProviderRouterService,
     ProviderHealthService,
     CircuitBreakerService,
-    ProviderMetricsService
+    ProviderMetricsService,
   ],
 })
 export class ComputeBridgeModule implements OnModuleInit {
@@ -45,13 +45,9 @@ export class ComputeBridgeModule implements OnModuleInit {
 
   async onModuleInit() {
     // Register MockProvider with default config
-    await this.registry.register(
-      AIProviderType.CUSTOM,
-      this.mockProvider,
-      {
-        type: AIProviderType.CUSTOM,
-        apiKey: "mock-key",
-      },
-    );
+    await this.registry.register(AIProviderType.CUSTOM, this.mockProvider, {
+      type: AIProviderType.CUSTOM,
+      apiKey: "mock-key",
+    });
   }
 }

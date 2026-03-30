@@ -7,12 +7,7 @@ import { MockAdapter } from "./providers/mock.adapter";
 
 @Module({
   controllers: [ComputeController],
-  providers: [
-    ComputeService,
-    ComputeBridgeService,
-    OpenAIAdapter,
-    MockAdapter,
-  ],
+  providers: [ComputeService, ComputeBridgeService, OpenAIAdapter, MockAdapter],
   exports: [ComputeService, ComputeBridgeService],
 })
 export class ComputeModule {}

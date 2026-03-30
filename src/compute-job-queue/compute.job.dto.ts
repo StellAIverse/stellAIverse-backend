@@ -91,8 +91,8 @@ export class CreateJobDto {
   providerId?: string;
 
   @ApiPropertyOptional({
-    description: 'Parent job IDs this job depends on',
-    example: ['job-123', 'job-456'],
+    description: "Parent job IDs this job depends on",
+    example: ["job-123", "job-456"],
   })
   @IsOptional()
   @IsArray()
@@ -100,8 +100,8 @@ export class CreateJobDto {
   parentJobIds?: string[];
 
   @ApiPropertyOptional({
-    description: 'Provider model for provenance tracking',
-    example: 'gpt-4-turbo',
+    description: "Provider model for provenance tracking",
+    example: "gpt-4-turbo",
   })
   @IsOptional()
   @IsString()

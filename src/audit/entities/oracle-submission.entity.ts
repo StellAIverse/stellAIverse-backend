@@ -7,62 +7,62 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+} from "typeorm";
+import { User } from "../../user/entities/user.entity";
 
 export enum OracleSubmissionStatus {
-  PENDING = 'pending',
-  SUBMITTED = 'submitted',
-  CONFIRMED = 'confirmed',
-  FAILED = 'failed',
-  EXPIRED = 'expired',
+  PENDING = "pending",
+  SUBMITTED = "submitted",
+  CONFIRMED = "confirmed",
+  FAILED = "failed",
+  EXPIRED = "expired",
 }
 
 /**
  * Entity for tracking oracle data submissions for audit purposes
  * Provides comprehensive audit trail for oracle operations
  */
-@Entity('oracle_submissions')
-@Index(['oracleId', 'status'])
-@Index(['oracleId', 'submittedAt'])
-@Index(['status', 'createdAt'])
-@Index(['userId', 'createdAt'])
-@Index(['dataHash'], { unique: true })
+@Entity("oracle_submissions")
+@Index(["oracleId", "status"])
+@Index(["oracleId", "submittedAt"])
+@Index(["status", "createdAt"])
+@Index(["userId", "createdAt"])
+@Index(["dataHash"], { unique: true })
 export class OracleSubmission {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * ID of the oracle this submission is related to
    */
-  @Column({ type: 'varchar', length: 36 })
+  @Column({ type: "varchar", length: 36 })
   @Index()
   oracleId: string;
 
   /**
    * The actual data being submitted
    */
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   data: Record<string, any>;
 
   /**
    * Hash of the data for integrity verification
    */
-  @Column({ type: 'varchar', length: 66 })
+  @Column({ type: "varchar", length: 66 })
   @Index()
   dataHash: string;
 
   /**
    * Digital signature of the data
    */
-  @Column({ type: 'varchar', length: 132 })
+  @Column({ type: "varchar", length: 132 })
   signature: string;
 
   /**
    * Current status of the submission
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: OracleSubmissionStatus,
     default: OracleSubmissionStatus.PENDING,
   })
@@ -72,7 +72,7 @@ export class OracleSubmission {
   /**
    * ID of the user who initiated the submission
    */
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   @Index()
   userId: string;
 
@@ -80,7 +80,7 @@ export class OracleSubmission {
    * Reference to the user entity
    */
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   /**
@@ -93,46 +93,46 @@ export class OracleSubmission {
   /**
    * Timestamp when the submission was sent to the blockchain
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   @Index()
   submittedAt: Date | null;
 
   /**
    * Timestamp when the submission was confirmed on-chain
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   @Index()
   confirmedAt: Date | null;
 
   /**
    * Transaction hash of the on-chain submission
    */
-  @Column({ type: 'varchar', length: 66, nullable: true })
+  @Column({ type: "varchar", length: 66, nullable: true })
   @Index()
   transactionHash: string | null;
 
   /**
    * Block number when confirmed
    */
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: "bigint", nullable: true })
   blockNumber: string | null;
 
   /**
    * Number of retry attempts
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   retryAttempts: number;
 
   /**
    * Error message if submission failed
    */
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   errorMessage: string | null;
 
   /**
    * Additional metadata for the submission
    */
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, any> | null;
 
   @UpdateDateColumn()
@@ -141,7 +141,7 @@ export class OracleSubmission {
   /**
    * Expiration timestamp for this submission
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   @Index()
   expiresAt: Date | null;
 }
