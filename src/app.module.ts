@@ -28,6 +28,9 @@ import { SignedPayload } from "./oracle/entities/signed-payload.entity";
 import { SubmissionNonce } from "./oracle/entities/submission-nonce.entity";
 import { AgentEvent } from "./audit/entities/agent-event.entity";
 import { ComputeResult } from "./audit/entities/compute-result.entity";
+import { ReferralCode } from "./referral/entities/referral-code.entity";
+import { Referral } from "./referral/entities/referral.entity";
+import { ReferralAbuseEvent } from "./referral/entities/referral-abuse-event.entity";
 
 import { QuotaGuard } from "./common/guard/quota.guard";
 import { SubmissionVerifierService } from "./oracle/submission-verifier.service";
@@ -62,6 +65,9 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             SubmissionNonce,
             AgentEvent,
             ComputeResult,
+            ReferralCode,
+            Referral,
+            ReferralAbuseEvent,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],

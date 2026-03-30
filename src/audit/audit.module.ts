@@ -3,10 +3,16 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AgentEvent } from "./entities/agent-event.entity";
 import { OracleSubmission } from "./entities/oracle-submission.entity";
 import { ComputeResult } from "./entities/compute-result.entity";
+import { ReferralAbuseEvent } from "../referral/entities/referral-abuse-event.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentEvent, OracleSubmission, ComputeResult]),
+    TypeOrmModule.forFeature([
+      AgentEvent,
+      OracleSubmission,
+      ComputeResult,
+      ReferralAbuseEvent,
+    ]),
   ],
   exports: [TypeOrmModule],
 })
