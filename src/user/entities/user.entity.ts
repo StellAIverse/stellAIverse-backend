@@ -5,7 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { ProvenanceRecord } from "../../audit/entities/provenance-record.entity";
+import { Wallet } from "../../auth/entities/wallet.entity";
 
 export enum UserRole {
   USER = "user",
@@ -47,4 +52,30 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  /**
+   * Provenance records associated with this user
+   */
+  @OneToMany(() => ProvenanceRecord, (provenance) => provenance.user)
+  provenanceRecords: ProvenanceRecord[];
+
+  /**
+   * Wallets linked to this user account
+   */
+  @OneToMany(() => Wallet, (wallet) => wallet.user)
+  wallets: Wallet[];
+
+  @Column({ unique: true, nullable: true })
+  @Index()
+  referralCode: string | null;
+
+  @Column({ nullable: true })
+  referredById: string | null;
+
+  @ManyToOne(() => User, (user) => user.referrals)
+  @JoinColumn({ name: "referredById" })
+  referredBy: User | null;
+
+  @OneToMany(() => User, (user) => user.referredBy)
+  referrals: User[];
 }

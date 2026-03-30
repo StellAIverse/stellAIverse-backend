@@ -210,4 +210,37 @@ export class EmailService {
       previewUrl: previewUrl || undefined,
     };
   }
+
+  /**
+   * Generic send mail method for custom emails
+   */
+  async sendMail(options: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    from?: string;
+  }): Promise<{ messageId: string; previewUrl?: string }> {
+    const info = await this.transporter.sendMail({
+      from:
+        options.from ||
+        process.env.EMAIL_FROM ||
+        '"StellAIverse" <noreply@stellaiverse.com>',
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text || options.subject,
+    });
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    if (previewUrl) {
+      this.logger.log(`Email preview URL: ${previewUrl}`);
+    }
+
+    return {
+      messageId: info.messageId,
+      previewUrl: previewUrl || undefined,
+    };
+  }
 }
