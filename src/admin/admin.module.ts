@@ -9,6 +9,8 @@ import { RewardCalculation } from '../reward-engine/entities/reward-calculation.
 import { ReferralReward } from '../referral/reward.entity';
 import { TimeBasedEvent } from '../scheduling/entities/time-based-event.entity';
 import { EventParticipation } from '../scheduling/entities/event-participation.entity';
+import { WaitlistAdminController } from './waitlist-admin.controller';
+import { WaitlistModule } from '../waitlist/waitlist.module';
 
 @Module({
   imports: [
@@ -19,8 +21,9 @@ import { EventParticipation } from '../scheduling/entities/event-participation.e
       EventParticipation,
     ]),
     ScheduleModule.forRoot(),
+    WaitlistModule,
   ],
-  controllers: [RewardAdminController, ReportingController],
+  controllers: [RewardAdminController, ReportingController, WaitlistAdminController],
   providers: [RewardAnalyticsService, ReportingService],
   exports: [RewardAnalyticsService, ReportingService],
 })
