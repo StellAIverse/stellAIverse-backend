@@ -58,6 +58,17 @@ import { DeFiRiskAssessment } from "./defi/entities/defi-risk-assessment.entity"
 import { QuotaGuard } from "./common/guard/quota.guard";
 import { SubmissionVerifierService } from "./oracle/submission-verifier.service";
 
+// New modules
+import { RewardEngineModule } from "./reward-engine/reward-engine.module";
+import { SchedulingModule } from "./scheduling/scheduling.module";
+import { AdminModule } from "./admin/admin.module";
+
+// New entities
+import { RewardRule } from "./reward-engine/entities/reward-rule.entity";
+import { RewardCalculation } from "./reward-engine/entities/reward-calculation.entity";
+import { TimeBasedEvent } from "./scheduling/entities/time-based-event.entity";
+import { EventParticipation } from "./scheduling/entities/event-participation.entity";
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -104,6 +115,10 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             DeFiTransaction,
             DeFiYieldStrategy,
             DeFiRiskAssessment,
+            RewardRule,
+            RewardCalculation,
+            TimeBasedEvent,
+            EventParticipation,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],
@@ -142,6 +157,9 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
     RiskManagementModule,
     ComplianceModule,
     SocialTradingModule,
+    RewardEngineModule,
+    SchedulingModule,
+    AdminModule,
   ],
 
   controllers: [AppController],
