@@ -68,6 +68,11 @@ import { RewardRule } from "./reward-engine/entities/reward-rule.entity";
 import { RewardCalculation } from "./reward-engine/entities/reward-calculation.entity";
 import { TimeBasedEvent } from "./scheduling/entities/time-based-event.entity";
 import { EventParticipation } from "./scheduling/entities/event-participation.entity";
+import { WaitlistModule } from "./waitlist/waitlist.module";
+import { Waitlist } from "./waitlist/entities/waitlist.entity";
+import { WaitlistEntry } from "./waitlist/entities/waitlist-entry.entity";
+import { WaitlistEvent } from "./waitlist/entities/waitlist-event.entity";
+import { QuotaPolicy } from "./quota/policy.entity";
 
 @Module({
   imports: [
@@ -119,6 +124,10 @@ import { EventParticipation } from "./scheduling/entities/event-participation.en
             RewardCalculation,
             TimeBasedEvent,
             EventParticipation,
+            Waitlist,
+            WaitlistEntry,
+            WaitlistEvent,
+            QuotaPolicy,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],
@@ -160,6 +169,7 @@ import { EventParticipation } from "./scheduling/entities/event-participation.en
     RewardEngineModule,
     SchedulingModule,
     AdminModule,
+    WaitlistModule,
   ],
 
   controllers: [AppController],

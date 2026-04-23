@@ -7,6 +7,7 @@ import { HeartbeatService } from "./services/heartbeat.service";
 import { SubscriptionService } from "./services/subscription.service";
 import { AgentTelemetryGateway } from "./agent-telemetry.gateway";
 import { AgentTelemetryService } from "./agent-telemetry.service";
+import { WaitlistGateway } from "./gateways/waitlist.gateway";
 
 @Module({
   imports: [UserModule],
@@ -18,7 +19,13 @@ import { AgentTelemetryService } from "./agent-telemetry.service";
     SubscriptionService,
     AgentTelemetryGateway,
     AgentTelemetryService,
+    WaitlistGateway,
   ],
-  exports: [AgentEventsGateway, AgentStatusService, AgentTelemetryService],
+  exports: [
+    AgentEventsGateway,
+    AgentStatusService,
+    AgentTelemetryService,
+    WaitlistGateway,
+  ],
 })
 export class WebSocketModule {}
