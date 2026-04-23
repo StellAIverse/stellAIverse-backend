@@ -9,6 +9,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import { RateLimiterService } from "../../quota/rate-limiter.service";
 import { DynamicRateLimitScalingService } from "../../quota/dynamic-rate-limit-scaling.service";
+import { PremiumFeatureBonusService } from "../../quota/premium-feature-bonus.service";
 import { AnalyticsDashboardService } from "../../observability/analytics-dashboard.service";
 import { MetricsService } from "../../observability/metrics.service";
 import {
@@ -24,6 +25,8 @@ export class QuotaGuard implements CanActivate {
     private readonly rateLimiterService: RateLimiterService,
     @Optional()
     private readonly dynamicScaling?: DynamicRateLimitScalingService,
+    @Optional()
+    private readonly premiumBonus?: PremiumFeatureBonusService,
     @Optional() private readonly analytics?: AnalyticsDashboardService,
     @Optional() private readonly metrics?: MetricsService,
   ) {}
@@ -105,9 +108,25 @@ export class QuotaGuard implements CanActivate {
       dynamicBurst,
     );
 
-    const limit = control?.limit ?? dynamicLimit;
-    const windowMs = control?.windowMs ?? dynamicWindowMs;
-    const burst = control?.burst ?? dynamicBurst;
+    const controlledLimit = control?.limit ?? dynamicLimit;
+    const controlledWindowMs = control?.windowMs ?? dynamicWindowMs;
+    const controlledBurst = control?.burst ?? dynamicBurst;
+
+    const premiumAdjustment = this.premiumBonus
+      ? await this.premiumBonus.getAdjustment({
+          userId,
+          userTier: String(userTier),
+          endpoint,
+          policy,
+          baseLimit: controlledLimit,
+          baseWindowMs: controlledWindowMs,
+          baseBurst: controlledBurst,
+        })
+      : undefined;
+
+    const limit = premiumAdjustment?.limit ?? controlledLimit;
+    const windowMs = premiumAdjustment?.windowMs ?? controlledWindowMs;
+    const burst = premiumAdjustment?.burst ?? controlledBurst;
 
     const startedAt = Date.now();
 
@@ -147,6 +166,28 @@ export class QuotaGuard implements CanActivate {
       });
     }
 
+    if (premiumAdjustment && premiumAdjustment.bonusApplied) {
+      this.metrics?.premiumTierUsage.inc({
+        feature: premiumAdjustment.feature,
+        user_tier: String(userTier),
+        plan: policy,
+      });
+
+      this.metrics?.premiumBonusClaims.inc({
+        bonus_type: premiumAdjustment.activeBoostIds.length > 0 ? "boost" : "tier",
+        user_tier: String(userTier),
+        source: premiumAdjustment.activeBoostIds.length > 0 ? "manual_or_campaign" : "tier_policy",
+      });
+
+      if (premiumAdjustment.componentMultipliers.referral > 0) {
+        this.metrics?.referralBonusUsage.inc({
+          bonus_type: "rate_limit",
+          referrer_tier: String(userTier),
+          referee_tier: String(userTier),
+        });
+      }
+    }
+
     this.dynamicScaling?.recordFeedback({
       context: {
         key: trackerKey,
@@ -160,6 +201,21 @@ export class QuotaGuard implements CanActivate {
       allowed: result.allowed,
       remaining: result.remaining,
     });
+
+    if (premiumAdjustment) {
+      this.premiumBonus?.recordUsage({
+        userId,
+        userTier: String(userTier),
+        endpoint,
+        feature: premiumAdjustment.feature,
+        policy,
+        baseLimit: controlledLimit,
+        effectiveLimit: limit,
+        allowed: result.allowed,
+        remaining: result.remaining,
+        adjustment: premiumAdjustment,
+      });
+    }
 
     this.analytics?.recordRateLimitDecision({
       key: trackerKey,

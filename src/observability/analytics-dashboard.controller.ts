@@ -17,6 +17,7 @@ import { UserRole } from '../user/entities/user.entity';
 import { AlertRule, AnalyticsDashboardService } from './analytics-dashboard.service';
 import { MetricsService } from './metrics.service';
 import { DynamicRateLimitScalingService } from '../quota/dynamic-rate-limit-scaling.service';
+import { PremiumFeatureBonusService } from '../quota/premium-feature-bonus.service';
 
 @Controller('admin/analytics')
 @UseGuards(RolesGuard)
@@ -26,6 +27,7 @@ export class AnalyticsDashboardController {
     private readonly analytics: AnalyticsDashboardService,
     private readonly metrics: MetricsService,
     private readonly dynamicScaling: DynamicRateLimitScalingService,
+    private readonly premiumBonus: PremiumFeatureBonusService,
   ) {}
 
   /**
@@ -301,6 +303,112 @@ export class AnalyticsDashboardController {
       reason: body.reason || 'manual scaling control',
       adminId,
     });
+  }
+
+  @Get('premium-bonuses/policies')
+  async getPremiumBonusPolicies() {
+    return this.premiumBonus.listPolicies();
+  }
+
+  @Put('premium-bonuses/policies/:feature')
+  async upsertPremiumBonusPolicy(
+    @Param('feature') feature: string,
+    @Body()
+    body: {
+      tierMultipliers?: Record<string, number>;
+      maxBonusMultiplier?: number;
+      allowStacking?: boolean;
+      poolCapacity?: number;
+      enabled?: boolean;
+    },
+  ) {
+    return this.premiumBonus.upsertPolicy(
+      {
+        feature,
+        tierMultipliers: body.tierMultipliers,
+        maxBonusMultiplier: body.maxBonusMultiplier,
+        allowStacking: body.allowStacking,
+        poolCapacity: body.poolCapacity,
+        enabled: body.enabled,
+      },
+      'admin-user-id',
+    );
+  }
+
+  @Get('premium-bonuses/boosts')
+  async getPremiumBonusBoosts(@Query('userId') userId?: string) {
+    return this.premiumBonus.listActiveBoosts(userId);
+  }
+
+  @Post('premium-bonuses/boosts')
+  async allocatePremiumBonusBoost(
+    @Body()
+    body: {
+      userId: string;
+      feature: string;
+      bonusMultiplier?: number;
+      extraLimit?: number;
+      extraBurst?: number;
+      durationMinutes: number;
+      source?: 'admin' | 'referral' | 'campaign' | 'system';
+      reason?: string;
+    },
+  ) {
+    return this.premiumBonus.allocateBoost({
+      userId: body.userId,
+      feature: body.feature,
+      bonusMultiplier: body.bonusMultiplier,
+      extraLimit: body.extraLimit,
+      extraBurst: body.extraBurst,
+      durationMinutes: Number(body.durationMinutes),
+      source: body.source,
+      reason: body.reason,
+      actor: 'admin-user-id',
+    });
+  }
+
+  @Delete('premium-bonuses/boosts/:boostId')
+  async revokePremiumBonusBoost(@Param('boostId') boostId: string) {
+    return this.premiumBonus.revokeBoost(boostId, 'admin-user-id');
+  }
+
+  @Get('premium-bonuses/pools')
+  async getPremiumBonusPools() {
+    return this.premiumBonus.getPoolStatus();
+  }
+
+  @Post('premium-bonuses/pools/:feature/reset')
+  async resetPremiumBonusPool(@Param('feature') feature: string) {
+    return this.premiumBonus.resetPool(feature, 'admin-user-id');
+  }
+
+  @Get('premium-bonuses/usage')
+  async getPremiumBonusUsage(@Query('limit') limit = '200') {
+    const parsed = Math.max(1, Math.min(2000, Number(limit) || 200));
+    return this.premiumBonus.getUsageSummary(parsed);
+  }
+
+  @Get('premium-bonuses/operations')
+  async getPremiumBonusOperations(@Query('limit') limit = '100') {
+    const parsed = Math.max(1, Math.min(2000, Number(limit) || 100));
+    return this.premiumBonus.getOperationLogs(parsed);
+  }
+
+  @Get('premium-bonuses/emergency-mode')
+  async getPremiumBonusEmergencyMode() {
+    return this.premiumBonus.getEmergencyMode();
+  }
+
+  @Post('premium-bonuses/emergency-mode')
+  async setPremiumBonusEmergencyMode(
+    @Body() body: { enabled: boolean; multiplier?: number; reason?: string },
+  ) {
+    return this.premiumBonus.setEmergencyMode(
+      Boolean(body.enabled),
+      Number(body.multiplier ?? 1),
+      body.reason || 'manual update',
+      'admin-user-id',
+    );
   }
 
   /**

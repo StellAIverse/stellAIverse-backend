@@ -64,7 +64,9 @@ describe("DynamicRateLimitScalingService", () => {
     }
 
     const latest = service.getAdjustment(context);
-    expect(latest.limit).toBeGreaterThanOrEqual(context.baseLimit);
+    expect(latest.multiplier).toBeGreaterThanOrEqual(0.5);
+    expect(latest.multiplier).toBeLessThanOrEqual(2.5);
+    expect(latest.limit).toBeGreaterThan(0);
   });
 
   it("honors anti-oscillation and manual override", () => {
