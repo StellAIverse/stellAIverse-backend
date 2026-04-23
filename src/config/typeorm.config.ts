@@ -11,6 +11,9 @@ import { RecommendationFeedback } from "../recommendation/entities/recommendatio
 import { RecommendationInteraction } from "../recommendation/entities/recommendation-interaction.entity";
 import { Referral } from "../referral/entities/referral.entity";
 import { ReferralEvent } from "../referral/entities/referral-event.entity";
+import { Waitlist } from "../waitlist/entities/waitlist.entity";
+import { WaitlistEntry } from "../waitlist/entities/waitlist-entry.entity";
+import { WaitlistEvent } from "../waitlist/entities/waitlist-event.entity";
 import { Notification } from "../notification/entities/notification.entity";
 import { NotificationPreferences } from "../notification/entities/notification-preferences.entity";
 
@@ -32,6 +35,9 @@ export default new DataSource({
     RecommendationInteraction,
     Referral,
     ReferralEvent,
+  Waitlist,
+  WaitlistEntry,
+  WaitlistEvent,
     Notification,
     NotificationPreferences,
   ],
