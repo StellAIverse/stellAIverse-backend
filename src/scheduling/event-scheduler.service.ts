@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan } from 'typeorm';
+import { Repository, LessThan, MoreThan, Not } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { TimeBasedEvent, EventStatus, RecurrenceType } from './entities/time-based-event.entity';
+import { TimeBasedEvent, EventType, EventStatus, RecurrenceType } from './entities/time-based-event.entity';
 import { EventParticipation } from './entities/event-participation.entity';
 import { RewardPipelineService } from '../reward-engine/reward-pipeline.service';
 import { RuleEvaluationContext } from '../reward-engine/interfaces/rule.interface';
@@ -307,7 +307,6 @@ export class EventSchedulerService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    // Filter by eligibility
     const eligibleEvents = [];
     for (const event of events) {
       if (await this.checkUserEligibility(event, userId)) {
@@ -316,5 +315,137 @@ export class EventSchedulerService implements OnModuleInit, OnModuleDestroy {
     }
 
     return eligibleEvents;
+  }
+
+  /**
+   * Returns the current time in the given IANA timezone (or UTC if invalid).
+   */
+  getTimeInZone(timezone: string): Date {
+    try {
+      const str = new Date().toLocaleString('en-US', { timeZone: timezone });
+      return new Date(str);
+    } catch {
+      return new Date();
+    }
+  }
+
+  /**
+   * Converts a local date/time string to UTC using the given IANA timezone.
+   */
+  localToUtc(localIso: string, timezone: string): Date {
+    try {
+      // Use Intl to get the offset at that moment
+      const local = new Date(localIso);
+      const utcStr = local.toLocaleString('en-US', { timeZone: 'UTC' });
+      const tzStr = local.toLocaleString('en-US', { timeZone: timezone });
+      const offsetMs = new Date(utcStr).getTime() - new Date(tzStr).getTime();
+      return new Date(local.getTime() + offsetMs);
+    } catch {
+      return new Date(localIso);
+    }
+  }
+
+  /**
+   * Creates a seasonal campaign event (quarterly/yearly).
+   */
+  async createSeasonalCampaign(data: {
+    name: string;
+    description?: string;
+    startDate: Date;
+    endDate: Date;
+    timezone?: string;
+    rewardConfig: TimeBasedEvent['rewardConfig'];
+    targetingConfig?: TimeBasedEvent['targetingConfig'];
+  }): Promise<TimeBasedEvent> {
+    await this.resolveConflicts(data.startDate, data.endDate);
+
+    const event = this.eventRepository.create({
+      ...data,
+      type: EventType.SEASONAL_CAMPAIGN,
+      status: EventStatus.SCHEDULED,
+      recurrenceType: RecurrenceType.YEARLY,
+      recurrenceConfig: { timeZone: data.timezone || 'UTC' },
+    });
+    return this.eventRepository.save(event);
+  }
+
+  /**
+   * Creates an anniversary reward event for a user (fires yearly on their signup date).
+   */
+  async createAnniversaryEvent(data: {
+    name: string;
+    userId: string;
+    signupDate: Date;
+    rewardConfig: TimeBasedEvent['rewardConfig'];
+    timezone?: string;
+  }): Promise<TimeBasedEvent> {
+    const now = new Date();
+    const anniversary = new Date(data.signupDate);
+    anniversary.setFullYear(now.getFullYear());
+    if (anniversary < now) anniversary.setFullYear(now.getFullYear() + 1);
+
+    const endDate = new Date(anniversary);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const event = this.eventRepository.create({
+      name: data.name,
+      type: EventType.ANNIVERSARY_REWARD,
+      status: EventStatus.SCHEDULED,
+      startDate: anniversary,
+      endDate,
+      recurrenceType: RecurrenceType.YEARLY,
+      recurrenceConfig: { timeZone: data.timezone || 'UTC' },
+      rewardConfig: data.rewardConfig,
+      targetingConfig: { includedUsers: [data.userId] },
+      metadata: { userId: data.userId, signupDate: data.signupDate },
+    });
+    return this.eventRepository.save(event);
+  }
+
+  /**
+   * Detects and resolves overlapping events by pausing lower-priority ones.
+   * Priority order: SEASONAL_CAMPAIGN > ANNIVERSARY_REWARD > others.
+   */
+  async resolveConflicts(startDate: Date, endDate: Date): Promise<void> {
+    const overlapping = await this.eventRepository.find({
+      where: [
+        { status: EventStatus.ACTIVE, startDate: LessThan(endDate), endDate: MoreThan(startDate) },
+        { status: EventStatus.SCHEDULED, startDate: LessThan(endDate), endDate: MoreThan(startDate) },
+      ],
+    });
+
+    const priority: Record<string, number> = {
+      [EventType.SEASONAL_CAMPAIGN]: 3,
+      [EventType.ANNIVERSARY_REWARD]: 2,
+    };
+
+    for (const ev of overlapping) {
+      const p = priority[ev.type] ?? 1;
+      if (p < 2) {
+        ev.status = EventStatus.PAUSED;
+        await this.eventRepository.save(ev);
+        this.logger.warn(`Paused conflicting event ${ev.id} (${ev.name}) due to higher-priority overlap`);
+      }
+    }
+  }
+
+  /**
+   * Terminates an event immediately (emergency stop).
+   */
+  async terminateEvent(eventId: string): Promise<TimeBasedEvent> {
+    const event = await this.eventRepository.findOneOrFail({ where: { id: eventId } });
+    event.status = EventStatus.CANCELLED;
+    await this.eventRepository.save(event);
+    this.logger.warn(`Event ${eventId} terminated by admin`);
+    return event;
+  }
+
+  /**
+   * Extends an active event's end date.
+   */
+  async extendEvent(eventId: string, newEndDate: Date): Promise<TimeBasedEvent> {
+    const event = await this.eventRepository.findOneOrFail({ where: { id: eventId } });
+    event.endDate = newEndDate;
+    return this.eventRepository.save(event);
   }
 }
