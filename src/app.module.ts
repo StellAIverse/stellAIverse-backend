@@ -17,7 +17,7 @@ import { SignedPayload } from "./oracle/entities/signed-payload.entity";
 import { SubmissionNonce } from "./oracle/entities/submission-nonce.entity";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
-import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
+import { SensitiveThrottlerGuard } from "./common/throttler/sensitive-throttler.guard";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
 import { OracleModule } from "./oracle/oracle.module";
@@ -82,10 +82,10 @@ import { OracleModule } from "./oracle/oracle.module";
   controllers: [AppController],
   providers: [
     AppService,
-    // Apply rate limiting globally with IP-based throttling
+    // Apply deterministic rate limiting globally; per-endpoint overrides via @SensitiveRateLimit()
     {
       provide: APP_GUARD,
-      useClass: ThrottlerUserIpGuard,
+      useClass: SensitiveThrottlerGuard,
     },
   ],
 })

@@ -16,6 +16,7 @@ import { LinkEmailDto } from "./dto/link-email.dto";
 import { VerifyEmailDto } from "./dto/verify-email.dto";
 import { RequestRecoveryDto } from "./dto/request-recovery.dto";
 import { Throttle } from "@nestjs/throttler";
+import { SensitiveRateLimit } from "../common/decorators/rate-limit.decorator";
 
 export class RequestChallengeDto {
   address: string;
@@ -26,7 +27,8 @@ export class VerifySignatureDto {
   signature: string;
 }
 
-@Throttle({ default: { ttl: 60000, limit: 10 } })
+// Auth endpoints are high-value targets — enforce strict per-user/IP limit: 5 req/min
+@SensitiveRateLimit('auth')
 @Controller("auth")
 export class AuthController {
   constructor(
