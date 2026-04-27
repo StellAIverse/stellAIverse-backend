@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, Logger } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
 import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
 import * as jwt from "jsonwebtoken";

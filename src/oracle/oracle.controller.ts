@@ -10,21 +10,21 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { OracleService } from './services/oracle.service';
-import { JwtAuthGuard } from '../auth/jwt.guard';
-import { CreatePayloadDto } from './dto/create-payload.dto';
-import { SignPayloadDto } from './dto/sign-payload.dto';
-import { SubmitPayloadDto } from './dto/submit-payload.dto';
-import { VerifySignatureDto } from './dto/verify-signature.dto';
-import { PayloadResponseDto } from './dto/payload-response.dto';
-import { PayloadStatus } from './entities/signed-payload.entity';
+} from "@nestjs/common";
+import { OracleService } from "./services/oracle.service";
+import { JwtAuthGuard } from "../auth/jwt.guard";
+import { CreatePayloadDto } from "./dto/create-payload.dto";
+import { SignPayloadDto } from "./dto/sign-payload.dto";
+import { SubmitPayloadDto } from "./dto/submit-payload.dto";
+import { VerifySignatureDto } from "./dto/verify-signature.dto";
+import { PayloadResponseDto } from "./dto/payload-response.dto";
+import { PayloadStatus } from "./entities/signed-payload.entity";
 
 /**
  * Controller for Oracle service endpoints
  * Handles payload creation, signing, and submission
  */
-@Controller('oracle')
+@Controller("oracle")
 export class OracleController {
   private readonly logger = new Logger(OracleController.name);
 
@@ -34,7 +34,7 @@ export class OracleController {
    * Create a new payload to be signed
    * Requires authentication
    */
-  @Post('payloads')
+  @Post("payloads")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPayload(
@@ -54,11 +54,11 @@ export class OracleController {
    * Note: In production, this should be done client-side for security
    * This endpoint is provided for convenience during development/testing
    */
-  @Post('payloads/:id/sign')
+  @Post("payloads/:id/sign")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async signPayload(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() signPayloadDto: SignPayloadDto,
   ): Promise<PayloadResponseDto> {
     this.logger.log(`Signing payload ${id}`);
@@ -70,11 +70,11 @@ export class OracleController {
    * Submit a signed payload on-chain
    * Requires authentication
    */
-  @Post('payloads/:id/submit')
+  @Post("payloads/:id/submit")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async submitPayload(
-    @Param('id') id: string,
+    @Param("id") id: string,
   ): Promise<{ transactionHash: string; payload: PayloadResponseDto }> {
     this.logger.log(`Submitting payload ${id} on-chain`);
 
@@ -84,11 +84,11 @@ export class OracleController {
   /**
    * Retry a failed submission
    */
-  @Post('payloads/:id/retry')
+  @Post("payloads/:id/retry")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async retrySubmission(
-    @Param('id') id: string,
+    @Param("id") id: string,
   ): Promise<{ transactionHash: string; payload: PayloadResponseDto }> {
     this.logger.log(`Retrying submission for payload ${id}`);
 
@@ -98,7 +98,7 @@ export class OracleController {
   /**
    * Verify a signature off-chain
    */
-  @Post('verify-signature')
+  @Post("verify-signature")
   @HttpCode(HttpStatus.OK)
   async verifySignature(
     @Body() verifySignatureDto: VerifySignatureDto,
@@ -107,18 +107,18 @@ export class OracleController {
     // This is a simplified version - in production, you'd pass the payload ID
     return {
       valid: false,
-      message: 'Use /payloads/:id/verify endpoint instead',
+      message: "Use /payloads/:id/verify endpoint instead",
     };
   }
 
   /**
    * Verify a payload's signature
    */
-  @Get('payloads/:id/verify')
+  @Get("payloads/:id/verify")
   @HttpCode(HttpStatus.OK)
   async verifyPayloadSignature(
-    @Param('id') id: string,
-    @Query('expectedSigner') expectedSigner: string,
+    @Param("id") id: string,
+    @Query("expectedSigner") expectedSigner: string,
   ): Promise<{ valid: boolean; payloadId: string }> {
     this.logger.log(`Verifying signature for payload ${id}`);
 
@@ -133,27 +133,27 @@ export class OracleController {
   /**
    * Get a specific payload
    */
-  @Get('payloads/:id')
+  @Get("payloads/:id")
   @UseGuards(JwtAuthGuard)
-  async getPayload(@Param('id') id: string): Promise<PayloadResponseDto> {
+  async getPayload(@Param("id") id: string): Promise<PayloadResponseDto> {
     return this.oracleService.getPayload(id);
   }
 
   /**
    * Get payloads for the authenticated user
    */
-  @Get('my-payloads')
+  @Get("my-payloads")
   @UseGuards(JwtAuthGuard)
   async getMyPayloads(
     @Request() req,
-    @Query('status') status?: PayloadStatus,
-    @Query('limit') limit?: number,
+    @Query("status") status?: PayloadStatus,
+    @Query("limit") limit?: number,
   ): Promise<PayloadResponseDto[]> {
     const address = req.user.address;
     const limitValue = limit ? parseInt(limit.toString()) : 50;
 
     this.logger.log(
-      `Fetching payloads for ${address}, status: ${status || 'all'}, limit: ${limitValue}`,
+      `Fetching payloads for ${address}, status: ${status || "all"}, limit: ${limitValue}`,
     );
 
     return this.oracleService.getPayloadsForAddress(
@@ -166,11 +166,11 @@ export class OracleController {
   /**
    * Get payloads for a specific address (public endpoint)
    */
-  @Get('payloads/address/:address')
+  @Get("payloads/address/:address")
   async getPayloadsForAddress(
-    @Param('address') address: string,
-    @Query('status') status?: PayloadStatus,
-    @Query('limit') limit?: number,
+    @Param("address") address: string,
+    @Query("status") status?: PayloadStatus,
+    @Query("limit") limit?: number,
   ): Promise<PayloadResponseDto[]> {
     const limitValue = limit ? parseInt(limit.toString()) : 50;
 
@@ -184,10 +184,10 @@ export class OracleController {
   /**
    * Get pending payloads ready for submission
    */
-  @Get('payloads/pending/ready')
+  @Get("payloads/pending/ready")
   @UseGuards(JwtAuthGuard)
   async getPendingPayloads(
-    @Query('limit') limit?: number,
+    @Query("limit") limit?: number,
   ): Promise<PayloadResponseDto[]> {
     const limitValue = limit ? parseInt(limit.toString()) : 100;
 
@@ -197,8 +197,8 @@ export class OracleController {
   /**
    * Get current nonce for an address
    */
-  @Get('nonce/:address')
-  async getCurrentNonce(@Param('address') address: string): Promise<{
+  @Get("nonce/:address")
+  async getCurrentNonce(@Param("address") address: string): Promise<{
     address: string;
     nonce: string;
   }> {
@@ -213,7 +213,7 @@ export class OracleController {
   /**
    * Get current nonce for authenticated user
    */
-  @Get('my-nonce')
+  @Get("my-nonce")
   @UseGuards(JwtAuthGuard)
   async getMyNonce(@Request() req): Promise<{
     address: string;
@@ -231,7 +231,7 @@ export class OracleController {
   /**
    * Get Oracle service statistics
    */
-  @Get('stats')
+  @Get("stats")
   async getStatistics(): Promise<any> {
     return this.oracleService.getStatistics();
   }
@@ -239,16 +239,16 @@ export class OracleController {
   /**
    * Health check endpoint
    */
-  @Get('health')
+  @Get("health")
   async healthCheck(): Promise<{
     status: string;
     timestamp: string;
     service: string;
   }> {
     return {
-      status: 'healthy',
+      status: "healthy",
       timestamp: new Date().toISOString(),
-      service: 'oracle',
+      service: "oracle",
     };
   }
 }

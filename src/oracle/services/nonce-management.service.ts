@@ -3,11 +3,11 @@ import {
   Logger,
   ConflictException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
-import { SubmissionNonce } from '../entities/submission-nonce.entity';
-import { getAddress } from 'ethers';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, LessThan } from "typeorm";
+import { SubmissionNonce } from "../entities/submission-nonce.entity";
+import { getAddress } from "ethers";
 
 /**
  * Service for managing nonces to prevent replay attacks
@@ -51,7 +51,7 @@ export class NonceManagementService {
       // Create new nonce entry for this address
       nonceEntity = this.nonceRepository.create({
         address: checksumAddress.toLowerCase(),
-        nonce: '0',
+        nonce: "0",
       });
       await this.nonceRepository.save(nonceEntity);
       this.logger.log(`Created new nonce entry for ${checksumAddress}`);
@@ -81,7 +81,7 @@ export class NonceManagementService {
           SubmissionNonce,
           {
             where: { address: checksumAddress.toLowerCase() },
-            lock: { mode: 'pessimistic_write' },
+            lock: { mode: "pessimistic_write" },
           },
         );
 
@@ -89,7 +89,7 @@ export class NonceManagementService {
           // Create new nonce entry
           nonceEntity = transactionalEntityManager.create(SubmissionNonce, {
             address: checksumAddress.toLowerCase(),
-            nonce: '0',
+            nonce: "0",
           });
         }
 
@@ -160,16 +160,14 @@ export class NonceManagementService {
     // Invalidate cache
     this.nonceCache.delete(checksumAddress.toLowerCase());
 
-    this.logger.warn(
-      `Manually set nonce for ${checksumAddress} to ${nonce}`,
-    );
+    this.logger.warn(`Manually set nonce for ${checksumAddress} to ${nonce}`);
   }
 
   /**
    * Reset nonce for an address (admin operation)
    */
   async resetNonce(address: string): Promise<void> {
-    await this.setNonce(address, '0');
+    await this.setNonce(address, "0");
     this.logger.warn(`Reset nonce for ${address} to 0`);
   }
 
@@ -193,7 +191,7 @@ export class NonceManagementService {
       const entity = nonceEntities.find(
         (e) => e.address === addr.toLowerCase(),
       );
-      nonceMap.set(addr, entity?.nonce || '0');
+      nonceMap.set(addr, entity?.nonce || "0");
     });
 
     return nonceMap;
@@ -228,9 +226,9 @@ export class NonceManagementService {
     averageNonce: number;
   }> {
     const result = await this.nonceRepository
-      .createQueryBuilder('nonce')
-      .select('COUNT(*)', 'totalAddresses')
-      .addSelect('SUM(CAST(nonce AS BIGINT))', 'totalNonces')
+      .createQueryBuilder("nonce")
+      .select("COUNT(*)", "totalAddresses")
+      .addSelect("SUM(CAST(nonce AS BIGINT))", "totalNonces")
       .getRawOne();
 
     const totalAddresses = parseInt(result.totalAddresses) || 0;
@@ -255,7 +253,7 @@ export class NonceManagementService {
 
     const result = await this.nonceRepository.delete({
       lastUsedAt: LessThan(cutoffDate),
-      nonce: '0', // Only delete unused addresses
+      nonce: "0", // Only delete unused addresses
     });
 
     const deletedCount = result.affected || 0;

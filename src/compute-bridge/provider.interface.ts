@@ -1,6 +1,6 @@
 /**
  * AI Provider Interfaces
- * 
+ *
  * Defines the contract for AI provider implementations.
  * All providers must implement these interfaces to ensure
  * consistent behavior across different AI services.
@@ -10,11 +10,11 @@
  * Supported AI Provider Types
  */
 export enum AIProviderType {
-  OPENAI = 'openai',
-  ANTHROPIC = 'anthropic',
-  GOOGLE = 'google',
-  HUGGINGFACE = 'huggingface',
-  CUSTOM = 'custom',
+  OPENAI = "openai",
+  ANTHROPIC = "anthropic",
+  GOOGLE = "google",
+  HUGGINGFACE = "huggingface",
+  CUSTOM = "custom",
 }
 
 /**
@@ -73,7 +73,7 @@ export interface IModelInfo {
 
 /**
  * Base AI Provider Interface
- * 
+ *
  * All AI provider implementations must implement this interface
  * to ensure consistent behavior across the ComputeBridge.
  */
@@ -114,7 +114,7 @@ export interface IAIProvider {
 
 /**
  * Completion Provider Interface
- * 
+ *
  * Extended interface for providers that support text completion/generation
  */
 export interface ICompletionProvider extends IAIProvider {
@@ -133,7 +133,7 @@ export interface ICompletionProvider extends IAIProvider {
 
 /**
  * Embedding Provider Interface
- * 
+ *
  * Extended interface for providers that support embeddings generation
  */
 export interface IEmbeddingProvider extends IAIProvider {

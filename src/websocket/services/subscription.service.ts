@@ -3,7 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 interface Subscription {
   clientId: string;
   resourceId: string;
-  resourceType: "agent" | "system";
+  resourceType: "agent" | "system" | "job";
   createdAt: Date;
 }
 
@@ -15,7 +15,7 @@ export class SubscriptionService {
   async subscribe(
     clientId: string,
     resourceId: string,
-    resourceType: "agent" | "system",
+    resourceType: "agent" | "system" | "job",
   ) {
     const key = this.getKey(clientId);
     const existing = this.subscriptions.get(key) || [];

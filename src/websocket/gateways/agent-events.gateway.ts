@@ -221,4 +221,92 @@ export class AgentEventsGateway
       timestamp: new Date().toISOString(),
     });
   }
+
+  // Job event handlers
+  @UseGuards(WebSocketAuthGuard)
+  @SubscribeMessage("job:subscribe")
+  async handleJobSubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { jobId: string },
+  ) {
+    try {
+      await this.subscriptionService.subscribe(client.id, data.jobId, "job");
+
+      // Join room for job-specific events
+      client.join(`job:${data.jobId}`);
+
+      return {
+        success: true,
+        message: `Subscribed to job ${data.jobId}`,
+      };
+    } catch (error) {
+      this.logger.error(`Error subscribing to job ${data.jobId}:`, error);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @UseGuards(WebSocketAuthGuard)
+  @SubscribeMessage("job:unsubscribe")
+  async handleJobUnsubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { jobId: string },
+  ) {
+    try {
+      await this.subscriptionService.unsubscribe(client.id, data.jobId);
+      client.leave(`job:${data.jobId}`);
+
+      return {
+        success: true,
+        message: `Unsubscribed from job ${data.jobId}`,
+      };
+    } catch (error) {
+      this.logger.error(`Error unsubscribing from job ${data.jobId}:`, error);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  // Public methods for emitting job events to clients
+  emitJobProgress(jobId: string, progress: number, data?: any) {
+    this.server.to(`job:${jobId}`).emit("job.progress", {
+      jobId,
+      progress,
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  emitJobLog(
+    jobId: string,
+    log: string,
+    level: "info" | "warn" | "error" = "info",
+  ) {
+    this.server.to(`job:${jobId}`).emit("job.log", {
+      jobId,
+      log,
+      level,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  emitJobComplete(jobId: string, result?: any) {
+    this.server.to(`job:${jobId}`).emit("job.complete", {
+      jobId,
+      result,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  emitJobError(jobId: string, error: string) {
+    this.server.to(`job:${jobId}`).emit("job.error", {
+      jobId,
+      error,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }

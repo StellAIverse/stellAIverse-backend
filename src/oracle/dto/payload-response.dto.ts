@@ -1,4 +1,4 @@
-import { PayloadStatus, PayloadType } from '../entities/signed-payload.entity';
+import { PayloadStatus, PayloadType } from "../entities/signed-payload.entity";
 
 /**
  * Response DTO for payload operations

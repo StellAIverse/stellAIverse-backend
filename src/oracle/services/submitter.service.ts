@@ -1,7 +1,7 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { ConfigService } from "@nestjs/config";
 import {
   JsonRpcProvider,
   Wallet,
@@ -10,21 +10,24 @@ import {
   TransactionResponse,
   Interface,
   formatEther,
-} from 'ethers';
+} from "ethers";
 import {
   SignedPayload,
   PayloadStatus,
-} from '../entities/signed-payload.entity';
-import { SubmissionBatchService, FailureType } from './submission-batch.service';
+} from "../entities/signed-payload.entity";
+import {
+  SubmissionBatchService,
+  FailureType,
+} from "./submission-batch.service";
 
 /**
  * Minimal ABI for Oracle contract submission
  * In production, this would be imported from contract artifacts
  */
 const ORACLE_CONTRACT_ABI = [
-  'function submitPayload(string payloadType, bytes32 payloadHash, uint256 nonce, uint256 expiresAt, string data, bytes signature) external returns (bool)',
-  'function verifyPayload(string payloadType, bytes32 payloadHash, uint256 nonce, uint256 expiresAt, string data, bytes signature, address expectedSigner) external view returns (bool)',
-  'event PayloadSubmitted(address indexed submitter, bytes32 indexed payloadHash, uint256 nonce, string payloadType)',
+  "function submitPayload(string payloadType, bytes32 payloadHash, uint256 nonce, uint256 expiresAt, string data, bytes signature) external returns (bool)",
+  "function verifyPayload(string payloadType, bytes32 payloadHash, uint256 nonce, uint256 expiresAt, string data, bytes signature, address expectedSigner) external view returns (bool)",
+  "event PayloadSubmitted(address indexed submitter, bytes32 indexed payloadHash, uint256 nonce, string payloadType)",
 ];
 
 /**
@@ -49,25 +52,25 @@ export class SubmitterService {
     private payloadRepository: Repository<SignedPayload>,
   ) {
     // Initialize provider
-    const rpcUrl = this.configService.get<string>('ETH_RPC_URL');
+    const rpcUrl = this.configService.get<string>("ETH_RPC_URL");
     if (!rpcUrl) {
-      throw new Error('ETH_RPC_URL not configured');
+      throw new Error("ETH_RPC_URL not configured");
     }
     this.provider = new JsonRpcProvider(rpcUrl);
 
     // Initialize submitter wallet
-    const privateKey = this.configService.get<string>('SUBMITTER_PRIVATE_KEY');
+    const privateKey = this.configService.get<string>("SUBMITTER_PRIVATE_KEY");
     if (!privateKey) {
-      throw new Error('SUBMITTER_PRIVATE_KEY not configured');
+      throw new Error("SUBMITTER_PRIVATE_KEY not configured");
     }
     this.submitterWallet = new Wallet(privateKey, this.provider);
 
     // Initialize oracle contract
     const contractAddress = this.configService.get<string>(
-      'ORACLE_CONTRACT_ADDRESS',
+      "ORACLE_CONTRACT_ADDRESS",
     );
     if (!contractAddress) {
-      throw new Error('ORACLE_CONTRACT_ADDRESS not configured');
+      throw new Error("ORACLE_CONTRACT_ADDRESS not configured");
     }
     this.oracleContract = new Contract(
       contractAddress,
@@ -77,23 +80,26 @@ export class SubmitterService {
 
     // Configuration
     this.maxRetries = parseInt(
-      this.configService.get<string>('SUBMITTER_MAX_RETRIES', '5'),
+      this.configService.get<string>("SUBMITTER_MAX_RETRIES", "5"),
     );
     this.initialRetryDelay = parseInt(
-      this.configService.get<string>('SUBMITTER_INITIAL_RETRY_DELAY', '1000'),
+      this.configService.get<string>("SUBMITTER_INITIAL_RETRY_DELAY", "1000"),
     );
     this.maxRetryDelay = parseInt(
-      this.configService.get<string>('SUBMITTER_MAX_RETRY_DELAY', '60000'),
+      this.configService.get<string>("SUBMITTER_MAX_RETRY_DELAY", "60000"),
     );
     this.backoffMultiplier = parseFloat(
-      this.configService.get<string>('SUBMITTER_RETRY_BACKOFF_MULTIPLIER', '2.0'),
+      this.configService.get<string>(
+        "SUBMITTER_RETRY_BACKOFF_MULTIPLIER",
+        "2.0",
+      ),
     );
     this.gasLimitMultiplier = parseFloat(
-      this.configService.get<string>('SUBMITTER_GAS_LIMIT_MULTIPLIER', '1.2'),
+      this.configService.get<string>("SUBMITTER_GAS_LIMIT_MULTIPLIER", "1.2"),
     );
 
     this.logger.log(
-      `Initialized SubmitterService with wallet ${this.submitterWallet.address} on chain ${this.configService.get<string>('CHAIN_ID')}`,
+      `Initialized SubmitterService with wallet ${this.submitterWallet.address} on chain ${this.configService.get<string>("CHAIN_ID")}`,
     );
   }
 
@@ -114,14 +120,14 @@ export class SubmitterService {
 
     // Non-retryable (permanent) failures
     const permanentPatterns = [
-      'expired',
-      'invalid signature',
-      'unauthorized',
-      'insufficient funds',
-      'nonce too low',
-      'already submitted',
-      'execution reverted',
-      'vm exception',
+      "expired",
+      "invalid signature",
+      "unauthorized",
+      "insufficient funds",
+      "nonce too low",
+      "already submitted",
+      "execution reverted",
+      "vm exception",
     ];
 
     for (const pattern of permanentPatterns) {
@@ -132,14 +138,14 @@ export class SubmitterService {
 
     // Retryable failures
     const retryablePatterns = [
-      'network error',
-      'timeout',
-      'econnreset',
-      'socket hang up',
-      'temporary',
-      'service unavailable',
-      'gateway error',
-      'rate limit',
+      "network error",
+      "timeout",
+      "econnreset",
+      "socket hang up",
+      "temporary",
+      "service unavailable",
+      "gateway error",
+      "rate limit",
     ];
 
     for (const pattern of retryablePatterns) {
@@ -170,10 +176,7 @@ export class SubmitterService {
     }
 
     // Check for existing successful submission (idempotency check)
-    if (
-      payload.status === PayloadStatus.CONFIRMED &&
-      payload.transactionHash
-    ) {
+    if (payload.status === PayloadStatus.CONFIRMED && payload.transactionHash) {
       this.logger.log(
         `Payload ${payloadId} already confirmed with tx ${payload.transactionHash}, returning existing result`,
       );
@@ -184,10 +187,7 @@ export class SubmitterService {
     }
 
     // Allow retry of submitted but unconfirmed payloads
-    if (
-      payload.status === PayloadStatus.SUBMITTED &&
-      payload.transactionHash
-    ) {
+    if (payload.status === PayloadStatus.SUBMITTED && payload.transactionHash) {
       this.logger.log(
         `Payload ${payloadId} already submitted with tx ${payload.transactionHash}, continuing monitoring`,
       );
@@ -218,19 +218,15 @@ export class SubmitterService {
     // Check expiration
     if (new Date() > payload.expiresAt) {
       payload.status = PayloadStatus.FAILED;
-      payload.errorMessage = 'Payload expired before submission';
+      payload.errorMessage = "Payload expired before submission";
       await this.payloadRepository.save(payload);
-      throw new BadRequestException('Payload has expired');
+      throw new BadRequestException("Payload has expired");
     }
 
     // Attempt submission with retry logic
     let lastError: Error | null = null;
 
-    for (
-      let attempt = 1;
-      attempt <= this.maxRetries + 1;
-      attempt++
-    ) {
+    for (let attempt = 1; attempt <= this.maxRetries + 1; attempt++) {
       try {
         // Estimate gas
         const gasEstimate = await this.estimateGas(payload);
@@ -351,14 +347,16 @@ export class SubmitterService {
     payloadId: string,
     txHash: string,
   ): Promise<void> {
-    this.logger.log(`Monitoring transaction ${txHash} for payload ${payloadId}`);
+    this.logger.log(
+      `Monitoring transaction ${txHash} for payload ${payloadId}`,
+    );
 
     try {
       // Wait for transaction confirmation
       const receipt = await this.provider.waitForTransaction(txHash, 1); // 1 confirmation
 
       if (!receipt) {
-        throw new Error('Transaction receipt is null');
+        throw new Error("Transaction receipt is null");
       }
 
       // Update payload with confirmation
@@ -384,7 +382,7 @@ export class SubmitterService {
       } else {
         // Transaction failed
         payload.status = PayloadStatus.FAILED;
-        payload.errorMessage = 'Transaction reverted on-chain';
+        payload.errorMessage = "Transaction reverted on-chain";
 
         this.logger.error(
           `Payload ${payloadId} transaction reverted in block ${receipt.blockNumber}`,
@@ -503,10 +501,13 @@ export class SubmitterService {
    * Batch submit multiple payloads with improved retry logic
    * Preserves order and uses exponential backoff for failed submissions
    */
-  async batchSubmitPayloads(
-    payloadIds: string[],
-  ): Promise<
-    Array<{ payloadId: string; transactionHash: string; success: boolean; errorMessage?: string }>
+  async batchSubmitPayloads(payloadIds: string[]): Promise<
+    Array<{
+      payloadId: string;
+      transactionHash: string;
+      success: boolean;
+      errorMessage?: string;
+    }>
   > {
     const results = [];
 
@@ -527,7 +528,7 @@ export class SubmitterService {
         );
         results.push({
           payloadId,
-          transactionHash: '',
+          transactionHash: "",
           success: false,
           errorMessage: error.message,
         });
@@ -544,7 +545,12 @@ export class SubmitterService {
     payloadIds: string[],
     maxConcurrent: number = 5,
   ): Promise<
-    Array<{ payloadId: string; transactionHash: string; success: boolean; errorMessage?: string }>
+    Array<{
+      payloadId: string;
+      transactionHash: string;
+      success: boolean;
+      errorMessage?: string;
+    }>
   > {
     const results: Array<{
       payloadId: string;
@@ -562,7 +568,7 @@ export class SubmitterService {
 
       chunkResults.forEach((result, index) => {
         const payloadId = chunk[index];
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           results.push({
             payloadId,
             transactionHash: result.value.transactionHash,
@@ -571,9 +577,9 @@ export class SubmitterService {
         } else {
           results.push({
             payloadId,
-            transactionHash: '',
+            transactionHash: "",
             success: false,
-            errorMessage: result.reason?.message || 'Unknown error',
+            errorMessage: result.reason?.message || "Unknown error",
           });
         }
       });
@@ -626,9 +632,9 @@ export class SubmitterService {
       totalSubmissions > 0 ? (confirmed / totalSubmissions) * 100 : 100;
 
     const attemptsResult = await this.payloadRepository
-      .createQueryBuilder('payload')
-      .select('AVG(payload.submissionAttempts)', 'avg')
-      .addSelect('SUM(payload.submissionAttempts)', 'total')
+      .createQueryBuilder("payload")
+      .select("AVG(payload.submissionAttempts)", "avg")
+      .addSelect("SUM(payload.submissionAttempts)", "total")
       .getRawOne();
 
     const avgAttempts = parseFloat(attemptsResult.avg) || 0;
@@ -670,8 +676,8 @@ export class SubmitterService {
           where: { status: PayloadStatus.FAILED },
         }),
         this.payloadRepository
-          .createQueryBuilder('payload')
-          .select('SUM(payload.submissionAttempts)', 'total')
+          .createQueryBuilder("payload")
+          .select("SUM(payload.submissionAttempts)", "total")
           .getRawOne()
           .then((result) => parseInt(result.total) || 0),
       ]);
