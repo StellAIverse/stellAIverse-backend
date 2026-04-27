@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
-import { QueueService } from '../queue.service';
+import { Injectable } from "@nestjs/common";
+import {
+  HealthIndicator,
+  HealthIndicatorResult,
+  HealthCheckError,
+} from "@nestjs/terminus";
+import { QueueService } from "./queue.service";
 
 @Injectable()
 export class QueueHealthIndicator extends HealthIndicator {
@@ -11,7 +15,7 @@ export class QueueHealthIndicator extends HealthIndicator {
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     try {
       const stats = await this.queueService.getQueueStats();
-      
+
       // Define health thresholds
       const maxFailedJobs = 100;
       const maxDeadLetterJobs = 50;
@@ -32,14 +36,14 @@ export class QueueHealthIndicator extends HealthIndicator {
       });
 
       if (!isHealthy) {
-        throw new HealthCheckError('Queue health check failed', result);
+        throw new HealthCheckError("Queue health check failed", result);
       }
 
       return result;
     } catch (error) {
-      throw new HealthCheckError('Queue health check failed', {
+      throw new HealthCheckError("Queue health check failed", {
         [key]: {
-          status: 'down',
+          status: "down",
           message: error.message,
         },
       });

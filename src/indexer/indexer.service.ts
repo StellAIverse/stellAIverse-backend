@@ -17,11 +17,19 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    const rpc = this.config.get<string>("INDEXER_RPC_URL") || this.config.get<string>("RPC_URL") || "http://localhost:8545";
+    const rpc =
+      this.config.get<string>("INDEXER_RPC_URL") ||
+      this.config.get<string>("RPC_URL") ||
+      "http://localhost:8545";
     this.provider = new ethers.JsonRpcProvider(rpc);
     await this.runOnce();
-    const interval = Number(this.config.get<number>("INDEXER_POLL_INTERVAL_MS") || 10_000);
-    this.timer = setInterval(() => this.runOnce().catch(console.error), interval);
+    const interval = Number(
+      this.config.get<number>("INDEXER_POLL_INTERVAL_MS") || 10_000,
+    );
+    this.timer = setInterval(
+      () => this.runOnce().catch(console.error),
+      interval,
+    );
   }
 
   async onModuleDestroy() {
@@ -37,11 +45,16 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
     return Number(row.max);
   }
 
-  private async handleReorgIfAny(lastBlock: number | null, startBlock: number): Promise<number> {
+  private async handleReorgIfAny(
+    lastBlock: number | null,
+    startBlock: number,
+  ): Promise<number> {
     if (lastBlock === null) return startBlock - 1;
     let b = lastBlock;
     while (b >= startBlock) {
-      const event = await this.indexedRepo.findOne({ where: { blockNumber: String(b) } });
+      const event = await this.indexedRepo.findOne({
+        where: { blockNumber: String(b) },
+      });
       if (!event) {
         b = b - 1;
         continue;
@@ -67,9 +80,14 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async runOnce() {
-    const confirmations = Number(this.config.get<number>("INDEXER_CONFIRMATIONS") || 6);
-    const startBlockCfg = Number(this.config.get<number>("INDEXER_START_BLOCK") || 0);
-    const contractAddr = this.config.get<string>("INDEXER_CONTRACT_ADDRESS") || undefined;
+    const confirmations = Number(
+      this.config.get<number>("INDEXER_CONFIRMATIONS") || 6,
+    );
+    const startBlockCfg = Number(
+      this.config.get<number>("INDEXER_START_BLOCK") || 0,
+    );
+    const contractAddr =
+      this.config.get<string>("INDEXER_CONTRACT_ADDRESS") || undefined;
     const topic0 = this.config.get<string>("INDEXER_TOPIC0") || undefined;
 
     const latest = await this.provider.getBlockNumber();
@@ -82,7 +100,9 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
     if (from < startBlockCfg) from = startBlockCfg;
     if (from > safeTo) return; // nothing to do
 
-    const batchSize = Number(this.config.get<number>("INDEXER_BATCH_BLOCKS") || 5000);
+    const batchSize = Number(
+      this.config.get<number>("INDEXER_BATCH_BLOCKS") || 5000,
+    );
     while (from <= safeTo) {
       const to = Math.min(from + batchSize - 1, safeTo);
       const filter: any = { fromBlock: from, toBlock: to };
@@ -95,7 +115,8 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
           const txHash = (l as any).transactionHash;
           const logIndex = Number((l as any).logIndex ?? (l as any).index ?? 0);
           const address = l.address;
-          const t0 = l.topics && l.topics.length > 0 ? String(l.topics[0]) : null;
+          const t0 =
+            l.topics && l.topics.length > 0 ? String(l.topics[0]) : null;
           const blockNumber = String(Number(l.blockNumber));
           const block = await this.provider.getBlock(Number(l.blockNumber));
           const blockHash = block ? block.hash : l.blockHash;

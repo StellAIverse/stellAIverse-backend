@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import {
   Wallet,
   TypedDataDomain,
@@ -7,8 +7,8 @@ import {
   toUtf8Bytes,
   getAddress,
   verifyTypedData,
-} from 'ethers';
-import { ConfigService } from '@nestjs/config';
+} from "ethers";
+import { ConfigService } from "@nestjs/config";
 
 /**
  * EIP-712 Domain for stellAIverse Oracle
@@ -43,23 +43,23 @@ export class PayloadSigningService {
   // EIP-712 type definitions for Oracle payloads
   private readonly types: Record<string, TypedDataField[]> = {
     OraclePayload: [
-      { name: 'payloadType', type: 'string' },
-      { name: 'payloadHash', type: 'bytes32' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'expiresAt', type: 'uint256' },
-      { name: 'data', type: 'string' },
+      { name: "payloadType", type: "string" },
+      { name: "payloadHash", type: "bytes32" },
+      { name: "nonce", type: "uint256" },
+      { name: "expiresAt", type: "uint256" },
+      { name: "data", type: "string" },
     ],
   };
 
   constructor(private configService: ConfigService) {
     // Initialize EIP-712 domain
     this.domain = {
-      name: 'StellAIverse Oracle',
-      version: '1',
-      chainId: parseInt(this.configService.get<string>('CHAIN_ID', '1')),
+      name: "StellAIverse Oracle",
+      version: "1",
+      chainId: parseInt(this.configService.get<string>("CHAIN_ID", "1")),
       verifyingContract: this.configService.get<string>(
-        'ORACLE_CONTRACT_ADDRESS',
-        '0x0000000000000000000000000000000000000000',
+        "ORACLE_CONTRACT_ADDRESS",
+        "0x0000000000000000000000000000000000000000",
       ),
     };
 
@@ -149,7 +149,10 @@ export class PayloadSigningService {
         signerAddress: getAddress(signerAddress), // Checksum address
       };
     } catch (error) {
-      this.logger.error(`Failed to sign payload: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to sign payload: ${error.message}`,
+        error.stack,
+      );
       throw new Error(`Payload signing failed: ${error.message}`);
     }
   }

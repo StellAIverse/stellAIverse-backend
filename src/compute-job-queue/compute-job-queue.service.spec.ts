@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue, Job, JobsOptions } from 'bull';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue, Job, JobsOptions } from "bull";
 
 export interface ComputeJobData {
   type: string;
@@ -20,9 +20,9 @@ export class QueueService {
   private readonly logger = new Logger(QueueService.name);
 
   constructor(
-    @InjectQueue('compute-jobs')
+    @InjectQueue("compute-jobs")
     private readonly computeQueue: Queue<ComputeJobData>,
-    @InjectQueue('dead-letter-queue')
+    @InjectQueue("dead-letter-queue")
     private readonly deadLetterQueue: Queue<ComputeJobData>,
   ) {}
 
@@ -121,7 +121,7 @@ export class QueueService {
   ): Promise<void> {
     try {
       await this.deadLetterQueue.add(
-        'dead-letter',
+        "dead-letter",
         {
           ...job.data,
           metadata: {
@@ -186,12 +186,9 @@ export class QueueService {
   /**
    * Get dead letter jobs
    */
-  async getDeadLetterJobs(
-    start = 0,
-    end = 10,
-  ): Promise<Job<ComputeJobData>[]> {
+  async getDeadLetterJobs(start = 0, end = 10): Promise<Job<ComputeJobData>[]> {
     return this.deadLetterQueue.getJobs(
-      ['waiting', 'active', 'completed', 'failed'],
+      ["waiting", "active", "completed", "failed"],
       start,
       end,
     );
@@ -202,7 +199,7 @@ export class QueueService {
    */
   async cleanOldJobs(grace: number = 86400000): Promise<void> {
     // Clean completed jobs older than grace period (default 24 hours)
-    await this.computeQueue.clean(grace, 'completed');
+    await this.computeQueue.clean(grace, "completed");
     this.logger.log(`Cleaned completed jobs older than ${grace}ms`);
   }
 
@@ -211,7 +208,7 @@ export class QueueService {
    */
   async pauseQueue(): Promise<void> {
     await this.computeQueue.pause();
-    this.logger.log('Compute queue paused');
+    this.logger.log("Compute queue paused");
   }
 
   /**
@@ -219,7 +216,7 @@ export class QueueService {
    */
   async resumeQueue(): Promise<void> {
     await this.computeQueue.resume();
-    this.logger.log('Compute queue resumed');
+    this.logger.log("Compute queue resumed");
   }
 
   /**
@@ -227,7 +224,7 @@ export class QueueService {
    */
   async emptyQueue(): Promise<void> {
     await this.computeQueue.empty();
-    this.logger.warn('Compute queue emptied');
+    this.logger.warn("Compute queue emptied");
   }
 
   /**
@@ -235,7 +232,7 @@ export class QueueService {
    */
   private generateJobId(data: ComputeJobData): string {
     const timestamp = Date.now();
-    const userId = data.userId || 'anonymous';
+    const userId = data.userId || "anonymous";
     const type = data.type;
     return `${type}-${userId}-${timestamp}`;
   }

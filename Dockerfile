@@ -1,46 +1,57 @@
-# Build stage
-FROM node:20-alpine AS builder
+############################################################
+# Multi-stage Dockerfile with dependency caching
+# - `deps` stage caches `npm ci` layer (invalidated only when
+#   package*.json changes)
+# - `builder` stage performs the build and prunes dev deps
+# - `runner` stage contains only production node_modules + dist
+############################################################
 
+ARG NODE_VERSION=20
+ARG NODE_ENV=production
+
+FROM node:${NODE_VERSION}-alpine AS deps
 WORKDIR /app
 
-# Copy package files
+# Install production and dev deps in a separate layer so they are cached
+# unless package*.json changes.
 COPY package*.json ./
+RUN npm ci --silent
 
-# Install dependencies
-RUN npm ci
+FROM node:${NODE_VERSION}-alpine AS builder
+WORKDIR /app
 
-# Copy source code
+# copy deps layer to avoid reinstalling when source changes
+COPY --from=deps /app/node_modules ./node_modules
+
+# copy the rest of the source and build
 COPY . .
-
-# Build application
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# Remove devDependencies to keep only production modules
+RUN npm prune --production --silent
 
+FROM node:${NODE_VERSION}-alpine AS runner
+LABEL org.opencontainers.image.description="stellAIverse backend runtime"
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
+# tiny init to forward signals and reap processes
 RUN apk add --no-cache dumb-init
 
-# Copy package files
-COPY package*.json ./
+# non-root user for security
+RUN addgroup -S app && adduser -S app -G app
 
-# Install production dependencies only
-RUN npm ci --only=production
-
-# Copy built application from builder
+# Copy only what's needed for runtime
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
-# Health check
+ENV NODE_ENV=${NODE_ENV}
+ENV PORT=3000
+
+EXPOSE 3000
+
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Expose port
-EXPOSE 3000
-
-# Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
-
-# Start application
+USER app
 CMD ["node", "dist/main"]

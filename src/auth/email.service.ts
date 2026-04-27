@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import { Transporter } from 'nodemailer';
+import { Injectable, Logger } from "@nestjs/common";
+import * as nodemailer from "nodemailer";
+import { Transporter } from "nodemailer";
 
 @Injectable()
 export class EmailService {
@@ -17,20 +17,20 @@ export class EmailService {
     if (process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
       // Use configured SMTP
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
+        host: process.env.SMTP_HOST || "smtp.ethereal.email",
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true",
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASSWORD,
         },
       });
-      this.logger.log('Email service initialized with configured SMTP');
+      this.logger.log("Email service initialized with configured SMTP");
     } else {
       // Create test account for development
       const testAccount = await nodemailer.createTestAccount();
       this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
+        host: "smtp.ethereal.email",
         port: 587,
         secure: false,
         auth: {
@@ -48,12 +48,13 @@ export class EmailService {
     email: string,
     token: string,
   ): Promise<{ messageId: string; previewUrl?: string }> {
-    const verificationUrl = `${process.env.EMAIL_VERIFICATION_URL || 'http://localhost:3000/auth/verify-email'}?token=${token}`;
+    const verificationUrl = `${process.env.EMAIL_VERIFICATION_URL || "http://localhost:3000/auth/verify-email"}?token=${token}`;
 
     const info = await this.transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"StellAIverse" <noreply@stellaiverse.com>',
+      from:
+        process.env.EMAIL_FROM || '"StellAIverse" <noreply@stellaiverse.com>',
       to: email,
-      subject: 'Verify your email address - StellAIverse',
+      subject: "Verify your email address - StellAIverse",
       html: `
         <!DOCTYPE html>
         <html>
@@ -107,7 +108,7 @@ export class EmailService {
     });
 
     const previewUrl = nodemailer.getTestMessageUrl(info);
-    
+
     if (previewUrl) {
       this.logger.log(`Email preview URL: ${previewUrl}`);
     }
@@ -123,9 +124,10 @@ export class EmailService {
     walletAddress: string,
   ): Promise<{ messageId: string; previewUrl?: string }> {
     const info = await this.transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"StellAIverse" <noreply@stellaiverse.com>',
+      from:
+        process.env.EMAIL_FROM || '"StellAIverse" <noreply@stellaiverse.com>',
       to: email,
-      subject: 'Account Recovery Information - StellAIverse',
+      subject: "Account Recovery Information - StellAIverse",
       html: `
         <!DOCTYPE html>
         <html>
@@ -198,9 +200,42 @@ export class EmailService {
     });
 
     const previewUrl = nodemailer.getTestMessageUrl(info);
-    
+
     if (previewUrl) {
       this.logger.log(`Recovery email preview URL: ${previewUrl}`);
+    }
+
+    return {
+      messageId: info.messageId,
+      previewUrl: previewUrl || undefined,
+    };
+  }
+
+  /**
+   * Generic send mail method for custom emails
+   */
+  async sendMail(options: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    from?: string;
+  }): Promise<{ messageId: string; previewUrl?: string }> {
+    const info = await this.transporter.sendMail({
+      from:
+        options.from ||
+        process.env.EMAIL_FROM ||
+        '"StellAIverse" <noreply@stellaiverse.com>',
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text || options.subject,
+    });
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+
+    if (previewUrl) {
+      this.logger.log(`Email preview URL: ${previewUrl}`);
     }
 
     return {

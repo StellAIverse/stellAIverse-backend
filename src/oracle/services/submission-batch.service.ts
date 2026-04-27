@@ -1,19 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { ConfigService } from "@nestjs/config";
 import {
   SignedPayload,
   PayloadStatus,
   PayloadType,
-} from '../entities/signed-payload.entity';
+} from "../entities/signed-payload.entity";
 
 /**
  * Enum for categorizing failures as retryable or permanent
  */
 export enum FailureType {
-  RETRYABLE = 'retryable', // Network issues, timeouts, temporary chain errors
-  PERMANENT = 'permanent', // Invalid payload, expired, signature invalid
+  RETRYABLE = "retryable", // Network issues, timeouts, temporary chain errors
+  PERMANENT = "permanent", // Invalid payload, expired, signature invalid
 }
 
 /**
@@ -75,23 +75,26 @@ export class SubmissionBatchService {
   ) {
     // Load configuration from environment or use defaults
     this.batchSize = parseInt(
-      this.configService.get<string>('SUBMISSION_BATCH_SIZE', '10'),
+      this.configService.get<string>("SUBMISSION_BATCH_SIZE", "10"),
     );
     this.maxRetries = parseInt(
-      this.configService.get<string>('SUBMISSION_MAX_RETRIES', '5'),
+      this.configService.get<string>("SUBMISSION_MAX_RETRIES", "5"),
     );
     this.initialRetryDelayMs = parseInt(
-      this.configService.get<string>('SUBMISSION_INITIAL_RETRY_DELAY', '1000'),
+      this.configService.get<string>("SUBMISSION_INITIAL_RETRY_DELAY", "1000"),
     );
     this.maxRetryDelayMs = parseInt(
-      this.configService.get<string>('SUBMISSION_MAX_RETRY_DELAY', '60000'),
+      this.configService.get<string>("SUBMISSION_MAX_RETRY_DELAY", "60000"),
     );
     this.retryBackoffMultiplier = parseFloat(
-      this.configService.get<string>('SUBMISSION_RETRY_BACKOFF_MULTIPLIER', '2.0'),
+      this.configService.get<string>(
+        "SUBMISSION_RETRY_BACKOFF_MULTIPLIER",
+        "2.0",
+      ),
     );
     this.preserveOrder =
-      this.configService.get<string>('SUBMISSION_PRESERVE_ORDER', 'true') ===
-      'true';
+      this.configService.get<string>("SUBMISSION_PRESERVE_ORDER", "true") ===
+      "true";
 
     this.logger.log(
       `Initialized SubmissionBatchService with batchSize=${this.batchSize}, ` +
@@ -110,9 +113,9 @@ export class SubmissionBatchService {
     const payloads = await this.payloadRepository.find({
       where: {
         status: PayloadStatus.PENDING,
-        signature: In([null, '']),
+        signature: In([null, ""]),
       },
-      order: { createdAt: 'ASC' },
+      order: { createdAt: "ASC" },
       take: batchSize * 2, // Fetch more to filter expired ones
     });
 
@@ -124,7 +127,7 @@ export class SubmissionBatchService {
       if (isExpired) {
         this.markAsFailed(
           p.id,
-          'Payload expired before batch submission',
+          "Payload expired before batch submission",
           FailureType.PERMANENT,
         );
       }
@@ -151,7 +154,8 @@ export class SubmissionBatchService {
   ): Promise<BatchSubmissionResult> {
     const startTime = Date.now();
     const actualBatchId =
-      batchId || `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      batchId ||
+      `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     this.logger.log(
       `Processing batch ${actualBatchId} with ${payloadIds.length} payloads`,
@@ -220,7 +224,7 @@ export class SubmissionBatchService {
           return {
             payloadId,
             success: false,
-            errorMessage: 'Payload not found',
+            errorMessage: "Payload not found",
             failureType: FailureType.PERMANENT,
             attemptNumber: attempt,
           };
@@ -244,7 +248,7 @@ export class SubmissionBatchService {
 
         // Check if already permanently failed
         if (payload.status === PayloadStatus.FAILED) {
-          const isRetryable = this.isRetryableError(payload.errorMessage || '');
+          const isRetryable = this.isRetryableError(payload.errorMessage || "");
           if (!isRetryable) {
             return {
               payloadId,
@@ -310,7 +314,7 @@ export class SubmissionBatchService {
     return {
       payloadId,
       success: false,
-      errorMessage: lastError?.message || 'Unknown error',
+      errorMessage: lastError?.message || "Unknown error",
       failureType: FailureType.RETRYABLE,
       attemptNumber: attempts,
     };
@@ -326,13 +330,13 @@ export class SubmissionBatchService {
       where: {
         status: PayloadStatus.FAILED,
       },
-      order: { updatedAt: 'ASC' },
+      order: { updatedAt: "ASC" },
       take: limit || this.batchSize,
     });
 
     // Filter to only retryable failures that haven't exceeded max attempts
     return payloads.filter((p) => {
-      const isRetryable = this.isRetryableError(p.errorMessage || '');
+      const isRetryable = this.isRetryableError(p.errorMessage || "");
       const hasAttemptsLeft = p.submissionAttempts < this.maxRetries;
       const notTooOld = p.updatedAt > maxAge;
       return isRetryable && hasAttemptsLeft && notTooOld;
@@ -360,7 +364,7 @@ export class SubmissionBatchService {
     }
 
     if (payloads.length === 0) {
-      this.logger.log('No retryable payloads found');
+      this.logger.log("No retryable payloads found");
       return {
         batchId,
         results: [],
@@ -422,10 +426,10 @@ export class SubmissionBatchService {
         where: { status: PayloadStatus.PENDING },
       }),
       this.payloadRepository
-        .createQueryBuilder('p')
-        .where('p.status = :status', { status: PayloadStatus.FAILED })
-        .andWhere('p.errorMessage LIKE :pattern', {
-          pattern: '%network%timeout%',
+        .createQueryBuilder("p")
+        .where("p.status = :status", { status: PayloadStatus.FAILED })
+        .andWhere("p.errorMessage LIKE :pattern", {
+          pattern: "%network%timeout%",
         })
         .getCount(),
       this.payloadRepository.count({
@@ -465,7 +469,7 @@ export class SubmissionBatchService {
       if (payload.expiresAt < now) {
         await this.markAsFailed(
           payload.id,
-          'Payload expired',
+          "Payload expired",
           FailureType.PERMANENT,
         );
         continue;
@@ -486,7 +490,7 @@ export class SubmissionBatchService {
       if (!payload.signature) {
         await this.markAsFailed(
           payload.id,
-          'Payload has no signature',
+          "Payload has no signature",
           FailureType.PERMANENT,
         );
         continue;
@@ -559,7 +563,7 @@ export class SubmissionBatchService {
     return results.map((result, index) => {
       const payload = payloads[index];
 
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         return {
           payloadId: payload.id,
           success: true,
@@ -568,15 +572,13 @@ export class SubmissionBatchService {
         };
       } else {
         const failureType = this.categorizeFailure(result.reason);
-        this.markAsFailed(
-          payload.id,
-          result.reason.message,
-          failureType,
-        ).catch((e) => {
-          this.logger.error(
-            `Failed to mark payload ${payload.id} as failed: ${e.message}`,
-          );
-        });
+        this.markAsFailed(payload.id, result.reason.message, failureType).catch(
+          (e) => {
+            this.logger.error(
+              `Failed to mark payload ${payload.id} as failed: ${e.message}`,
+            );
+          },
+        );
 
         return {
           payloadId: payload.id,
@@ -638,14 +640,14 @@ export class SubmissionBatchService {
 
     // Non-retryable (permanent) failures
     const permanentPatterns = [
-      'expired',
-      'invalid signature',
-      'unauthorized',
-      'insufficient funds',
-      'nonce too low',
-      'already submitted',
-      'execution reverted',
-      'vm exception',
+      "expired",
+      "invalid signature",
+      "unauthorized",
+      "insufficient funds",
+      "nonce too low",
+      "already submitted",
+      "execution reverted",
+      "vm exception",
     ];
 
     for (const pattern of permanentPatterns) {
@@ -656,14 +658,14 @@ export class SubmissionBatchService {
 
     // Retryable failures
     const retryablePatterns = [
-      'network error',
-      'timeout',
-      'econnreset',
-      'socket hang up',
-      'temporary',
-      'service unavailable',
-      'gateway error',
-      'rate limit',
+      "network error",
+      "timeout",
+      "econnreset",
+      "socket hang up",
+      "temporary",
+      "service unavailable",
+      "gateway error",
+      "rate limit",
     ];
 
     for (const pattern of retryablePatterns) {
@@ -680,8 +682,10 @@ export class SubmissionBatchService {
    * Check if an error message indicates a retryable failure
    */
   private isRetryableError(errorMessage: string): boolean {
-    return this.categorizeFailure({ message: errorMessage } as Error) ===
-      FailureType.RETRYABLE;
+    return (
+      this.categorizeFailure({ message: errorMessage } as Error) ===
+      FailureType.RETRYABLE
+    );
   }
 
   /**

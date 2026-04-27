@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { EmailLinkingService } from './email-linking.service';
-import { EmailService } from './email.service';
-import { ChallengeService } from './challenge.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { EmailLinkingService } from "./email-linking.service";
+import { EmailService } from "./email.service";
+import { ChallengeService } from "./challenge.service";
 
 @Injectable()
 export class RecoveryService {
@@ -26,7 +26,7 @@ export class RecoveryService {
 
     if (!user) {
       throw new NotFoundException(
-        'No verified account found with this email address',
+        "No verified account found with this email address",
       );
     }
 
@@ -37,7 +37,7 @@ export class RecoveryService {
     );
 
     return {
-      message: 'Recovery information sent to your email',
+      message: "Recovery information sent to your email",
       previewUrl: emailResult.previewUrl,
     };
   }
@@ -57,7 +57,7 @@ export class RecoveryService {
 
     if (!user) {
       throw new NotFoundException(
-        'No verified account found with this email address',
+        "No verified account found with this email address",
       );
     }
 
