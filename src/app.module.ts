@@ -21,6 +21,7 @@ import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
 import { OracleModule } from "./oracle/oracle.module";
+import { ConfigParamsModule } from "./config-params/config-params.module";
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { OracleModule } from "./oracle/oracle.module";
     ObservabilityModule,
     IndexerModule,
     OracleModule,
+    ConfigParamsModule,
   ],
   controllers: [AppController],
   providers: [
