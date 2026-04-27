@@ -13,12 +13,19 @@ export interface NormalizedPrompt {
   stop?: string | string[];
   stream?: boolean;
   user?: string;
+  tools?: Tool[];
+  toolChoice?: "none" | "auto" | ToolChoice;
+  functionCall?: FunctionCall;
+  functions?: FunctionDefinition[];
 }
 
 export interface Message {
   role: string;
   content: string;
   name?: string;
+  toolCallId?: string;
+  toolCalls?: ToolCall[];
+  functionCall?: FunctionCall;
 }
 
 /**
@@ -35,12 +42,19 @@ export interface OpenAIRequest {
   stop?: string | string[];
   stream?: boolean;
   user?: string;
+  tools?: Tool[];
+  tool_choice?: "none" | "auto" | ToolChoice;
+  function_call?: FunctionCall;
+  functions?: FunctionDefinition[];
 }
 
 export interface OpenAIMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   name?: string;
+  tool_call_id?: string;
+  tool_calls?: ToolCall[];
+  function_call?: FunctionCall;
 }
 
 /**
@@ -86,6 +100,8 @@ export interface NormalizedResponse {
   };
   created: Date;
   raw?: any;
+  toolCalls?: ToolCall[];
+  functionCall?: FunctionCall;
 }
 
 /**
@@ -126,7 +142,57 @@ export interface OpenAIStreamChunk {
     delta: {
       role?: string;
       content?: string;
+      tool_calls?: ToolCallDelta[];
+      function_call?: FunctionCallDelta;
     };
     finish_reason?: string;
   }>;
+}
+
+/**
+ * Function calling interfaces
+ */
+export interface FunctionDefinition {
+  name: string;
+  description?: string;
+  parameters: Record<string, any>;
+  strict?: boolean;
+}
+
+export interface FunctionCall {
+  name?: string;
+  arguments?: string;
+}
+
+export interface FunctionCallDelta {
+  name?: string;
+  arguments?: string;
+}
+
+/**
+ * Tool calling interfaces
+ */
+export interface Tool {
+  type: "function";
+  function: FunctionDefinition;
+}
+
+export interface ToolChoice {
+  type: "function";
+  function: {
+    name: string;
+  };
+}
+
+export interface ToolCall {
+  id: string;
+  type: "function";
+  function: FunctionCall;
+}
+
+export interface ToolCallDelta {
+  index?: number;
+  id?: string;
+  type?: "function";
+  function?: FunctionCallDelta;
 }

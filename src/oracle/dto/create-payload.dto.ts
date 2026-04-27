@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty, IsObject, IsOptional } from 'class-validator';
-import { PayloadType } from '../entities/signed-payload.entity';
+import { IsEnum, IsNotEmpty, IsObject, IsOptional } from "class-validator";
+import { PayloadType } from "../entities/signed-payload.entity";
 
 /**
  * DTO for creating a new payload to be signed

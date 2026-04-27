@@ -3,19 +3,19 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
 import {
   SignedPayload,
   PayloadStatus,
   PayloadType,
-} from '../entities/signed-payload.entity';
-import { PayloadSigningService } from './payload-signing.service';
-import { NonceManagementService } from './nonce-management.service';
-import { SubmitterService } from './submitter.service';
-import { CreatePayloadDto } from '../dto/create-payload.dto';
-import { PayloadResponseDto } from '../dto/payload-response.dto';
+} from "../entities/signed-payload.entity";
+import { PayloadSigningService } from "./payload-signing.service";
+import { NonceManagementService } from "./nonce-management.service";
+import { SubmitterService } from "./submitter.service";
+import { CreatePayloadDto } from "../dto/create-payload.dto";
+import { PayloadResponseDto } from "../dto/payload-response.dto";
 
 /**
  * Main Oracle service that coordinates payload creation, signing, and submission
@@ -44,17 +44,19 @@ export class OracleService {
     createPayloadDto: CreatePayloadDto,
   ): Promise<PayloadResponseDto> {
     // Get next nonce for this address
-    const nonce = await this.nonceManagementService.getAndIncrementNonce(
-      signerAddress,
-    );
+    const nonce =
+      await this.nonceManagementService.getAndIncrementNonce(signerAddress);
 
     // Calculate payload hash
-    const payloadHash =
-      this.payloadSigningService.hashPayload(createPayloadDto.payload);
+    const payloadHash = this.payloadSigningService.hashPayload(
+      createPayloadDto.payload,
+    );
 
     // Set expiration time
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + this.defaultExpirationMinutes);
+    expiresAt.setMinutes(
+      expiresAt.getMinutes() + this.defaultExpirationMinutes,
+    );
 
     // Create structured data hash (for EIP-712)
     const structuredDataHash =
@@ -74,7 +76,7 @@ export class OracleService {
       payload: createPayloadDto.payload,
       payloadHash,
       structuredDataHash,
-      signature: '', // Will be set when signed
+      signature: "", // Will be set when signed
       expiresAt,
       status: PayloadStatus.PENDING,
       metadata: createPayloadDto.metadata || null,
@@ -138,7 +140,9 @@ export class OracleService {
     payload.signature = signature;
     const updatedPayload = await this.payloadRepository.save(payload);
 
-    this.logger.log(`Signed payload ${payloadId} with address ${signerAddress}`);
+    this.logger.log(
+      `Signed payload ${payloadId} with address ${signerAddress}`,
+    );
 
     return this.mapToResponseDto(updatedPayload);
   }
@@ -223,7 +227,7 @@ export class OracleService {
 
     const payloads = await this.payloadRepository.find({
       where: whereClause,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       take: limit,
     });
 
@@ -237,15 +241,17 @@ export class OracleService {
     const payloads = await this.payloadRepository.find({
       where: {
         status: PayloadStatus.PENDING,
-        signature: In([null, '']), // Has signature
+        signature: In([null, ""]), // Has signature
       },
-      order: { createdAt: 'ASC' },
+      order: { createdAt: "ASC" },
       take: limit,
     });
 
     // Filter out expired payloads
     const now = new Date();
-    const validPayloads = payloads.filter((p) => p.expiresAt > now && p.signature);
+    const validPayloads = payloads.filter(
+      (p) => p.expiresAt > now && p.signature,
+    );
 
     return validPayloads.map((p) => this.mapToResponseDto(p));
   }
@@ -318,7 +324,9 @@ export class OracleService {
     failed: number;
   }> {
     const [pending, submitted, confirmed, failed] = await Promise.all([
-      this.payloadRepository.count({ where: { status: PayloadStatus.PENDING } }),
+      this.payloadRepository.count({
+        where: { status: PayloadStatus.PENDING },
+      }),
       this.payloadRepository.count({
         where: { status: PayloadStatus.SUBMITTED },
       }),
@@ -347,7 +355,7 @@ export class OracleService {
 
     for (const payload of toUpdate) {
       payload.status = PayloadStatus.FAILED;
-      payload.errorMessage = 'Payload expired';
+      payload.errorMessage = "Payload expired";
     }
 
     if (toUpdate.length > 0) {

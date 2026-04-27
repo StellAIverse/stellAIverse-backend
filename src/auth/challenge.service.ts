@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { randomBytes } from 'crypto';
+import { Injectable } from "@nestjs/common";
+import { randomBytes } from "crypto";
 
 interface Challenge {
   id: string;
@@ -15,7 +15,7 @@ export class ChallengeService {
   private readonly challengeExpiration = 5 * 60 * 1000; // 5 minutes
 
   issueChallengeForAddress(address: string): string {
-    const challengeId = randomBytes(32).toString('hex');
+    const challengeId = randomBytes(32).toString("hex");
     const now = Date.now();
     const message = `Sign this message to authenticate: ${challengeId}`;
 

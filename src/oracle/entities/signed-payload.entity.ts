@@ -5,39 +5,39 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-} from 'typeorm';
+} from "typeorm";
 
 export enum PayloadStatus {
-  PENDING = 'pending',
-  SUBMITTED = 'submitted',
-  CONFIRMED = 'confirmed',
-  FAILED = 'failed',
+  PENDING = "pending",
+  SUBMITTED = "submitted",
+  CONFIRMED = "confirmed",
+  FAILED = "failed",
 }
 
 export enum PayloadType {
-  ORACLE_UPDATE = 'oracle_update',
-  AGENT_RESULT = 'agent_result',
-  PRICE_FEED = 'price_feed',
-  COMPUTE_PROOF = 'compute_proof',
+  ORACLE_UPDATE = "oracle_update",
+  AGENT_RESULT = "agent_result",
+  PRICE_FEED = "price_feed",
+  COMPUTE_PROOF = "compute_proof",
 }
 
 /**
  * Entity for storing signed payloads and their submission status
  * Provides audit trail for all on-chain submissions
  */
-@Entity('signed_payloads')
-@Index(['signerAddress', 'status'])
-@Index(['payloadHash'], { unique: true })
-@Index(['transactionHash'])
+@Entity("signed_payloads")
+@Index(["signerAddress", "status"])
+@Index(["payloadHash"], { unique: true })
+@Index(["transactionHash"])
 export class SignedPayload {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   /**
    * Type of payload being submitted
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: PayloadType,
   })
   payloadType: PayloadType;
@@ -45,50 +45,50 @@ export class SignedPayload {
   /**
    * Address that signed this payload
    */
-  @Column({ type: 'varchar', length: 42 })
+  @Column({ type: "varchar", length: 42 })
   signerAddress: string;
 
   /**
    * Nonce used for this submission
    */
-  @Column({ type: 'bigint' })
+  @Column({ type: "bigint" })
   nonce: string;
 
   /**
    * The actual payload data (stored as JSON)
    */
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   payload: Record<string, any>;
 
   /**
    * Keccak256 hash of the payload
    */
-  @Column({ type: 'varchar', length: 66, unique: true })
+  @Column({ type: "varchar", length: 66, unique: true })
   payloadHash: string;
 
   /**
    * EIP-712 structured data hash
    */
-  @Column({ type: 'varchar', length: 66 })
+  @Column({ type: "varchar", length: 66 })
   structuredDataHash: string;
 
   /**
    * ECDSA signature (r, s, v components concatenated)
    */
-  @Column({ type: 'varchar', length: 132 })
+  @Column({ type: "varchar", length: 132 })
   signature: string;
 
   /**
    * Expiration timestamp for this payload
    */
-  @Column({ type: 'timestamp' })
+  @Column({ type: "timestamp" })
   expiresAt: Date;
 
   /**
    * Current status of the submission
    */
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: PayloadStatus,
     default: PayloadStatus.PENDING,
   })
@@ -97,31 +97,31 @@ export class SignedPayload {
   /**
    * Transaction hash when submitted on-chain
    */
-  @Column({ type: 'varchar', length: 66, nullable: true })
+  @Column({ type: "varchar", length: 66, nullable: true })
   transactionHash: string | null;
 
   /**
    * Block number when confirmed on-chain
    */
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: "bigint", nullable: true })
   blockNumber: string | null;
 
   /**
    * Number of submission attempts
    */
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   submissionAttempts: number;
 
   /**
    * Error message if submission failed
    */
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   errorMessage: string | null;
 
   /**
    * Metadata for additional context
    */
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata: Record<string, any> | null;
 
   @CreateDateColumn()
@@ -133,12 +133,12 @@ export class SignedPayload {
   /**
    * When the payload was submitted to the blockchain
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   submittedAt: Date | null;
 
   /**
    * When the payload was confirmed on-chain
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   confirmedAt: Date | null;
 }
