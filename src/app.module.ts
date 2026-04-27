@@ -21,6 +21,7 @@ import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
 import { WebSocketModule } from "./websocket/websocket.module";
 import { ObservabilityModule } from "./observability/observability.module";
 import { OracleModule } from "./oracle/oracle.module";
+import { RolesGuard } from "./common/rbac/roles.guard";
 
 @Module({
   imports: [
@@ -82,10 +83,15 @@ import { OracleModule } from "./oracle/oracle.module";
   controllers: [AppController],
   providers: [
     AppService,
-    // Apply rate limiting globally with IP-based throttling
+    // Apply rate limiting globally
     {
       provide: APP_GUARD,
       useClass: ThrottlerUserIpGuard,
+    },
+    // Apply RBAC globally — no implicit trust for any method
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })
