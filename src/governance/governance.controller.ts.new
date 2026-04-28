@@ -11,9 +11,9 @@ import { Role } from '../common/rbac/roles.enum';
 export class GovernanceController {
   constructor(private readonly service: GovernanceService) {}
 
-  @RequireRole(Role.GOVERNANCE_OPERATOR, Role.ADMIN)
-    @Post('proposals')
-    queue(@Body() dto: QueueProposalDto) {
+  @RequireRole(Role.GOVERNANCE_OPERATOR)
+  @Post('proposals')
+  queue(@Body() dto: QueueProposalDto) {
     return this.service.queueProposal(dto);
   }
 
@@ -27,16 +27,15 @@ export class GovernanceController {
     return this.service.findOne(id);
   }
 
-  @RequireRole(Role.GOVERNANCE_OPERATOR, Role.ADMIN)
+  @RequireRole(Role.GOVERNANCE_OPERATOR)
   @Post('proposals/:id/execute')
   execute(@Param('id') id: string) {
     return this.service.executeProposal(id);
   }
 
-  @RequireRole(Role.GOVERNANCE_OPERATOR, Role.ADMIN)
+  @RequireRole(Role.GOVERNANCE_OPERATOR)
   @Patch('proposals/:id/cancel')
   cancel(@Param('id') id: string, @Body() dto: CancelProposalDto) {
     return this.service.cancelProposal(id, dto);
   }
 }
-

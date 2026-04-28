@@ -4,6 +4,8 @@ export enum Role {
   USER = "user",
   OPERATOR = "operator",
   ADMIN = "admin",
+  GOVERNANCE_OPERATOR = "governance_operator",
+  KYC_OPERATOR = "kyc_operator",
 }
 
 export const ROLES_KEY = "roles";
