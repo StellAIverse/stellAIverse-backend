@@ -17,6 +17,9 @@ import {
   ComplianceTransactionDto,
   FrameworkConfigDto,
 } from "./dto/compliance.dto";
+import { RequireRole } from "../common/rbac/roles.decorator";
+import { RolesGuard } from "../common/rbac/roles.guard";
+import { Role } from "../common/rbac/roles.enum";
 
 @Controller("compliance")
 @UseGuards(JwtAuthGuard)
@@ -38,12 +41,16 @@ export class ComplianceController {
     return this.complianceService.listWatchlist();
   }
 
+  @UseGuards(RolesGuard)
+  @RequireRole(Role.KYC_OPERATOR, Role.ADMIN)
   @Post("kyc")
   @SkipKyc()
   submitKyc(@Body() profile: KycProfileDto) {
     return this.complianceService.submitKyc(profile);
   }
 
+  @UseGuards(RolesGuard)
+  @RequireRole(Role.KYC_OPERATOR, Role.ADMIN)
   @Get("kyc/:userId")
   @SkipKyc()
   getKycStatus(@Param("userId") userId: string) {

@@ -16,6 +16,8 @@ export enum UserRole {
   USER = "user",
   OPERATOR = "operator",
   ADMIN = "admin",
+  GOVERNANCE_OPERATOR = "governance_operator",
+  KYC_OPERATOR = "kyc_operator",
 }
 
 @Entity("users")
