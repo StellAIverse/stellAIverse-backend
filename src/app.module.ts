@@ -56,6 +56,8 @@ import { DeFiYieldStrategy } from "./defi/entities/defi-yield-strategy.entity";
 import { DeFiRiskAssessment } from "./defi/entities/defi-risk-assessment.entity";
 
 import { QuotaGuard } from "./common/guard/quota.guard";
+import { RolesGuard } from "./common/guard/roles.guard";
+import { KycGuard } from "./common/guard/kyc.guard";
 import { SubmissionVerifierService } from "./oracle/submission-verifier.service";
 
 // New modules
@@ -184,6 +186,10 @@ import { QuotaPolicy } from "./quota/policy.entity";
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: KycGuard,
     },
   ],
 })

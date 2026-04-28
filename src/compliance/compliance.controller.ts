@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/jwt.guard";
+import { SkipKyc } from "../common/decorators/skip-kyc.decorator";
 import { ComplianceService } from "./compliance.service";
 import {
   WatchlistEntryDto,
@@ -38,17 +39,19 @@ export class ComplianceController {
   }
 
   @Post("kyc")
+  @SkipKyc()
   submitKyc(@Body() profile: KycProfileDto) {
     return this.complianceService.submitKyc(profile);
   }
 
   @Get("kyc/:userId")
+  @SkipKyc()
   getKycStatus(@Param("userId") userId: string) {
     return this.complianceService.getKycStatus(userId);
   }
 
   @Get("frameworks")
-  getFrameworks() {
+  getFrameworks(): unknown {
     return this.complianceService.getFrameworks();
   }
 
@@ -63,7 +66,7 @@ export class ComplianceController {
   }
 
   @Get("transaction/:txId")
-  getTransaction(@Param("txId") txId: string) {
+  getTransaction(@Param("txId") txId: string): unknown {
     return this.complianceService.getTransaction(txId);
   }
 
