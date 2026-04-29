@@ -283,12 +283,14 @@ export class ReportingService {
   }
 
   /**
-   * Executes custom query for reports
+   * Executes custom query for reports.
+   * Custom query execution is intentionally disabled to prevent SQL injection.
+   * Use predefined report types (reward_analytics, user_engagement, campaign_performance) instead.
    */
-  private async executeCustomQuery(query: string, filters: any): Promise<any> {
-    // Implementation for custom query execution
-    // This would be a secure way to execute predefined queries
-    return { message: 'Custom query execution - to be implemented' };
+  private async executeCustomQuery(_query: string, _filters: any): Promise<any> {
+    throw new Error(
+      "Custom query execution is disabled for security reasons. Use a predefined report type.",
+    );
   }
 
   /**

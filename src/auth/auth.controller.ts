@@ -384,4 +384,38 @@ export class AuthController {
     // Example operator/admin endpoint
     return { message: "Stats access granted for admin/operator roles." };
   }
+
+  // Traditional Auth Endpoints
+
+  @Post("register")
+  @ApiOperation({ summary: "Register with email and password" })
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
+
+  @Post("login")
+  @ApiOperation({ summary: "Login with email and password" })
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+
+  @Post("logout")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Logout and invalidate current token" })
+  async logout(@Request() req) {
+    const { jti, exp } = req.user;
+    if (jti && exp) {
+      this.authService.logout(jti, exp);
+    }
+    return { message: "Logged out successfully" };
+  }
+
+  @Get("status")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Check authentication status" })
+  async getStatus(@Request() req) {
+    return this.authService.getAuthStatus(req.user);
+  }
 }
