@@ -1,6 +1,12 @@
-import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  ForbiddenException,
+} from "@nestjs/common";
 import { AuditLogService } from "../audit/audit-log.service";
 import { RiskManagementService } from "../risk-management/risk-management.service";
+import { KycStatusTransitionService } from "./kyc-status-transition.service";
 import {
   WatchlistEntryDto,
   KycProfileDto,
@@ -21,6 +27,15 @@ interface StoredTransaction {
 
 interface StoredFrameworkConfig extends FrameworkConfigDto {}
 
+export interface KycActorContext {
+  id?: string;
+  sub?: string;
+  userId?: string;
+  address?: string;
+  role?: string;
+  roles?: string[];
+}
+
 @Injectable()
 export class ComplianceService {
   private readonly logger = new Logger(ComplianceService.name);
@@ -34,6 +49,7 @@ export class ComplianceService {
   constructor(
     private readonly auditLogService: AuditLogService,
     private readonly riskManagementService: RiskManagementService,
+    private readonly kycStatusTransitionService: KycStatusTransitionService,
   ) {
     // Default frameworks
     this.frameworks.set("FINRA", {
@@ -88,10 +104,26 @@ export class ComplianceService {
     return Array.from(this.watchlist.values());
   }
 
-  submitKyc(profile: KycProfileDto) {
+  submitKyc(profile: KycProfileDto, actor?: KycActorContext) {
     if (!profile.userId || !profile.fullName || !profile.idNumber) {
       throw new BadRequestException("Missing required KYC profile fields");
     }
+
+    this.assertKycOperator(actor);
+
+    const actorId = this.resolveActorId(actor);
+    if (actorId && actorId === profile.userId) {
+      throw new ForbiddenException({
+        code: "KYC_SELF_ASSIGNMENT_FORBIDDEN",
+        message: "KYC operators cannot update their own KYC status",
+      });
+    }
+
+    const existingProfile = this.kycProfiles.get(profile.userId);
+    this.kycStatusTransitionService.assertValidTransition(
+      existingProfile?.status,
+      profile.status,
+    );
 
     const sanitized: KycProfileDto = {
       ...profile,
@@ -103,9 +135,29 @@ export class ComplianceService {
       type: "COMPLIANCE",
       action: "kyc_submit",
       profile: { ...sanitized, idNumber: "REDACTED" },
+      actorId,
     });
 
     return sanitized;
+  }
+
+  private assertKycOperator(actor?: KycActorContext): void {
+    const roles = this.normalizeRoles(actor);
+    if (!roles.includes("kyc_operator")) {
+      throw new ForbiddenException({
+        code: "KYC_OPERATOR_ROLE_REQUIRED",
+        message: "Only KYC operators can update KYC status",
+      });
+    }
+  }
+
+  private normalizeRoles(actor?: KycActorContext): string[] {
+    const roles = actor?.roles ?? (actor?.role ? [actor.role] : []);
+    return roles.map((role) => role.toLowerCase());
+  }
+
+  private resolveActorId(actor?: KycActorContext): string | undefined {
+    return actor?.id || actor?.userId || actor?.sub || actor?.address;
   }
 
   getKycStatus(userId: string) {
