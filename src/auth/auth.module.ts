@@ -4,6 +4,7 @@ import { PassportModule } from "@nestjs/passport";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { AuthController } from "./auth.controller";
+import { EnhancedAuthController, KycController } from "./enhanced-auth.controller";
 import { AuthService } from "./auth.service";
 import { EnhancedAuthService } from "./enhanced-auth.service";
 import { ChallengeService } from "./challenge.service";
@@ -39,7 +40,7 @@ import { ReferralModule } from "../referral/referral.module";
     }),
     TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, EnhancedAuthController, KycController],
   providers: [
     // Legacy services (for backward compatibility)
     AuthService,
