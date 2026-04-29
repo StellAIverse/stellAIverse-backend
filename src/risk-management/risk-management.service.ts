@@ -135,6 +135,23 @@ export class RiskManagementService {
     return gain >= config.takeProfitPercentage / 100;
   }
 
+  getPositionRisk(userId: string): { userId: string; positions: unknown[]; riskScore: number } {
+    const config = this.riskConfigs.get(userId);
+    return {
+      userId,
+      positions: [],
+      riskScore: config ? 0 : -1,
+    };
+  }
+
+  getExposure(): { totalExposure: number; byAsset: Record<string, number>; timestamp: Date } {
+    return {
+      totalExposure: 0,
+      byAsset: {},
+      timestamp: new Date(),
+    };
+  }
+
   private calculateVaR(
     totalValue: number,
     volatility: number,

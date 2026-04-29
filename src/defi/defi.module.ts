@@ -22,6 +22,8 @@ import { ProtocolRegistry } from "./protocols/protocol-registry";
 
 // Controller
 import { DeFiController } from "./defi.controller";
+import { TradeController } from "./trade.controller";
+import { TradeLockService } from "./trade-lock.service";
 
 @Module({
   imports: [
@@ -97,14 +99,16 @@ import { DeFiController } from "./defi.controller";
     YieldOptimizationService,
     RiskAssessmentService,
     TransactionOptimizationService,
+    TradeLockService,
   ],
-  controllers: [DeFiController],
+  controllers: [DeFiController, TradeController],
   exports: [
     ProtocolRegistry,
     PositionTrackingService,
     YieldOptimizationService,
     RiskAssessmentService,
     TransactionOptimizationService,
+    TradeLockService,
   ],
 })
 export class DeFiModule {}

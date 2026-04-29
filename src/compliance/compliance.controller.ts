@@ -90,4 +90,16 @@ export class ComplianceController {
   generateRegulatoryReport(@Query("framework") framework?: string) {
     return this.complianceService.generateRegulatoryReport(framework);
   }
+
+  /** POST /api/compliance/aml-check - Run AML check on a transaction */
+  @Post("aml-check")
+  amlCheck(@Body() body: { userId: string; amount: number; currency?: string; txHash?: string }) {
+    return this.complianceService.runAmlCheck(body);
+  }
+
+  /** GET /api/compliance/reports - Get all compliance reports */
+  @Get("reports")
+  getReports(@Query("framework") framework?: string, @Query("limit") limit?: string) {
+    return this.complianceService.getReports(framework, limit ? +limit : 20);
+  }
 }
