@@ -24,6 +24,7 @@ import { StrategyAuthGuard } from "./guards/strategy-auth.guard";
 import { User } from "../user/entities/user.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { Wallet } from "./entities/wallet.entity";
+import { RefreshToken, TwoFactorAuth } from "./entities/auth.entity";
 import { ReferralModule } from "../referral/referral.module";
 
 @Module({
@@ -35,7 +36,7 @@ import { ReferralModule } from "../referral/referral.module";
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: "24h" },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification, Wallet]),
+    TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
   ],
   controllers: [AuthController],
   providers: [
