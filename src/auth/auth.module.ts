@@ -4,7 +4,9 @@ import { PassportModule } from "@nestjs/passport";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
 import { AuthController } from "./auth.controller";
+import { EnhancedAuthController, KycController } from "./enhanced-auth.controller";
 import { AuthService } from "./auth.service";
+import { EnhancedAuthService } from "./enhanced-auth.service";
 import { ChallengeService } from "./challenge.service";
 import { JwtStrategy } from "./jwt.strategy";
 import { JwtAuthGuard } from "./jwt.guard";
@@ -24,6 +26,7 @@ import { StrategyAuthGuard } from "./guards/strategy-auth.guard";
 import { User } from "../user/entities/user.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { Wallet } from "./entities/wallet.entity";
+import { RefreshToken, TwoFactorAuth } from "./entities/auth.entity";
 import { ReferralModule } from "../referral/referral.module";
 
 @Module({
@@ -35,9 +38,9 @@ import { ReferralModule } from "../referral/referral.module";
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: "24h" },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification, Wallet]),
+    TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, EnhancedAuthController, KycController],
   providers: [
     // Legacy services (for backward compatibility)
     AuthService,
@@ -48,6 +51,8 @@ import { ReferralModule } from "../referral/referral.module";
     RecoveryService,
     SessionRecoveryService,
     DelegationService,
+    // New enhanced services
+    EnhancedAuthService,
     JwtStrategy,
     JwtAuthGuard,
     // New pluggable strategy system
@@ -68,6 +73,8 @@ import { ReferralModule } from "../referral/referral.module";
     SessionRecoveryService,
     DelegationService,
     JwtAuthGuard,
+    // New enhanced exports
+    EnhancedAuthService,
     // New pluggable strategy exports
     StrategyRegistry,
     StrategyAuthService,
