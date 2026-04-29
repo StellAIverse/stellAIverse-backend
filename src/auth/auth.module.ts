@@ -72,6 +72,8 @@ import { ReferralModule } from "../referral/referral.module";
     SessionRecoveryService,
     DelegationService,
     JwtAuthGuard,
+    // New enhanced exports
+    EnhancedAuthService,
     // New pluggable strategy exports
     StrategyRegistry,
     StrategyAuthService,
