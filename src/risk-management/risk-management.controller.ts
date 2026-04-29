@@ -10,11 +10,15 @@ import {
 import { JwtAuthGuard } from "../auth/jwt.guard";
 import { RiskManagementService } from "./risk-management.service";
 import { RiskConfigDto, PositionSizeDto } from "./dto/risk.dto";
+import { CircuitBreakerService } from "./circuit-breaker.service";
 
 @Controller("risk")
 @UseGuards(JwtAuthGuard)
 export class RiskManagementController {
-  constructor(private readonly riskService: RiskManagementService) {}
+  constructor(
+    private readonly riskService: RiskManagementService,
+    private readonly circuitBreaker: CircuitBreakerService,
+  ) {}
 
   @Post("config")
   setRiskConfig(@Body() dto: RiskConfigDto) {
@@ -26,6 +30,31 @@ export class RiskManagementController {
   getRiskConfig(@Param("userId") userId: string) {
     const config = this.riskService.getRiskConfig(userId);
     return config ?? { message: "No risk config found" };
+  }
+
+  /** GET /api/risk/position/:userId - Get position risk for a user */
+  @Get("position/:userId")
+  getPosition(@Param("userId") userId: string) {
+    return this.riskService.getPositionRisk(userId);
+  }
+
+  /** GET /api/risk/exposure - Get overall market exposure */
+  @Get("exposure")
+  getExposure() {
+    return this.riskService.getExposure();
+  }
+
+  /** GET /api/risk/circuit-breaker - Get circuit breaker status */
+  @Get("circuit-breaker")
+  getCircuitBreaker() {
+    return this.circuitBreaker.getStatus();
+  }
+
+  /** POST /api/risk/circuit-breaker/reset - Reset circuit breaker */
+  @Post("circuit-breaker/reset")
+  resetCircuitBreaker() {
+    this.circuitBreaker.reset();
+    return { success: true };
   }
 
   @Post("portfolio/:userId/analyze")

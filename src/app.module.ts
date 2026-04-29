@@ -75,6 +75,7 @@ import { Waitlist } from "./waitlist/entities/waitlist.entity";
 import { WaitlistEntry } from "./waitlist/entities/waitlist-entry.entity";
 import { WaitlistEvent } from "./waitlist/entities/waitlist-event.entity";
 import { QuotaPolicy } from "./quota/policy.entity";
+import { StakingModule } from "./staking/staking.module";
 
 @Module({
   imports: [
@@ -177,6 +178,7 @@ import { QuotaPolicy } from "./quota/policy.entity";
     SchedulingModule,
     AdminModule,
     WaitlistModule,
+    StakingModule,
   ],
 
   controllers: [AppController],

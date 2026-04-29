@@ -348,4 +348,58 @@ export class ComplianceService {
     });
     return selected ? { ...report, framework: selected.framework } : report;
   }
+
+  runAmlCheck(body: { userId: string; amount: number; currency?: string; txHash?: string }): {
+    passed: boolean;
+    riskScore: number;
+    flags: string[];
+    checkedAt: string;
+  } {
+    const flags: string[] = [];
+    let riskScore = 0;
+
+    // Check watchlist
+    if (this.isAddressWatchlisted(body.userId)) {
+      flags.push('USER_ON_WATCHLIST');
+      riskScore += 80;
+    }
+
+    // Large transaction check
+    if (body.amount > 100000) {
+      flags.push('LARGE_TRANSACTION');
+      riskScore += 30;
+    }
+
+    // KYC check
+    const kyc = this.kycProfiles.get(body.userId);
+    if (!kyc || kyc.status !== KycStatus.VERIFIED) {
+      flags.push('KYC_NOT_VERIFIED');
+      riskScore += 20;
+    }
+
+    riskScore = Math.min(100, riskScore);
+    const passed = riskScore < 70;
+
+    this.logger.log(`AML check for user ${body.userId}: score=${riskScore}, passed=${passed}`);
+    return { passed, riskScore, flags, checkedAt: new Date().toISOString() };
+  }
+
+  getReports(framework?: string, limit = 20): unknown[] {
+    const transactions = Array.from(this.transactions.values())
+      .slice(-limit)
+      .map(t => ({
+        txId: t.tx.txId,
+        userId: t.tx.userId,
+        amount: t.tx.amount,
+        riskScore: t.riskScore,
+        passed: t.passed,
+        flaggedReasons: t.flaggedReasons,
+        timestamp: t.timestamp,
+        framework: this.getApplicableFramework(t.tx),
+      }));
+
+    return framework
+      ? transactions.filter(t => t.framework === framework)
+      : transactions;
+  }
 }
