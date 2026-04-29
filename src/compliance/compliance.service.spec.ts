@@ -2,6 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ComplianceService } from "./compliance.service";
 import { AuditLogService } from "../audit/audit-log.service";
 import { RiskManagementService } from "../risk-management/risk-management.service";
+import { KycStatusTransitionService } from "./kyc-status-transition.service";
 import {
   KycStatus,
   ComplianceTransactionDto,
@@ -13,6 +14,7 @@ import {
 describe("ComplianceService", () => {
   let service: ComplianceService;
   let auditService: AuditLogService;
+  const operator = { id: "kyc-operator-1", role: "kyc_operator" };
   const mockRiskService = {
     calculatePortfolioRisk: jest.fn().mockResolvedValue({
       userId: "user1",
@@ -35,6 +37,7 @@ describe("ComplianceService", () => {
       providers: [
         ComplianceService,
         AuditLogService,
+        KycStatusTransitionService,
         { provide: RiskManagementService, useValue: mockRiskService },
       ],
     }).compile();
@@ -68,12 +71,85 @@ describe("ComplianceService", () => {
       dateOfBirth: "1990-01-01",
       country: "US",
       idNumber: "123456789",
-      status: KycStatus.VERIFIED,
+      status: KycStatus.PENDING,
     };
 
-    const result = service.submitKyc(profile);
+    const result = service.submitKyc(profile, operator);
     expect(result.idNumber).not.toEqual("123456789");
-    expect(result.status).toEqual(KycStatus.VERIFIED);
+    expect(result.status).toEqual(KycStatus.PENDING);
+  });
+
+  it("should allow valid KYC transitions in strict order", () => {
+    const baseProfile = {
+      userId: "progress-user",
+      fullName: "Alice",
+      dateOfBirth: "1990-01-01",
+      country: "US",
+      idNumber: "123456789",
+    };
+
+    const pending = service.submitKyc(
+      { ...baseProfile, status: KycStatus.PENDING },
+      operator,
+    );
+    const inReview = service.submitKyc(
+      { ...baseProfile, status: KycStatus.IN_REVIEW },
+      operator,
+    );
+    const verified = service.submitKyc(
+      { ...baseProfile, status: KycStatus.VERIFIED },
+      operator,
+    );
+
+    expect(pending.status).toBe(KycStatus.PENDING);
+    expect(inReview.status).toBe(KycStatus.IN_REVIEW);
+    expect(verified.status).toBe(KycStatus.VERIFIED);
+  });
+
+  it("should reject skipped KYC transitions with deterministic error code", () => {
+    const baseProfile = {
+      userId: "skip-user",
+      fullName: "Skip User",
+      dateOfBirth: "1991-01-01",
+      country: "US",
+      idNumber: "222333444",
+    };
+
+    service.submitKyc({ ...baseProfile, status: KycStatus.PENDING }, operator);
+
+    expect(() =>
+      service.submitKyc({ ...baseProfile, status: KycStatus.VERIFIED }, operator),
+    ).toThrowError(/KYC_INVALID_STATUS_TRANSITION/);
+  });
+
+  it("should reject non-KYC operators", () => {
+    const profile: KycProfileDto = {
+      userId: "user-non-operator",
+      fullName: "Not Allowed",
+      dateOfBirth: "1990-01-01",
+      country: "US",
+      idNumber: "111222333",
+      status: KycStatus.PENDING,
+    };
+
+    expect(() =>
+      service.submitKyc(profile, { id: "regular-user", role: "user" }),
+    ).toThrowError(/KYC_OPERATOR_ROLE_REQUIRED/);
+  });
+
+  it("should prevent self-assignment", () => {
+    const profile: KycProfileDto = {
+      userId: "kyc-operator-1",
+      fullName: "Self Verify",
+      dateOfBirth: "1990-01-01",
+      country: "US",
+      idNumber: "444555666",
+      status: KycStatus.PENDING,
+    };
+
+    expect(() => service.submitKyc(profile, operator)).toThrowError(
+      /KYC_SELF_ASSIGNMENT_FORBIDDEN/,
+    );
   });
 
   it("should evaluate transaction and generate alerts/report", async () => {
@@ -83,9 +159,10 @@ describe("ComplianceService", () => {
       dateOfBirth: "1985-05-05",
       country: "US",
       idNumber: "987654321",
-      status: KycStatus.VERIFIED,
     };
-    service.submitKyc(profile);
+    service.submitKyc({ ...profile, status: KycStatus.PENDING }, operator);
+    service.submitKyc({ ...profile, status: KycStatus.IN_REVIEW }, operator);
+    service.submitKyc({ ...profile, status: KycStatus.VERIFIED }, operator);
 
     const tx: ComplianceTransactionDto = {
       txId: "tx1",

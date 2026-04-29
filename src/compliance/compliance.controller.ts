@@ -6,11 +6,12 @@ import {
   Param,
   Query,
   Delete,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/jwt.guard";
 import { SkipKyc } from "../common/decorators/skip-kyc.decorator";
-import { ComplianceService } from "./compliance.service";
+import { ComplianceService, KycActorContext } from "./compliance.service";
 import {
   WatchlistEntryDto,
   KycProfileDto,
@@ -42,11 +43,14 @@ export class ComplianceController {
   }
 
   @UseGuards(RolesGuard)
-  @RequireRole(Role.KYC_OPERATOR, Role.ADMIN)
+  @RequireRole(Role.KYC_OPERATOR)
   @Post("kyc")
   @SkipKyc()
-  submitKyc(@Body() profile: KycProfileDto) {
-    return this.complianceService.submitKyc(profile);
+  submitKyc(
+    @Body() profile: KycProfileDto,
+    @Req() request: { user?: KycActorContext },
+  ) {
+    return this.complianceService.submitKyc(profile, request.user);
   }
 
   @UseGuards(RolesGuard)
@@ -85,5 +89,17 @@ export class ComplianceController {
   @Get("report")
   generateRegulatoryReport(@Query("framework") framework?: string) {
     return this.complianceService.generateRegulatoryReport(framework);
+  }
+
+  /** POST /api/compliance/aml-check - Run AML check on a transaction */
+  @Post("aml-check")
+  amlCheck(@Body() body: { userId: string; amount: number; currency?: string; txHash?: string }) {
+    return this.complianceService.runAmlCheck(body);
+  }
+
+  /** GET /api/compliance/reports - Get all compliance reports */
+  @Get("reports")
+  getReports(@Query("framework") framework?: string, @Query("limit") limit?: string) {
+    return this.complianceService.getReports(framework, limit ? +limit : 20);
   }
 }

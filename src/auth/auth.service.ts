@@ -7,11 +7,13 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/entities/user.entity";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import { RewardService } from "../referral/reward.service";
 import { RewardTrigger } from "../referral/reward.entity";
+import { TokenBlacklistService } from "./token-blacklist.service";
 
 @Injectable()
 export class AuthService {
@@ -20,6 +22,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly rewardService: RewardService,
+    private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
   async register(
@@ -83,13 +86,15 @@ export class AuthService {
         });
     }
 
-    // Generate JWT token
+    // Generate JWT token with jti for replay attack prevention
+    const jti = uuidv4();
     const payload = {
       sub: user.id,
       email: user.email,
       username: user.username,
+      jti,
     };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload, { expiresIn: "15m" });
 
     return {
       token,
@@ -127,13 +132,15 @@ export class AuthService {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    // Generate JWT token
+    // Generate JWT token with jti for replay attack prevention
+    const jti = uuidv4();
     const payload = {
       sub: user.id,
       email: user.email,
       username: user.username,
+      jti,
     };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload, { expiresIn: "15m" });
 
     return {
       token,
@@ -149,6 +156,14 @@ export class AuthService {
 
   async validateUser(userId: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id: userId } });
+  }
+
+  /**
+   * Logout: blacklist the token's jti so it cannot be reused.
+   * The caller must pass the decoded jti and exp from the current token.
+   */
+  logout(jti: string, exp: number): void {
+    this.tokenBlacklist.revoke(jti, exp * 1000); // exp is in seconds, convert to ms
   }
 
   async getAuthStatus(

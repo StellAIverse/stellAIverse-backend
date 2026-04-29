@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ComplianceService } from '../../src/compliance/compliance.service';
 import { AuditLogService } from '../../src/audit/audit-log.service';
 import { RiskManagementService } from '../../src/risk-management/risk-management.service';
+import { KycStatusTransitionService } from '../../src/compliance/kyc-status-transition.service';
 import {
   KycStatus,
   ComplianceTransactionDto,
@@ -13,6 +14,7 @@ import {
 describe('ComplianceService', () => {
   let service: ComplianceService;
   let auditService: AuditLogService;
+  const operator = { id: 'kyc-operator-1', role: 'kyc_operator' };
   const mockRiskService = {
     calculatePortfolioRisk: jest.fn().mockResolvedValue({
       userId: 'user1',
@@ -35,6 +37,7 @@ describe('ComplianceService', () => {
       providers: [
         ComplianceService,
         AuditLogService,
+        KycStatusTransitionService,
         { provide: RiskManagementService, useValue: mockRiskService },
       ],
     }).compile();
@@ -62,12 +65,28 @@ describe('ComplianceService', () => {
       dateOfBirth: '1990-01-01',
       country: 'US',
       idNumber: '123456789',
-      status: KycStatus.VERIFIED,
+      status: KycStatus.PENDING,
     };
 
-    const result = service.submitKyc(profile);
+    const result = service.submitKyc(profile, operator);
     expect(result.idNumber).not.toEqual('123456789');
-    expect(result.status).toEqual(KycStatus.VERIFIED);
+    expect(result.status).toEqual(KycStatus.PENDING);
+  });
+
+  it('should reject pending to verified transition', () => {
+    const baseProfile = {
+      userId: 'skip-user',
+      fullName: 'Skip User',
+      dateOfBirth: '1991-01-01',
+      country: 'US',
+      idNumber: '222333444',
+    };
+
+    service.submitKyc({ ...baseProfile, status: KycStatus.PENDING }, operator);
+
+    expect(() =>
+      service.submitKyc({ ...baseProfile, status: KycStatus.VERIFIED }, operator),
+    ).toThrowError(/KYC_INVALID_STATUS_TRANSITION/);
   });
 
   it('should evaluate transaction and generate alerts/report', async () => {
@@ -77,9 +96,10 @@ describe('ComplianceService', () => {
       dateOfBirth: '1985-05-05',
       country: 'US',
       idNumber: '987654321',
-      status: KycStatus.VERIFIED,
     };
-    service.submitKyc(profile);
+    service.submitKyc({ ...profile, status: KycStatus.PENDING }, operator);
+    service.submitKyc({ ...profile, status: KycStatus.IN_REVIEW }, operator);
+    service.submitKyc({ ...profile, status: KycStatus.VERIFIED }, operator);
 
     const tx: ComplianceTransactionDto = {
       txId: 'tx1',

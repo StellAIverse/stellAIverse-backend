@@ -9,11 +9,13 @@ import { RewardController } from "./reward.controller";
 import { BonusCalculationService } from "./bonus-calculation.service";
 import { BonusCalculationController } from "./bonus-calculation.controller";
 import { AuditModule } from "../audit/audit.module";
+import { AffiliateController } from "./affiliate.controller";
+import { AffiliateService } from "./affiliate.service";
 
 @Module({
   imports: [TypeOrmModule.forFeature([ReferralReward, BonusConfiguration, BonusCalculation, User]), AuditModule],
-  controllers: [RewardController, BonusCalculationController],
-  providers: [RewardService, BonusCalculationService],
-  exports: [RewardService, BonusCalculationService],
+  controllers: [RewardController, BonusCalculationController, AffiliateController],
+  providers: [RewardService, BonusCalculationService, AffiliateService],
+  exports: [RewardService, BonusCalculationService, AffiliateService],
 })
 export class ReferralModule {}

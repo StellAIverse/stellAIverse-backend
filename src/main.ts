@@ -46,6 +46,7 @@ async function bootstrap() {
 
   // Global configuration
   app.setGlobalPrefix("api/v1");
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     // Sanitize first to strip XSS payloads before validation
     new SanitizePipe(),

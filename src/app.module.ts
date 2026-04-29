@@ -81,6 +81,7 @@ import { AlertTriggerLog } from "./alerts/entities/alert-trigger-log.entity";
 import { LiquidityModule } from "./liquidity/liquidity.module";
 import { LiquidityPool } from "./liquidity/entities/liquidity-pool.entity";
 import { LpPosition } from "./liquidity/entities/lp-position.entity";
+import { StakingModule } from "./staking/staking.module";
 
 @Module({
   imports: [
@@ -189,6 +190,7 @@ import { LpPosition } from "./liquidity/entities/lp-position.entity";
     WaitlistModule,
     AlertsModule,
     LiquidityModule,
+    StakingModule,
   ],
 
   controllers: [AppController],

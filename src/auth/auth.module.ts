@@ -23,6 +23,7 @@ import { TraditionalStrategy } from "./strategies/traditional/traditional.strate
 import { OAuthStrategy } from "./strategies/oauth/oauth.strategy";
 import { ApiKeyStrategy } from "./strategies/api-key/api-key.strategy";
 import { StrategyAuthGuard } from "./guards/strategy-auth.guard";
+import { TokenBlacklistService } from "./token-blacklist.service";
 import { User } from "../user/entities/user.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { Wallet } from "./entities/wallet.entity";
@@ -36,7 +37,7 @@ import { ReferralModule } from "../referral/referral.module";
     ReferralModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: "24h" },
+      signOptions: { expiresIn: "15m" },
     }),
     TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
   ],
@@ -55,6 +56,7 @@ import { ReferralModule } from "../referral/referral.module";
     EnhancedAuthService,
     JwtStrategy,
     JwtAuthGuard,
+    TokenBlacklistService,
     // New pluggable strategy system
     StrategyRegistry,
     StrategyAuthService,
@@ -73,6 +75,7 @@ import { ReferralModule } from "../referral/referral.module";
     SessionRecoveryService,
     DelegationService,
     JwtAuthGuard,
+    TokenBlacklistService,
     // New enhanced exports
     EnhancedAuthService,
     // New pluggable strategy exports

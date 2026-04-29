@@ -16,6 +16,7 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { PortfolioOwnerGuard } from "../guards/portfolio-owner.guard";
 import { PortfolioService } from "../services/portfolio.service";
 import { RebalancingService } from "../services/rebalancing.service";
 import { PerformanceAnalyticsService } from "../services/performance-analytics.service";
@@ -68,12 +69,14 @@ export class PortfolioController {
 
   @Get("portfolios/:id")
   @ApiOperation({ summary: "Get portfolio details" })
+  @UseGuards(PortfolioOwnerGuard)
   async getPortfolio(@Param("id") portfolioId: string) {
     return this.portfolioService.getPortfolio(portfolioId);
   }
 
   @Put("portfolios/:id")
   @ApiOperation({ summary: "Update portfolio" })
+  @UseGuards(PortfolioOwnerGuard)
   async updatePortfolio(
     @Param("id") portfolioId: string,
     @Body() dto: UpdatePortfolioDto,
@@ -84,6 +87,7 @@ export class PortfolioController {
   @Delete("portfolios/:id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete portfolio" })
+  @UseGuards(PortfolioOwnerGuard)
   async deletePortfolio(@Param("id") portfolioId: string) {
     return this.portfolioService.deletePortfolio(portfolioId);
   }
@@ -92,6 +96,7 @@ export class PortfolioController {
 
   @Post("portfolios/:portfolioId/assets")
   @ApiOperation({ summary: "Add asset to portfolio" })
+  @UseGuards(PortfolioOwnerGuard)
   async addAsset(
     @Param("portfolioId") portfolioId: string,
     @Body() dto: AddAssetToPortfolioDto,
@@ -119,6 +124,7 @@ export class PortfolioController {
 
   @Post("portfolios/:portfolioId/optimize")
   @ApiOperation({ summary: "Run portfolio optimization" })
+  @UseGuards(PortfolioOwnerGuard)
   async runOptimization(
     @Param("portfolioId") portfolioId: string,
     @Body() dto: CreateOptimizationDto,
@@ -148,6 +154,7 @@ export class PortfolioController {
 
   @Get("portfolios/:portfolioId/optimization-history")
   @ApiOperation({ summary: "Get optimization history" })
+  @UseGuards(PortfolioOwnerGuard)
   async getOptimizationHistory(
     @Param("portfolioId") portfolioId: string,
     @Query("limit") limit: number = 10,
@@ -161,6 +168,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Check if portfolio needs rebalancing",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async checkRebalancing(@Param("portfolioId") portfolioId: string) {
     const needed =
       await this.rebalancingService.checkRebalancingNeeded(portfolioId);
@@ -177,6 +185,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Trigger portfolio rebalancing",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async triggerRebalancing(
     @Param("portfolioId") portfolioId: string,
     @Body() dto: TriggerRebalancingDto,
@@ -214,6 +223,7 @@ export class PortfolioController {
 
   @Get("portfolios/:portfolioId/rebalancing-history")
   @ApiOperation({ summary: "Get rebalancing history" })
+  @UseGuards(PortfolioOwnerGuard)
   async getRebalancingHistory(
     @Param("portfolioId") portfolioId: string,
     @Query("limit") limit: number = 10,
@@ -225,6 +235,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Get current allocation drift from target",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async getAllocationDrift(@Param("portfolioId") portfolioId: string) {
     return this.rebalancingService.calculateAllocationDrift(portfolioId);
   }
@@ -235,6 +246,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Get portfolio performance summary",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async getPerformanceSummary(@Param("portfolioId") portfolioId: string) {
     return this.performanceService.getPerformanceSummary(portfolioId);
   }
@@ -243,6 +255,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Get performance metrics for date range",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async getMetrics(
     @Param("portfolioId") portfolioId: string,
     @Query() dto: GetPerformanceMetricsDto,
@@ -263,6 +276,7 @@ export class PortfolioController {
   @ApiOperation({
     summary: "Get attribution analysis",
   })
+  @UseGuards(PortfolioOwnerGuard)
   async getAttributionAnalysis(
     @Param("portfolioId") portfolioId: string,
     @Query("startDate") startDate: string,
