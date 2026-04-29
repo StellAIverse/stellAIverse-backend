@@ -11,6 +11,7 @@ import { Type } from "class-transformer";
 
 export enum KycStatus {
   PENDING = "pending",
+  IN_REVIEW = "in_review",
   VERIFIED = "verified",
   REJECTED = "rejected",
 }
