@@ -75,6 +75,12 @@ import { Waitlist } from "./waitlist/entities/waitlist.entity";
 import { WaitlistEntry } from "./waitlist/entities/waitlist-entry.entity";
 import { WaitlistEvent } from "./waitlist/entities/waitlist-event.entity";
 import { QuotaPolicy } from "./quota/policy.entity";
+import { AlertsModule } from "./alerts/alerts.module";
+import { Alert } from "./alerts/entities/alert.entity";
+import { AlertTriggerLog } from "./alerts/entities/alert-trigger-log.entity";
+import { LiquidityModule } from "./liquidity/liquidity.module";
+import { LiquidityPool } from "./liquidity/entities/liquidity-pool.entity";
+import { LpPosition } from "./liquidity/entities/lp-position.entity";
 
 @Module({
   imports: [
@@ -130,6 +136,10 @@ import { QuotaPolicy } from "./quota/policy.entity";
             WaitlistEntry,
             WaitlistEvent,
             QuotaPolicy,
+            Alert,
+            AlertTriggerLog,
+            LiquidityPool,
+            LpPosition,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],
@@ -177,6 +187,8 @@ import { QuotaPolicy } from "./quota/policy.entity";
     SchedulingModule,
     AdminModule,
     WaitlistModule,
+    AlertsModule,
+    LiquidityModule,
   ],
 
   controllers: [AppController],
