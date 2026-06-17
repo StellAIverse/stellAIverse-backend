@@ -11,7 +11,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { verifyMessage } from "ethers";
 import { ChallengeService } from "./challenge.service";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { Wallet, WalletStatus, WalletType } from "./entities/wallet.entity";
 
 export interface AuthPayload {

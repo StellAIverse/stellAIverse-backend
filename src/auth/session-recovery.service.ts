@@ -10,7 +10,7 @@ import { Repository } from "typeorm";
 import { randomBytes, createHash, scryptSync } from "crypto";
 import { JwtService } from "@nestjs/jwt";
 import { Wallet, WalletStatus } from "./entities/wallet.entity";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { ChallengeService } from "./challenge.service";
 import { EmailService } from "./email.service";
 

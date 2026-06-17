@@ -15,8 +15,8 @@ import {
   AuthPayload,
   WalletCredentials,
 } from "../interfaces/auth-strategy.interface";
-import { ChallengeService } from "../../challenge.service";
-import { User } from "../../../user/entities/user.entity";
+import { ChallengeService } from "src/auth/challenge.service";
+import { User } from "src/user/entities/user.entity";
 
 /**
  * Wallet-based authentication strategy

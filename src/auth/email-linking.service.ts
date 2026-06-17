@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { randomBytes } from "crypto";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { EmailService } from "./email.service";
 

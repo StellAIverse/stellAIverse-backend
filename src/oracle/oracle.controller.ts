@@ -12,7 +12,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { OracleService } from "./services/oracle.service";
-import { JwtAuthGuard } from "../auth/jwt.guard";
+import { JwtAuthGuard } from "src/auth/jwt.guard";
 import { CreatePayloadDto } from "./dto/create-payload.dto";
 import { SignPayloadDto } from "./dto/sign-payload.dto";
 import { SubmitPayloadDto } from "./dto/submit-payload.dto";

@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Observable } from "rxjs";
 
 @Injectable()
 export class KycGuard implements CanActivate {
@@ -9,7 +9,10 @@ export class KycGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const skipKyc = this.reflector.get<boolean>('skipKyc', context.getHandler());
+    const skipKyc = this.reflector.get<boolean>(
+      "skipKyc",
+      context.getHandler(),
+    );
     if (skipKyc) {
       return true;
     }

@@ -3,7 +3,7 @@ import { WalletAuthService } from "./wallet-auth.service";
 import { ChallengeService } from "./challenge.service";
 import { JwtService } from "@nestjs/jwt";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { User, UserRole } from "../user/entities/user.entity";
+import { User, UserRole } from "src/user/entities/user.entity";
 import { Repository } from "typeorm";
 import {
   UnauthorizedException,

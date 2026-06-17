@@ -9,7 +9,7 @@ import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { StrategyRegistry } from "../strategies/strategy.registry";
 import { AuthPayload } from "../strategies/interfaces/auth-strategy.interface";
-import { IS_PUBLIC_KEY } from "../../common/decorators/public.decorator";
+import { IS_PUBLIC_KEY } from "src/common/decorators/public.decorator";
 import { ALLOWED_STRATEGIES_KEY } from "../decorators/allowed-strategies.decorator";
 
 /**

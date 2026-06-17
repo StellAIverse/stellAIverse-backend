@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from "@nestjs/common";
-import { UserRole } from "../../user/entities/user.entity";
+import { UserRole } from "src/user/entities/user.entity";
 
 /**
  * Guard that ensures users can only access their own provenance records.

@@ -24,7 +24,7 @@ import { OAuthStrategy } from "./strategies/oauth/oauth.strategy";
 import { ApiKeyStrategy } from "./strategies/api-key/api-key.strategy";
 import { StrategyAuthGuard } from "./guards/strategy-auth.guard";
 import { TokenBlacklistService } from "./token-blacklist.service";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { EmailVerification } from "./entities/email-verification.entity";
 import { Wallet } from "./entities/wallet.entity";
 import { RefreshToken, TwoFactorAuth } from "./entities/auth.entity";
@@ -37,7 +37,13 @@ import { RefreshToken, TwoFactorAuth } from "./entities/auth.entity";
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: "15m" },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
+    TypeOrmModule.forFeature([
+      User,
+      EmailVerification,
+      Wallet,
+      RefreshToken,
+      TwoFactorAuth,
+    ]),
   ],
   controllers: [AuthController, EnhancedAuthController],
   providers: [

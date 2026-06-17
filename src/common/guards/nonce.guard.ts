@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { SubmissionNonce } from "../../oracle/entities/submission-nonce.entity";
+import { SubmissionNonce } from "src/oracle/entities/submission-nonce.entity";
 
 /**
  * Guard to prevent replay attacks by validating nonces

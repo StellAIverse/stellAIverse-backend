@@ -1,7 +1,7 @@
-import { SetMetadata } from '@nestjs/common';
-import { Role } from './roles.enum';
+import { SetMetadata } from "@nestjs/common";
+import { Role } from "./roles.enum";
 
-export const ROLES_KEY = 'required_roles';
+export const ROLES_KEY = "required_roles";
 
 /**
  * Declare the minimum role required to call a controller method or class.

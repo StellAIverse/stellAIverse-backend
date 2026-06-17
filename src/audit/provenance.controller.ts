@@ -31,7 +31,7 @@ import {
   ProvenanceVerificationResultDto,
   ProvenanceTimelineResponseDto,
 } from "./dto/provenance-response.dto";
-import { JwtAuthGuard } from "../auth/jwt.guard";
+import { JwtAuthGuard } from "src/auth/jwt.guard";
 import { ProvenanceAccessGuard } from "./guards/provenance-access.guard";
 
 @ApiTags("Provenance")

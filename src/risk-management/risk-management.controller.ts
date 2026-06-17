@@ -7,7 +7,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { JwtAuthGuard } from "../auth/jwt.guard";
+import { JwtAuthGuard } from "src/auth/jwt.guard";
 import { RiskManagementService } from "./risk-management.service";
 import { RiskConfigDto, PositionSizeDto } from "./dto/risk.dto";
 import { CircuitBreakerService } from "./circuit-breaker.service";

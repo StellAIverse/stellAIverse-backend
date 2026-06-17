@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   Index,
 } from "typeorm";
-import { User } from "../../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { DeFiYieldRecord } from "./defi-yield-record.entity";
 import { DeFiTransaction } from "./defi-transaction.entity";
 

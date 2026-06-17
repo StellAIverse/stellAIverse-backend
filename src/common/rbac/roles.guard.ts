@@ -5,10 +5,10 @@ import {
   ForbiddenException,
   UnauthorizedException,
   Logger,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from './roles.decorator';
-import { Role, hasRole } from './roles.enum';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { ROLES_KEY } from "./roles.decorator";
+import { Role, hasRole } from "./roles.enum";
 
 type AuthenticatedRequest = {
   user?: {
@@ -47,7 +47,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new UnauthorizedException('No authenticated user found on request');
+      throw new UnauthorizedException("No authenticated user found on request");
     }
 
     // Normalise: support both `role` (single) and `roles` (array) shapes
@@ -55,7 +55,7 @@ export class RolesGuard implements CanActivate {
 
     if (userRoles.length === 0) {
       this.logger.warn(`User ${user.id ?? user.address} has no roles assigned`);
-      throw new ForbiddenException('User has no role assigned');
+      throw new ForbiddenException("User has no role assigned");
     }
 
     const allowed = requiredRoles.every((required) =>
@@ -65,10 +65,10 @@ export class RolesGuard implements CanActivate {
     if (!allowed) {
       this.logger.warn(
         `Role escalation attempt blocked: user=${user.id ?? user.address} ` +
-          `roles=[${userRoles.join(',')}] required=[${requiredRoles.join(',')}]`,
+          `roles=[${userRoles.join(",")}] required=[${requiredRoles.join(",")}]`,
       );
       throw new ForbiddenException(
-        `Insufficient permissions. Required: [${requiredRoles.join(', ')}]`,
+        `Insufficient permissions. Required: [${requiredRoles.join(", ")}]`,
       );
     }
 

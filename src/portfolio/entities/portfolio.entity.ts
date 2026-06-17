@@ -9,7 +9,7 @@ import {
   OneToMany,
   JoinColumn,
 } from "typeorm";
-import { User } from "../../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { PortfolioAsset } from "./portfolio-asset.entity";
 import { OptimizationHistory } from "./optimization-history.entity";
 import { RebalancingEvent } from "./rebalancing-event.entity";

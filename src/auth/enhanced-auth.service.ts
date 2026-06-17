@@ -15,8 +15,18 @@ import * as speakeasy from "speakeasy";
 import * as qrcode from "qrcode";
 import { EmailService } from "./email.service";
 import { User } from "src/user/entities/user.entity";
-import { RefreshToken, TwoFactorAuth, TwoFactorType, TwoFactorStatus } from "./entities/auth.entity";
-import { LoginDto, RegisterDto, RefreshTokenDto, TwoFactorVerifyDto } from "./dto/auth.dto";
+import {
+  RefreshToken,
+  TwoFactorAuth,
+  TwoFactorType,
+  TwoFactorStatus,
+} from "./entities/auth.entity";
+import {
+  LoginDto,
+  RegisterDto,
+  RefreshTokenDto,
+  TwoFactorVerifyDto,
+} from "./dto/auth.dto";
 import { TwoFactorSetupDto } from "./dto/kyc.dto";
 
 @Injectable()
@@ -37,7 +47,12 @@ export class EnhancedAuthService {
     registerDto: RegisterDto,
     ipAddress: string,
     userAgent?: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: Partial<User>; requiresTwoFactor?: boolean }> {
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    user: Partial<User>;
+    requiresTwoFactor?: boolean;
+  }> {
     const { email, password, username } = registerDto;
 
     // Check if user already exists
@@ -94,7 +109,12 @@ export class EnhancedAuthService {
     loginDto: LoginDto,
     ipAddress: string,
     userAgent?: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: Partial<User>; requiresTwoFactor?: boolean }> {
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    user: Partial<User>;
+    requiresTwoFactor?: boolean;
+  }> {
     const { email, password } = loginDto;
 
     // Find user by email
@@ -161,7 +181,11 @@ export class EnhancedAuthService {
     }
 
     // Generate new tokens
-    const newTokens = await this.generateTokens(tokenEntity.user, ipAddress, userAgent);
+    const newTokens = await this.generateTokens(
+      tokenEntity.user,
+      ipAddress,
+      userAgent,
+    );
 
     // Revoke old refresh token
     await this.refreshTokenRepository.update(tokenEntity.id, {
@@ -191,7 +215,9 @@ export class EnhancedAuthService {
     });
 
     if (existing2FA) {
-      throw new BadRequestException("Two-factor authentication is already enabled");
+      throw new BadRequestException(
+        "Two-factor authentication is already enabled",
+      );
     }
 
     // Generate TOTP secret
@@ -308,7 +334,11 @@ export class EnhancedAuthService {
       throw new NotFoundException("User not found");
     }
 
-    const tokens = await this.generateTokens(user, "127.0.0.1", "2FA Verification");
+    const tokens = await this.generateTokens(
+      user,
+      "127.0.0.1",
+      "2FA Verification",
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -316,7 +346,10 @@ export class EnhancedAuthService {
     };
   }
 
-  async disableTwoFactor(userId: string, password: string): Promise<{ success: boolean }> {
+  async disableTwoFactor(
+    userId: string,
+    password: string,
+  ): Promise<{ success: boolean }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user || !user.password) {
       throw new NotFoundException("User not found");
@@ -376,7 +409,9 @@ export class EnhancedAuthService {
   private generateBackupCodes(): string[] {
     const codes = [];
     for (let i = 0; i < 10; i++) {
-      codes.push(require("crypto").randomBytes(4).toString("hex").toUpperCase());
+      codes.push(
+        require("crypto").randomBytes(4).toString("hex").toUpperCase(),
+      );
     }
     return codes;
   }

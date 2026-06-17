@@ -15,7 +15,7 @@ import {
   AuthPayload,
   ApiKeyCredentials,
 } from "../interfaces/auth-strategy.interface";
-import { User } from "../../../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 
 /**
  * API Key metadata

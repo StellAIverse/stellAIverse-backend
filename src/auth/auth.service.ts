@@ -9,7 +9,7 @@ import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { JwtService } from "@nestjs/jwt";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import { TokenBlacklistService } from "./token-blacklist.service";
 

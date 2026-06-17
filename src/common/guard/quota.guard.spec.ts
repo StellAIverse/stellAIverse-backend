@@ -1,15 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { Reflector } from "@nestjs/core";
 import { QuotaGuard } from "./quota.guard";
-import { RateLimiterService } from "../../quota/rate-limiter.service";
 import { HttpException } from "@nestjs/common";
 
 describe("QuotaGuard", () => {
   let guard: QuotaGuard;
   let reflector: Reflector;
-  let rateLimiterService: RateLimiterService;
+  let rateLimiterService: any;
 
   beforeEach(async () => {
+    const mockRateLimiterService = {
+      checkQuota: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         QuotaGuard,
@@ -19,18 +22,15 @@ describe("QuotaGuard", () => {
             getAllAndOverride: jest.fn(),
           },
         },
-        {
-          provide: RateLimiterService,
-          useValue: {
-            checkQuota: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     guard = module.get<QuotaGuard>(QuotaGuard);
     reflector = module.get<Reflector>(Reflector);
-    rateLimiterService = module.get<RateLimiterService>(RateLimiterService);
+
+    // Manually set the optional service for testing
+    (guard as any).rateLimiterService = mockRateLimiterService;
+    rateLimiterService = mockRateLimiterService;
   });
 
   it("should be defined", () => {

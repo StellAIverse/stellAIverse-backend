@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from "typeorm";
-import { User } from "../../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 
 export enum RiskTolerance {
   VERY_CONSERVATIVE = "very_conservative",

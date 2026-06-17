@@ -135,7 +135,11 @@ export class RiskManagementService {
     return gain >= config.takeProfitPercentage / 100;
   }
 
-  getPositionRisk(userId: string): { userId: string; positions: unknown[]; riskScore: number } {
+  getPositionRisk(userId: string): {
+    userId: string;
+    positions: unknown[];
+    riskScore: number;
+  } {
     const config = this.riskConfigs.get(userId);
     return {
       userId,
@@ -144,7 +148,11 @@ export class RiskManagementService {
     };
   }
 
-  getExposure(): { totalExposure: number; byAsset: Record<string, number>; timestamp: Date } {
+  getExposure(): {
+    totalExposure: number;
+    byAsset: Record<string, number>;
+    timestamp: Date;
+  } {
     return {
       totalExposure: 0,
       byAsset: {},

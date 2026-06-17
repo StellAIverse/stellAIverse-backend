@@ -12,6 +12,9 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./",
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "types": ["node", "jest"],
     "moduleResolution": "node",
     "resolveJsonModule": true,

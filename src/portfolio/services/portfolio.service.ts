@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Portfolio } from "../entities/portfolio.entity";
+import { Portfolio, PortfolioStatus } from "../entities/portfolio.entity";
 import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 import {
   OptimizationHistory,
@@ -11,7 +11,6 @@ import {
 import { RiskProfile } from "../entities/risk-profile.entity";
 import { CreatePortfolioDto, UpdatePortfolioDto } from "../dto/portfolio.dto";
 import { CreateOptimizationDto } from "../dto/optimization.dto";
-import { PortfolioStatus } from "../entities/portfolio.entity";
 import { ModernPortfolioTheory } from "../algorithms/modern-portfolio-theory";
 import { BlackLittermanModel } from "../algorithms/black-litterman";
 import { ConstraintOptimizer } from "../algorithms/constraint-optimizer";

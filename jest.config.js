@@ -10,4 +10,16 @@ module.exports = {
   ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
+  moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/$1',
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        paths: {
+          'src/*': ['src/*'],
+        },
+      },
+    },
+  },
 };

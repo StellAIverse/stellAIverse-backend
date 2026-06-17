@@ -10,7 +10,7 @@ import { SubmissionBatchService } from "./services/submission-batch.service";
 import { SubmissionVerifierService } from "./submission-verifier.service";
 import { SignedPayload } from "./entities/signed-payload.entity";
 import { SubmissionNonce } from "./entities/submission-nonce.entity";
-import { AuditModule } from "../audit/audit.module";
+import { AuditModule } from "src/audit/audit.module";
 
 /**
  * Oracle Module

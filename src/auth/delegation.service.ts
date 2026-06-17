@@ -11,7 +11,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, LessThan } from "typeorm";
 import { randomBytes, createHash } from "crypto";
 import { Wallet, WalletStatus, WalletType } from "./entities/wallet.entity";
-import { User } from "../user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 
 export interface DelegationRequest {
   delegatorWalletId: string;
@@ -318,7 +318,8 @@ export class DelegationService {
           id: w.id,
           delegatorWalletId: w.delegatedById!,
           delegateWalletId: w.id,
-          permissions: (w.delegationPermissions || []) as DelegationPermission[],
+          permissions: (w.delegationPermissions ||
+            []) as DelegationPermission[],
           grantedAt: w.verifiedAt!,
           expiresAt: w.delegationExpiresAt!,
           revokedAt: w.status === WalletStatus.REVOKED ? new Date() : undefined,

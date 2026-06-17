@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { SKIP_KYC_KEY } from '../decorators/skip-kyc.decorator';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { SKIP_KYC_KEY } from "../decorators/skip-kyc.decorator";
 
 @Injectable()
 export class KycGuard implements CanActivate {
