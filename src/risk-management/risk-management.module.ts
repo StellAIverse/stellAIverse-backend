@@ -8,7 +8,15 @@ import { RiskManagementHealthIndicator } from "./health/risk-management.health";
 @Module({
   imports: [EventEmitterModule.forRoot()],
   controllers: [RiskManagementController],
-  providers: [RiskManagementService, CircuitBreakerService, RiskManagementHealthIndicator],
-  exports: [RiskManagementService, CircuitBreakerService, RiskManagementHealthIndicator],
+  providers: [
+    RiskManagementService,
+    CircuitBreakerService,
+    RiskManagementHealthIndicator,
+  ],
+  exports: [
+    RiskManagementService,
+    CircuitBreakerService,
+    RiskManagementHealthIndicator,
+  ],
 })
 export class RiskManagementModule {}

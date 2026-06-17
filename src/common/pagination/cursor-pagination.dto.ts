@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsNumber, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, Min, Max } from "class-validator";
+import { Type } from "class-transformer";
 
 export class CursorPaginationDto {
   @IsOptional()
@@ -15,7 +15,7 @@ export class CursorPaginationDto {
 
   @IsOptional()
   @IsString()
-  direction?: 'forward' | 'backward' = 'forward';
+  direction?: "forward" | "backward" = "forward";
 }
 
 export interface PaginationResult<T> {
@@ -30,7 +30,7 @@ export interface PaginationResult<T> {
 export interface CursorOptions {
   cursor?: string;
   limit: number;
-  direction: 'forward' | 'backward';
+  direction: "forward" | "backward";
   orderBy: string;
-  orderDirection: 'ASC' | 'DESC';
+  orderDirection: "ASC" | "DESC";
 }

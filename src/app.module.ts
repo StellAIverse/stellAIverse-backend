@@ -121,10 +121,10 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
 
     ThrottlerModule.forRoot({
       throttlers: [
-        { name: 'global',  ttl: 60_000, limit: 100 },
-        { name: 'auth',    ttl: 60_000, limit: 5   },
-        { name: 'trading', ttl: 60_000, limit: 20  },
-        { name: 'oracle',  ttl: 60_000, limit: 10  },
+        { name: "global", ttl: 60_000, limit: 100 },
+        { name: "auth", ttl: 60_000, limit: 5 },
+        { name: "trading", ttl: 60_000, limit: 20 },
+        { name: "oracle", ttl: 60_000, limit: 10 },
       ],
     }),
 

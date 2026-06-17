@@ -10,7 +10,10 @@ import { Portfolio } from "../entities/portfolio.entity";
 import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 
 // Configure BigNumber for financial precision (no exponential notation, 18 dp)
-BigNumber.config({ DECIMAL_PLACES: 18, ROUNDING_MODE: BigNumber.ROUND_HALF_EVEN });
+BigNumber.config({
+  DECIMAL_PLACES: 18,
+  ROUNDING_MODE: BigNumber.ROUND_HALF_EVEN,
+});
 
 export interface TradeOperation {
   portfolioId: string;
@@ -61,9 +64,7 @@ export class TradingTransactionService {
           .getOne();
 
         if (!portfolio) {
-          throw new BadRequestException(
-            "Portfolio not found or access denied",
-          );
+          throw new BadRequestException("Portfolio not found or access denied");
         }
 
         // Find or create asset within the same transaction
@@ -93,7 +94,10 @@ export class TradingTransactionService {
         const bnPrice = new BigNumber(op.price);
         const bnCurrentQty = new BigNumber(asset.quantity);
 
-        if (bnQuantity.isNegative() && bnQuantity.abs().isGreaterThan(bnCurrentQty)) {
+        if (
+          bnQuantity.isNegative() &&
+          bnQuantity.abs().isGreaterThan(bnCurrentQty)
+        ) {
           throw new BadRequestException("Insufficient asset quantity");
         }
 

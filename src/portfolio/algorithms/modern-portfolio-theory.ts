@@ -1,4 +1,3 @@
-
 /**
  * Modern Portfolio Theory (Markowitz) algorithms for portfolio optimization
  */

@@ -63,7 +63,7 @@ export class VerifySignatureDto {
 }
 
 // Auth endpoints are high-value targets — enforce strict per-user/IP limit: 5 req/min
-@SensitiveRateLimit('auth')
+@SensitiveRateLimit("auth")
 @ApiTags("Authentication")
 @Throttle({ default: { ttl: 60000, limit: 10 } })
 @Controller("auth")

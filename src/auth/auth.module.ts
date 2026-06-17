@@ -37,7 +37,13 @@ import { RefreshToken, TwoFactorAuth } from "./entities/auth.entity";
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: "15m" },
     }),
-    TypeOrmModule.forFeature([User, EmailVerification, Wallet, RefreshToken, TwoFactorAuth]),
+    TypeOrmModule.forFeature([
+      User,
+      EmailVerification,
+      Wallet,
+      RefreshToken,
+      TwoFactorAuth,
+    ]),
   ],
   controllers: [AuthController, EnhancedAuthController],
   providers: [

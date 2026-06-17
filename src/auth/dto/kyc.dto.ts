@@ -1,8 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-} from "class-validator";
+import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 
 export class TwoFactorSetupDto {
   @IsString()

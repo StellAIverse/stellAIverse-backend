@@ -1,9 +1,14 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModuleOptions, ThrottlerStorage, ThrottlerRequest } from '@nestjs/throttler';
+import { Injectable, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import {
+  ThrottlerGuard,
+  ThrottlerModuleOptions,
+  ThrottlerStorage,
+  ThrottlerRequest,
+} from "@nestjs/throttler";
 
-export const THROTTLE_LIMIT_KEY = 'throttle_limit';
-export const THROTTLE_TTL_KEY = 'throttle_ttl';
+export const THROTTLE_LIMIT_KEY = "throttle_limit";
+export const THROTTLE_TTL_KEY = "throttle_ttl";
 
 type AnyRequest = {
   ip?: string;
@@ -38,11 +43,11 @@ export class SensitiveThrottlerGuard extends ThrottlerGuard {
     if (user?.address) return `wallet:${user.address}`;
 
     // Anonymous path: use real client IP
-    const xff = req.headers?.['x-forwarded-for'];
-    if (typeof xff === 'string' && xff.length > 0) {
-      return `ip:${xff.split(',')[0].trim()}`;
+    const xff = req.headers?.["x-forwarded-for"];
+    if (typeof xff === "string" && xff.length > 0) {
+      return `ip:${xff.split(",")[0].trim()}`;
     }
-    return `ip:${req.ip ?? 'unknown'}`;
+    return `ip:${req.ip ?? "unknown"}`;
   }
 
   /** Deterministic: always reject at exactly the threshold — no fuzzy window. */

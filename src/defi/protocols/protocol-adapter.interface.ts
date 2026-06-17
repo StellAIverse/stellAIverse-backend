@@ -42,7 +42,11 @@ export interface ProtocolAdapter {
   ): Promise<TransactionData>;
 
   // Rewards
-  getRewards(addresses: string[], user: string, chain?: string): Promise<RewardData[]>;
+  getRewards(
+    addresses: string[],
+    user: string,
+    chain?: string,
+  ): Promise<RewardData[]>;
   claimRewards(address: string, token?: string): Promise<TransactionData>;
 
   // Metrics

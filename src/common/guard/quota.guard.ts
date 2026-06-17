@@ -50,12 +50,14 @@ export class QuotaGuard implements CanActivate {
     const trackerKey = this.getTrackerKey(request);
 
     // Merge options with level config
-    const levelConfig = QUOTA_LEVELS[(options.level as string) || "free"] || DEFAULT_QUOTA;
+    const levelConfig =
+      QUOTA_LEVELS[(options.level as string) || "free"] || DEFAULT_QUOTA;
     const baseLimit = options.limit ?? levelConfig.limit;
     const baseWindowMs = options.windowMs ?? levelConfig.windowMs;
     const baseBurst = options.burst ?? levelConfig.burst;
 
-    const endpoint = request.route?.path || request.originalUrl || request.url || "unknown";
+    const endpoint =
+      request.route?.path || request.originalUrl || request.url || "unknown";
     const userId = String(request.user?.id || trackerKey);
     const userTier = request.user?.tier || options.level || "unknown";
     const policy = (options.level as string) || "custom";
@@ -76,7 +78,11 @@ export class QuotaGuard implements CanActivate {
 
     if (dynamic) {
       const direction =
-        dynamic.multiplier > 1.01 ? "up" : dynamic.multiplier < 0.99 ? "down" : "stable";
+        dynamic.multiplier > 1.01
+          ? "up"
+          : dynamic.multiplier < 0.99
+            ? "down"
+            : "stable";
       this.metrics?.rateLimitScalingDecisions.inc({
         policy,
         endpoint,
@@ -163,7 +169,11 @@ export class QuotaGuard implements CanActivate {
     );
 
     if (!result.allowed) {
-      this.metrics?.rateLimitExceeded.inc({ policy, user_tier: userTier, endpoint });
+      this.metrics?.rateLimitExceeded.inc({
+        policy,
+        user_tier: userTier,
+        endpoint,
+      });
       this.metrics?.throttlingEvents.inc({
         severity: result.remaining <= 0 ? "high" : "medium",
         policy,
@@ -179,9 +189,13 @@ export class QuotaGuard implements CanActivate {
       });
 
       this.metrics?.premiumBonusClaims.inc({
-        bonus_type: premiumAdjustment.activeBoostIds.length > 0 ? "boost" : "tier",
+        bonus_type:
+          premiumAdjustment.activeBoostIds.length > 0 ? "boost" : "tier",
         user_tier: String(userTier),
-        source: premiumAdjustment.activeBoostIds.length > 0 ? "manual_or_campaign" : "tier_policy",
+        source:
+          premiumAdjustment.activeBoostIds.length > 0
+            ? "manual_or_campaign"
+            : "tier_policy",
       });
 
       if (premiumAdjustment.componentMultipliers.referral > 0) {
