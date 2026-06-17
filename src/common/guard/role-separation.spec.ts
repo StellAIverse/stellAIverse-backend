@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolesGuard } from '../common/rbac/roles.guard';
-import { Role } from '../common/rbac/roles.enum';
-import { ROLES_KEY } from '../common/rbac/roles.decorator';
+import { RolesGuard } from './roles.guard';
+import { Role } from './roles.enum';
+import { ROLES_KEY } from './roles.decorator';
 import { ExecutionContext } from '@nestjs/common';
 
 function makeCtx(user: any, requiredRoles: Role[]): ExecutionContext {

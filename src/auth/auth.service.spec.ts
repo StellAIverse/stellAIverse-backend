@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from "@nestjs/common";
+import { TokenBlacklistService } from "./token-blacklist.service";
 
 // Mock bcrypt
 jest.mock("bcrypt", () => ({
@@ -23,7 +24,7 @@ describe("AuthService", () => {
   let jwtService: JwtService;
   let userRepository: Repository<User>;
 
-  const mockUser: User = {
+  const mockUser = {
     id: "123",
     username: "testuser",
     walletAddress: "email_test@example.com",
@@ -33,7 +34,7 @@ describe("AuthService", () => {
     role: UserRole.USER,
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  } as unknown as User;
 
   const mockJwtService = {
     sign: jest.fn(),
@@ -56,6 +57,10 @@ describe("AuthService", () => {
         {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
+        },
+        {
+          provide: TokenBlacklistService,
+          useValue: { blacklistToken: jest.fn(), isBlacklisted: jest.fn() },
         },
       ],
     }).compile();

@@ -8,7 +8,7 @@ import { UserRole } from "./entities/user.entity";
 
 /** Pairs of roles that are mutually exclusive */
 const CONFLICTING_ROLE_PAIRS: [UserRole, UserRole][] = [
-  [UserRole.ADMIN, UserRole.KYC_OPERATOR],
+  [UserRole.GOVERNANCE_OPERATOR, UserRole.KYC_OPERATOR],
 ];
 
 @Injectable()

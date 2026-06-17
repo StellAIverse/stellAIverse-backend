@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Optional,
+  Inject,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import {
@@ -12,6 +13,7 @@ import {
   RateLimitOptions,
 } from "../decorators/rate-limit.decorator";
 import { QUOTA_LEVELS, DEFAULT_QUOTA } from "../../config/quota.config";
+import { RateLimiterService } from "../../quota/rate-limiter.service";
 
 @Injectable()
 export class QuotaGuard implements CanActivate {
@@ -27,7 +29,7 @@ export class QuotaGuard implements CanActivate {
     @Optional() dynamicScaling?: any,
     @Optional() analytics?: any,
     @Optional() premiumBonus?: any,
-    @Optional() rateLimiterService?: any,
+    @Optional() @Inject(RateLimiterService) rateLimiterService?: RateLimiterService,
   ) {
     this.metrics = metrics;
     this.dynamicScaling = dynamicScaling;

@@ -14,6 +14,8 @@ import { Wallet } from "../../auth/entities/wallet.entity";
 
 export enum UserRole {
   USER = "user",
+  OPERATOR = "operator",
+  GOVERNANCE_OPERATOR = "governance_operator",
   KYC_OPERATOR = "kyc_operator",
   ADMIN = "admin",
 }
