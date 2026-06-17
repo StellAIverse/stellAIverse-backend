@@ -24,7 +24,7 @@ describe("AuthService", () => {
   let jwtService: JwtService;
   let userRepository: Repository<User>;
 
-  const mockUser: User = {
+  const mockUser = {
     id: "123",
     username: "testuser",
     walletAddress: "email_test@example.com",
@@ -48,6 +48,9 @@ describe("AuthService", () => {
 
   const mockTokenBlacklistService = {
     revoke: jest.fn(),
+    isRevoked: jest.fn(),
+    blacklistToken: jest.fn(),
+    isBlacklisted: jest.fn(),
   };
 
   beforeEach(async () => {

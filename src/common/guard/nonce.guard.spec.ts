@@ -10,11 +10,11 @@ import { SubmissionNonce } from "../../oracle/entities/submission-nonce.entity";
 
 const mockNonceRepository = {
   findOne: jest.fn(),
-  create: jest.fn(),
   save: jest.fn(),
+  create: jest.fn(),
 };
 
-function makeContext(body: Record<string, unknown>): ExecutionContext {
+function makeContext(body: Record<string, any>): ExecutionContext {
   return {
     switchToHttp: () => ({
       getRequest: () => ({ body }),

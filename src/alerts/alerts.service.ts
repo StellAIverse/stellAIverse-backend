@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { Alert, AlertType, AlertCondition } from "./entities/alert.entity";
 import { AlertTriggerLog } from "./entities/alert-trigger-log.entity";
 import { CreatePriceAlertDto, CreatePortfolioAlertDto } from "./dto/alert.dto";
+import { AlertPublisherService } from "./alert-publisher.service";
 
 @Injectable()
 export class AlertsService {
@@ -12,6 +13,7 @@ export class AlertsService {
     private alertRepo: Repository<Alert>,
     @InjectRepository(AlertTriggerLog)
     private logRepo: Repository<AlertTriggerLog>,
+    private readonly alertPublisher: AlertPublisherService,
   ) {}
 
   async createPriceAlert(dto: CreatePriceAlertDto): Promise<Alert> {
@@ -94,7 +96,27 @@ export class AlertsService {
           condition: alert.condition,
         },
       });
-      triggered.push(await this.logRepo.save(log));
+      const savedLog = await this.logRepo.save(log);
+
+      this.alertPublisher.publishPriceAlert({
+        userId: alert.userId,
+        source: "price-alert",
+        alert: {
+          type: AlertType.PRICE,
+          severity: "medium",
+          message: `Price alert ${alert.condition} ${alert.threshold} for ${asset}`,
+          asset,
+          threshold: alert.threshold!,
+          currentValue: currentPrice,
+          triggeredAt: savedLog.triggeredAt,
+          metadata: {
+            condition: alert.condition,
+            alertId: alert.id,
+          },
+        },
+      });
+
+      triggered.push(savedLog);
     }
 
     return triggered;

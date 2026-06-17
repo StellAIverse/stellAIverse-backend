@@ -7,13 +7,8 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Portfolio } from "../entities/portfolio.entity";
+import { Portfolio } from "../../portfolio/entities/portfolio.entity";
 
-/**
- * Guard that verifies the authenticated user owns the portfolio identified
- * by the :id or :portfolioId route parameter.
- * Prevents IDOR attacks on portfolio endpoints.
- */
 @Injectable()
 export class PortfolioOwnerGuard implements CanActivate {
   constructor(

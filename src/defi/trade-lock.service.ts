@@ -13,7 +13,7 @@ interface TradeRequest {
   side: "buy" | "sell";
 }
 
-interface TradeResult {
+export interface TradeResult {
   tradeId: string;
   idempotencyKey: string;
   userId: string;

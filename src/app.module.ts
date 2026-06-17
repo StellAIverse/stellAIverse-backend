@@ -19,6 +19,7 @@ import { PortfolioModule } from "./portfolio/portfolio.module";
 import { RiskManagementModule } from "./risk-management/risk-management.module";
 import { DeFiModule } from "./defi/defi.module";
 import { AlertsModule } from "./alerts/alerts.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 // Auth entities
 import { User } from "./user/entities/user.entity";
@@ -34,15 +35,6 @@ import { AgentEvent } from "./audit/entities/agent-event.entity";
 import { ComputeResult } from "./audit/entities/compute-result.entity";
 import { ProvenanceRecord } from "./audit/entities/provenance-record.entity";
 
-// Portfolio entities
-import { Portfolio } from "./portfolio/entities/portfolio.entity";
-import { PortfolioAsset } from "./portfolio/entities/portfolio-asset.entity";
-import { RiskProfile } from "./portfolio/entities/risk-profile.entity";
-import { OptimizationHistory } from "./portfolio/entities/optimization-history.entity";
-import { RebalancingEvent } from "./portfolio/entities/rebalancing-event.entity";
-import { PerformanceMetric } from "./portfolio/entities/performance-metric.entity";
-import { BacktestResult } from "./portfolio/entities/backtest-result.entity";
-
 // DeFi entities
 import { DeFiPosition } from "./defi/entities/defi-position.entity";
 import { DeFiYieldRecord } from "./defi/entities/defi-yield-record.entity";
@@ -53,6 +45,8 @@ import { DeFiRiskAssessment } from "./defi/entities/defi-risk-assessment.entity"
 // Alerts entities
 import { Alert } from "./alerts/entities/alert.entity";
 import { AlertTriggerLog } from "./alerts/entities/alert-trigger-log.entity";
+import { AlertPreference } from "./alerts/entities/alert-preference.entity";
+import { AlertDeliveryLog } from "./alerts/entities/alert-delivery-log.entity";
 
 // Guards
 import { ThrottlerUserIpGuard } from "./common/guard/throttler.guard";
@@ -66,6 +60,8 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
       isGlobal: true,
       envFilePath: ".env",
     }),
+
+    EventEmitterModule.forRoot(),
 
     // ✅ ONLY ONE TypeORM CONFIG (Async)
     TypeOrmModule.forRootAsync({
@@ -92,13 +88,6 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             AgentEvent,
             ComputeResult,
             ProvenanceRecord,
-            Portfolio,
-            PortfolioAsset,
-            RiskProfile,
-            OptimizationHistory,
-            RebalancingEvent,
-            PerformanceMetric,
-            BacktestResult,
             DeFiPosition,
             DeFiYieldRecord,
             DeFiTransaction,
@@ -106,6 +95,8 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             DeFiRiskAssessment,
             Alert,
             AlertTriggerLog,
+            AlertPreference,
+            AlertDeliveryLog,
           ],
           synchronize: !isProduction,
           logging: isProduction ? ["error"] : ["error", "warn", "schema"],

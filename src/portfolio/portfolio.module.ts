@@ -20,7 +20,7 @@ import { MLPredictionService } from "./services/ml-prediction.service";
 
 // Controllers
 import { PortfolioController } from "./portfolio.controller";
-import { PortfolioOwnerGuard } from "./guards/portfolio-owner.guard";
+import { PortfolioOwnerGuard } from "../common/guard/portfolio-owner.guard";
 
 @Module({
   imports: [

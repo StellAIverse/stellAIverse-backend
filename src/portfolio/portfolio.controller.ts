@@ -21,7 +21,7 @@ import { RebalancingService } from "./services/rebalancing.service";
 import { PerformanceAnalyticsService } from "./services/performance-analytics.service";
 import { BacktestingService } from "./services/backtesting.service";
 import { MLPredictionService } from "./services/ml-prediction.service";
-import { PortfolioOwnerGuard } from "./guards/portfolio-owner.guard";
+import { PortfolioOwnerGuard } from "src/common/guard/portfolio-owner.guard";
 import { CreatePortfolioDto, UpdatePortfolioDto } from "./dto/portfolio.dto";
 import { AddAssetToPortfolioDto } from "./dto/portfolio-asset.dto";
 import {

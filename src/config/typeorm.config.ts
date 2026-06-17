@@ -8,13 +8,6 @@ import { AgentEvent } from "../audit/entities/agent-event.entity";
 import { OracleSubmission } from "../audit/entities/oracle-submission.entity";
 import { ComputeResult } from "../audit/entities/compute-result.entity";
 import { ProvenanceRecord } from "../audit/entities/provenance-record.entity";
-import { Portfolio } from "../portfolio/entities/portfolio.entity";
-import { PortfolioAsset } from "../portfolio/entities/portfolio-asset.entity";
-import { RiskProfile } from "../portfolio/entities/risk-profile.entity";
-import { OptimizationHistory } from "../portfolio/entities/optimization-history.entity";
-import { RebalancingEvent } from "../portfolio/entities/rebalancing-event.entity";
-import { PerformanceMetric } from "../portfolio/entities/performance-metric.entity";
-import { BacktestResult } from "../portfolio/entities/backtest-result.entity";
 import { DeFiPosition } from "../defi/entities/defi-position.entity";
 import { DeFiYieldRecord } from "../defi/entities/defi-yield-record.entity";
 import { DeFiTransaction } from "../defi/entities/defi-transaction.entity";
@@ -22,6 +15,8 @@ import { DeFiYieldStrategy } from "../defi/entities/defi-yield-strategy.entity";
 import { DeFiRiskAssessment } from "../defi/entities/defi-risk-assessment.entity";
 import { Alert } from "../alerts/entities/alert.entity";
 import { AlertTriggerLog } from "../alerts/entities/alert-trigger-log.entity";
+import { AlertPreference } from "../alerts/entities/alert-preference.entity";
+import { AlertDeliveryLog } from "../alerts/entities/alert-delivery-log.entity";
 
 export default new DataSource({
   type: "postgres",
@@ -38,13 +33,6 @@ export default new DataSource({
     OracleSubmission,
     ComputeResult,
     ProvenanceRecord,
-    Portfolio,
-    PortfolioAsset,
-    RiskProfile,
-    OptimizationHistory,
-    RebalancingEvent,
-    PerformanceMetric,
-    BacktestResult,
     DeFiPosition,
     DeFiYieldRecord,
     DeFiTransaction,
@@ -52,6 +40,8 @@ export default new DataSource({
     DeFiRiskAssessment,
     Alert,
     AlertTriggerLog,
+    AlertPreference,
+    AlertDeliveryLog,
   ],
   migrations: [`${__dirname}/../migrations/*{.ts,.js}`],
   synchronize: false, // Never use synchronize in production

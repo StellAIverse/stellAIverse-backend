@@ -1,23 +1,2 @@
-import { SetMetadata } from "@nestjs/common";
-
-export enum Role {
-  USER = "user",
-  OPERATOR = "operator",
-  ADMIN = "admin",
-  GOVERNANCE_OPERATOR = "governance_operator",
-  KYC_OPERATOR = "kyc_operator",
-}
-
-export const ROLES_KEY = "roles";
-
-/**
- * Decorator that assigns required roles to a route handler.
- * Used together with RolesGuard to enforce role-based access control.
- *
- * @example
- * @Roles(Role.ADMIN)
- * @UseGuards(JwtAuthGuard, RolesGuard)
- * @Get('admin/dashboard')
- * getAdminDashboard() { ... }
- */
-export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+export { RequireRole, Roles, ROLES_KEY } from "../guard/roles.decorator";
+export { Role } from "../guard/roles.enum";
