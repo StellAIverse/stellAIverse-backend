@@ -5,6 +5,7 @@ import {
   RiskAlertDto,
   PositionSizeDto,
 } from "./dto/risk.dto";
+import { AlertPublisherService } from "../alerts/alert-publisher.service";
 
 interface Position {
   asset: string;
@@ -20,6 +21,8 @@ export class RiskManagementService {
   private readonly logger = new Logger(RiskManagementService.name);
 
   private readonly riskConfigs = new Map<string, RiskConfigDto>();
+
+  constructor(private readonly alertPublisher: AlertPublisherService) {}
 
   setRiskConfig(dto: RiskConfigDto): void {
     this.riskConfigs.set(dto.userId, dto);
@@ -64,6 +67,30 @@ export class RiskManagementService {
       currentDrawdown,
       diversificationScore,
     });
+
+    if (alerts.length > 0) {
+      for (const alert of alerts) {
+        this.alertPublisher.publishRiskAlert({
+          userId,
+          source: "risk-management",
+          alert: {
+            type: alert.type,
+            severity: alert.severity,
+            message: alert.message,
+            asset: alert.asset,
+            threshold: alert.threshold,
+            currentValue: alert.currentValue,
+            triggeredAt: alert.triggeredAt,
+            metadata: {
+              totalValue,
+              var95,
+              currentDrawdown,
+              diversificationScore,
+            },
+          },
+        });
+      }
+    }
 
     return {
       userId,

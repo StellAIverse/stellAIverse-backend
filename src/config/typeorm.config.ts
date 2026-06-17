@@ -15,6 +15,8 @@ import { DeFiYieldStrategy } from "../defi/entities/defi-yield-strategy.entity";
 import { DeFiRiskAssessment } from "../defi/entities/defi-risk-assessment.entity";
 import { Alert } from "../alerts/entities/alert.entity";
 import { AlertTriggerLog } from "../alerts/entities/alert-trigger-log.entity";
+import { AlertPreference } from "../alerts/entities/alert-preference.entity";
+import { AlertDeliveryLog } from "../alerts/entities/alert-delivery-log.entity";
 
 export default new DataSource({
   type: "postgres",
@@ -38,6 +40,8 @@ export default new DataSource({
     DeFiRiskAssessment,
     Alert,
     AlertTriggerLog,
+    AlertPreference,
+    AlertDeliveryLog,
   ],
   migrations: [`${__dirname}/../migrations/*{.ts,.js}`],
   synchronize: false, // Never use synchronize in production
