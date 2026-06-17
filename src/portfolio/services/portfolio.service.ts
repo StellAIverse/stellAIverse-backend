@@ -1,4 +1,8 @@
 import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import {
+  OptimizationFailedException,
+  PortfolioNotFoundException,
+} from "../exceptions/portfolio.exceptions";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Portfolio } from "../entities/portfolio.entity";
@@ -59,7 +63,7 @@ export class PortfolioService {
     });
 
     if (!portfolio) {
-      throw new BadRequestException("Portfolio not found");
+      throw new PortfolioNotFoundException(portfolioId);
     }
 
     return portfolio;
@@ -323,7 +327,7 @@ export class PortfolioService {
       result.status = OptimizationStatus.FAILED;
       result.errorMessage = error.message;
       await this.optimizationRepository.save(result);
-      throw error;
+      throw new OptimizationFailedException(error.message);
     }
   }
 

@@ -34,15 +34,6 @@ import { AgentEvent } from "./audit/entities/agent-event.entity";
 import { ComputeResult } from "./audit/entities/compute-result.entity";
 import { ProvenanceRecord } from "./audit/entities/provenance-record.entity";
 
-// Portfolio entities
-import { Portfolio } from "./portfolio/entities/portfolio.entity";
-import { PortfolioAsset } from "./portfolio/entities/portfolio-asset.entity";
-import { RiskProfile } from "./portfolio/entities/risk-profile.entity";
-import { OptimizationHistory } from "./portfolio/entities/optimization-history.entity";
-import { RebalancingEvent } from "./portfolio/entities/rebalancing-event.entity";
-import { PerformanceMetric } from "./portfolio/entities/performance-metric.entity";
-import { BacktestResult } from "./portfolio/entities/backtest-result.entity";
-
 // DeFi entities
 import { DeFiPosition } from "./defi/entities/defi-position.entity";
 import { DeFiYieldRecord } from "./defi/entities/defi-yield-record.entity";
@@ -92,13 +83,6 @@ import { SubmissionVerifierService } from "./oracle/submission-verifier.service"
             AgentEvent,
             ComputeResult,
             ProvenanceRecord,
-            Portfolio,
-            PortfolioAsset,
-            RiskProfile,
-            OptimizationHistory,
-            RebalancingEvent,
-            PerformanceMetric,
-            BacktestResult,
             DeFiPosition,
             DeFiYieldRecord,
             DeFiTransaction,

@@ -2,8 +2,11 @@ import {
   Injectable,
   Logger,
   ConflictException,
-  BadRequestException,
 } from "@nestjs/common";
+import {
+  InsufficientBalanceException,
+  PortfolioNotFoundException,
+} from "../exceptions/portfolio.exceptions";
 import { DataSource, EntityManager } from "typeorm";
 import BigNumber from "bignumber.js";
 import { Portfolio } from "../entities/portfolio.entity";
@@ -61,9 +64,7 @@ export class TradingTransactionService {
           .getOne();
 
         if (!portfolio) {
-          throw new BadRequestException(
-            "Portfolio not found or access denied",
-          );
+          throw new PortfolioNotFoundException(op.portfolioId);
         }
 
         // Find or create asset within the same transaction
@@ -86,7 +87,7 @@ export class TradingTransactionService {
 
         // Validate quantity
         if (op.quantity < 0 && Math.abs(op.quantity) > asset.quantity) {
-          throw new BadRequestException("Insufficient asset quantity");
+          throw new InsufficientBalanceException(op.ticker);
         }
 
         const bnQuantity = new BigNumber(op.quantity);
@@ -94,7 +95,7 @@ export class TradingTransactionService {
         const bnCurrentQty = new BigNumber(asset.quantity);
 
         if (bnQuantity.isNegative() && bnQuantity.abs().isGreaterThan(bnCurrentQty)) {
-          throw new BadRequestException("Insufficient asset quantity");
+          throw new InsufficientBalanceException(op.ticker);
         }
 
         const newQty = bnCurrentQty.plus(bnQuantity);
