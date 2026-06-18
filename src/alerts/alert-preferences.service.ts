@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { AlertPreference } from "./entities/alert-preference.entity";
-import { CreateAlertPreferenceDto, UpdateAlertPreferenceDto } from "./dto/alert-preference.dto";
+import {
+  CreateAlertPreferenceDto,
+  UpdateAlertPreferenceDto,
+} from "./dto/alert-preference.dto";
 import { AlertType } from "./entities/alert.entity";
 
 @Injectable()
@@ -26,8 +29,13 @@ export class AlertPreferencesService {
     return this.preferenceRepo.find({ where: { userId } });
   }
 
-  async getPreferencesForUser(userId: string, alertType: AlertType): Promise<AlertPreference[]> {
-    const preferences = await this.preferenceRepo.find({ where: { userId, enabled: true } });
+  async getPreferencesForUser(
+    userId: string,
+    alertType: AlertType,
+  ): Promise<AlertPreference[]> {
+    const preferences = await this.preferenceRepo.find({
+      where: { userId, enabled: true },
+    });
     return preferences.filter(
       (preference) =>
         !preference.alertTypes?.length ||

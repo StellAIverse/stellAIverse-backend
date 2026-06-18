@@ -33,4 +33,6 @@ export class CreateAlertPreferenceDto {
   enabled?: boolean;
 }
 
-export class UpdateAlertPreferenceDto extends PartialType(CreateAlertPreferenceDto) {}
+export class UpdateAlertPreferenceDto extends PartialType(
+  CreateAlertPreferenceDto,
+) {}

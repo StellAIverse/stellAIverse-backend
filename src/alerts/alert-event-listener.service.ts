@@ -1,7 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { AlertDispatcherService } from "./alert-dispatcher.service";
-import { ALERT_PRICE_EVENT, ALERT_RISK_EVENT, AlertEventPayload } from "./events/alert-events";
+import {
+  ALERT_PRICE_EVENT,
+  ALERT_RISK_EVENT,
+  AlertEventPayload,
+} from "./events/alert-events";
 
 @Injectable()
 export class AlertEventListener {

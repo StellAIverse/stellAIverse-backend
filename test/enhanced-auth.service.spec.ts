@@ -105,7 +105,11 @@ describe("EnhancedAuthService", () => {
       jest.spyOn(refreshTokenRepository, "create").mockReturnValue({} as any);
       jest.spyOn(refreshTokenRepository, "save").mockResolvedValue({} as any);
 
-      const result = await service.register(registerDto, "127.0.0.1", "test-agent");
+      const result = await service.register(
+        registerDto,
+        "127.0.0.1",
+        "test-agent",
+      );
 
       expect(result).toHaveProperty("accessToken");
       expect(result).toHaveProperty("refreshToken");
@@ -196,5 +200,4 @@ describe("EnhancedAuthService", () => {
       expect(result).toHaveProperty("backupCodes");
     });
   });
-});</content>
-<parameter name="filePath">/workspaces/stellAIverse-backend/test/enhanced-auth.service.spec.ts
+});

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  ConflictException,
-} from "@nestjs/common";
+import { Injectable, Logger, ConflictException } from "@nestjs/common";
 import {
   InsufficientBalanceException,
   PortfolioNotFoundException,
@@ -92,7 +88,10 @@ export class TradingTransactionService {
         const bnPrice = new BigNumber(op.price);
         const bnCurrentQty = new BigNumber(asset.quantity);
 
-        if (bnQuantity.isNegative() && bnQuantity.abs().isGreaterThan(bnCurrentQty)) {
+        if (
+          bnQuantity.isNegative() &&
+          bnQuantity.abs().isGreaterThan(bnCurrentQty)
+        ) {
           throw new InsufficientBalanceException(op.ticker);
         }
 

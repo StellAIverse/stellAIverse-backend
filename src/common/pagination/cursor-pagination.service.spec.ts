@@ -51,7 +51,9 @@ describe("CursorPaginationService", () => {
         ]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       const result = await service.paginateWithCursor(mockRepository, {
         limit: 2,
@@ -84,7 +86,9 @@ describe("CursorPaginationService", () => {
         ]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       const cursor = service.createCursorFromValue({
         id: "3",
@@ -135,7 +139,9 @@ describe("CursorPaginationService", () => {
         getMany: jest.fn().mockResolvedValue([]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       const additionalConditions = jest.fn().mockReturnValue(mockQueryBuilder);
 
@@ -174,7 +180,9 @@ describe("CursorPaginationService", () => {
         getMany: jest.fn().mockResolvedValue([]),
       };
 
-      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      mockRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       const result = await service.paginateWithCursor(mockRepository, {
         limit: 10,
