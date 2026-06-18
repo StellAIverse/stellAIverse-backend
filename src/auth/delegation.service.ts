@@ -318,7 +318,8 @@ export class DelegationService {
           id: w.id,
           delegatorWalletId: w.delegatedById!,
           delegateWalletId: w.id,
-          permissions: (w.delegationPermissions || []) as DelegationPermission[],
+          permissions: (w.delegationPermissions ||
+            []) as DelegationPermission[],
           grantedAt: w.verifiedAt!,
           expiresAt: w.delegationExpiresAt!,
           revokedAt: w.status === WalletStatus.REVOKED ? new Date() : undefined,

@@ -1,5 +1,12 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, IsJSON } from 'class-validator';
-import { PortfolioStatus } from '../entities/portfolio.entity';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsBoolean,
+  IsJSON,
+} from "class-validator";
+import { PortfolioStatus } from "../entities/portfolio.entity";
 export class CreatePortfolioDto {
   @IsString()
   name: string;
@@ -22,7 +29,7 @@ export class CreatePortfolioDto {
 
   @IsOptional()
   @IsString()
-  rebalanceFrequency?: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  rebalanceFrequency?: "daily" | "weekly" | "monthly" | "quarterly";
 
   @IsOptional()
   @IsNumber()
@@ -48,7 +55,7 @@ export class UpdatePortfolioDto {
 
   @IsOptional()
   @IsString()
-  rebalanceFrequency?: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  rebalanceFrequency?: "daily" | "weekly" | "monthly" | "quarterly";
 
   @IsOptional()
   @IsNumber()

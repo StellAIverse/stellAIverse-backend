@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  ConflictException,
-} from "@nestjs/common";
+import { Injectable, Logger, ConflictException } from "@nestjs/common";
 import {
   InsufficientBalanceException,
   PortfolioNotFoundException,
@@ -13,7 +9,10 @@ import { Portfolio } from "../entities/portfolio.entity";
 import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 
 // Configure BigNumber for financial precision (no exponential notation, 18 dp)
-BigNumber.config({ DECIMAL_PLACES: 18, ROUNDING_MODE: BigNumber.ROUND_HALF_EVEN });
+BigNumber.config({
+  DECIMAL_PLACES: 18,
+  ROUNDING_MODE: BigNumber.ROUND_HALF_EVEN,
+});
 
 export interface TradeOperation {
   portfolioId: string;
@@ -85,16 +84,14 @@ export class TradingTransactionService {
           });
         }
 
-        // Validate quantity
-        if (op.quantity < 0 && Math.abs(op.quantity) > asset.quantity) {
-          throw new InsufficientBalanceException(op.ticker);
-        }
-
         const bnQuantity = new BigNumber(op.quantity);
         const bnPrice = new BigNumber(op.price);
         const bnCurrentQty = new BigNumber(asset.quantity);
 
-        if (bnQuantity.isNegative() && bnQuantity.abs().isGreaterThan(bnCurrentQty)) {
+        if (
+          bnQuantity.isNegative() &&
+          bnQuantity.abs().isGreaterThan(bnCurrentQty)
+        ) {
           throw new InsufficientBalanceException(op.ticker);
         }
 

@@ -26,7 +26,11 @@ export class AlertDeliveryLog {
   @Column({ type: "jsonb" })
   payload: Record<string, unknown>;
 
-  @Column({ type: "enum", enum: AlertDeliveryStatus, default: AlertDeliveryStatus.PENDING })
+  @Column({
+    type: "enum",
+    enum: AlertDeliveryStatus,
+    default: AlertDeliveryStatus.PENDING,
+  })
   status: AlertDeliveryStatus;
 
   @Column({ type: "int", default: 0 })

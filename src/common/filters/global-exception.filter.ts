@@ -39,7 +39,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         clientMessage =
           typeof exceptionResponse === "string"
             ? exceptionResponse
-            : (exceptionResponse as any).message ?? "Request failed";
+            : ((exceptionResponse as any).message ?? "Request failed");
       } else {
         clientMessage =
           typeof exceptionResponse === "string"

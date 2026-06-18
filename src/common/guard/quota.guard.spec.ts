@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { Reflector } from "@nestjs/core";
-import { QuotaGuard } from "./quota.guard";
-import { RateLimiterService } from "../../quota/rate-limiter.service";
+import { QuotaGuard, RateLimiterService } from "./quota.guard";
 import { HttpException } from "@nestjs/common";
 
 describe("QuotaGuard", () => {

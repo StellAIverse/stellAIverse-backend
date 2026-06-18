@@ -19,6 +19,7 @@ import { SubmitPayloadDto } from "./dto/submit-payload.dto";
 import { VerifySignatureDto } from "./dto/verify-signature.dto";
 import { PayloadResponseDto } from "./dto/payload-response.dto";
 import { PayloadStatus } from "./entities/signed-payload.entity";
+import { Public } from "../common/decorators/public.decorator";
 
 /**
  * Controller for Oracle service endpoints
@@ -98,6 +99,7 @@ export class OracleController {
   /**
    * Verify a signature off-chain
    */
+  @Public()
   @Post("verify-signature")
   @HttpCode(HttpStatus.OK)
   async verifySignature(
@@ -114,6 +116,7 @@ export class OracleController {
   /**
    * Verify a payload's signature
    */
+  @Public()
   @Get("payloads/:id/verify")
   @HttpCode(HttpStatus.OK)
   async verifyPayloadSignature(
@@ -166,6 +169,7 @@ export class OracleController {
   /**
    * Get payloads for a specific address (public endpoint)
    */
+  @Public()
   @Get("payloads/address/:address")
   async getPayloadsForAddress(
     @Param("address") address: string,
@@ -197,6 +201,7 @@ export class OracleController {
   /**
    * Get current nonce for an address
    */
+  @Public()
   @Get("nonce/:address")
   async getCurrentNonce(@Param("address") address: string): Promise<{
     address: string;
@@ -231,6 +236,7 @@ export class OracleController {
   /**
    * Get Oracle service statistics
    */
+  @Public()
   @Get("stats")
   async getStatistics(): Promise<any> {
     return this.oracleService.getStatistics();
@@ -239,6 +245,7 @@ export class OracleController {
   /**
    * Health check endpoint
    */
+  @Public()
   @Get("health")
   async healthCheck(): Promise<{
     status: string;

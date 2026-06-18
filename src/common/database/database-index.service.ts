@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource } from "typeorm";
 
 export interface IndexAnalysis {
   tableName: string;
@@ -53,7 +53,7 @@ export class DatabaseIndexService {
     `;
 
     const results = await this.dataSource.query(query);
-    
+
     return results.map((row: any) => ({
       tableName: row.tablename,
       indexName: row.indexname,
@@ -72,7 +72,7 @@ export class DatabaseIndexService {
   async findMissingIndexes(): Promise<QueryPerformanceMetrics[]> {
     // Enable pg_stat_statements if not already enabled
     await this.ensurePgStatStatements();
-    
+
     const query = `
       SELECT 
         query,
@@ -92,7 +92,7 @@ export class DatabaseIndexService {
     `;
 
     const results = await this.dataSource.query(query);
-    
+
     return results.map((row: any) => ({
       query: row.query,
       executionTime: parseFloat(row.mean_exec_time),
@@ -107,14 +107,19 @@ export class DatabaseIndexService {
    */
   async createRecommendedIndexes(): Promise<void> {
     const recommendations = await this.generateIndexRecommendations();
-    
+
     for (const recommendation of recommendations) {
-      if (recommendation.priority === 'HIGH') {
+      if (recommendation.priority === "HIGH") {
         try {
-          await this.dataSource.query(`CREATE INDEX CONCURRENTLY IF NOT EXISTS ${recommendation.indexName} ON ${recommendation.tableName} (${recommendation.columns.join(', ')});`);
+          await this.dataSource.query(
+            `CREATE INDEX CONCURRENTLY IF NOT EXISTS ${recommendation.indexName} ON ${recommendation.tableName} (${recommendation.columns.join(", ")});`,
+          );
           console.log(`Created index: ${recommendation.indexName}`);
         } catch (error) {
-          console.error(`Failed to create index ${recommendation.indexName}:`, error);
+          console.error(
+            `Failed to create index ${recommendation.indexName}:`,
+            error,
+          );
         }
       }
     }
@@ -160,7 +165,7 @@ export class DatabaseIndexService {
     `;
 
     const results = await this.dataSource.query(query);
-    
+
     return results.map((row: any) => ({
       query: row.query,
       executionTime: parseFloat(row.mean_exec_time),
@@ -173,57 +178,67 @@ export class DatabaseIndexService {
   private extractColumnsFromDefinition(indexDef: string): string[] {
     const match = indexDef.match(/\(([^)]+)\)/);
     if (!match) return [];
-    
-    return match[1].split(',').map(col => col.trim().replace(/"/g, ''));
+
+    return match[1].split(",").map((col) => col.trim().replace(/"/g, ""));
   }
 
   private generateIndexRecommendation(indexStats: any): string {
     if (indexStats.scan_count === 0) {
-      return 'UNUSED - Consider dropping this index to save space and improve write performance';
+      return "UNUSED - Consider dropping this index to save space and improve write performance";
     }
-    
+
     if (indexStats.scan_count < 10) {
-      return 'LOW_USAGE - Consider if this index is necessary for your workload';
+      return "LOW_USAGE - Consider if this index is necessary for your workload";
     }
-    
+
     if (indexStats.scan_count > 1000) {
-      return 'HIGH_USAGE - This index is well utilized';
+      return "HIGH_USAGE - This index is well utilized";
     }
-    
-    return 'OK - Index is being used moderately';
+
+    return "OK - Index is being used moderately";
   }
 
   private generateQueryRecommendations(queryStats: any): string[] {
     const recommendations: string[] = [];
-    
+
     if (queryStats.mean_exec_time > 1000) {
-      recommendations.push('Consider adding indexes for columns in WHERE clauses');
+      recommendations.push(
+        "Consider adding indexes for columns in WHERE clauses",
+      );
     }
-    
+
     if (queryStats.rows > 10000) {
-      recommendations.push('Consider pagination to reduce result set size');
+      recommendations.push("Consider pagination to reduce result set size");
     }
-    
+
     if (queryStats.hit_percent < 90) {
-      recommendations.push('Low buffer cache hit rate - consider increasing shared_buffers or optimizing queries');
+      recommendations.push(
+        "Low buffer cache hit rate - consider increasing shared_buffers or optimizing queries",
+      );
     }
-    
+
     return recommendations;
   }
 
   private generateSlowQueryRecommendations(queryStats: any): string[] {
     const recommendations: string[] = [];
-    
+
     if (queryStats.mean_exec_time > 5000) {
-      recommendations.push('CRITICAL: This query is very slow and needs immediate optimization');
+      recommendations.push(
+        "CRITICAL: This query is very slow and needs immediate optimization",
+      );
     }
-    
+
     if (queryStats.shared_blks_read > queryStats.shared_blks_hit) {
-      recommendations.push('High disk I/O - consider adding indexes or increasing memory');
+      recommendations.push(
+        "High disk I/O - consider adding indexes or increasing memory",
+      );
     }
-    
-    recommendations.push('Run EXPLAIN ANALYZE on this query to identify bottlenecks');
-    
+
+    recommendations.push(
+      "Run EXPLAIN ANALYZE on this query to identify bottlenecks",
+    );
+
     return recommendations;
   }
 
@@ -232,34 +247,37 @@ export class DatabaseIndexService {
     // For now, return some common recommendations based on the schema
     return [
       {
-        tableName: 'users',
-        columns: ['wallet_address', 'created_at'],
-        indexName: 'idx_users_wallet_created_composite',
-        priority: 'HIGH',
-        reason: 'Frequent queries filter by wallet address and order by creation time'
+        tableName: "users",
+        columns: ["wallet_address", "created_at"],
+        indexName: "idx_users_wallet_created_composite",
+        priority: "HIGH",
+        reason:
+          "Frequent queries filter by wallet address and order by creation time",
       },
       {
-        tableName: 'agent_events',
-        columns: ['agent_id', 'event_type', 'created_at'],
-        indexName: 'idx_agent_events_composite_optimized',
-        priority: 'HIGH',
-        reason: 'Common query pattern for agent event filtering and pagination'
+        tableName: "agent_events",
+        columns: ["agent_id", "event_type", "created_at"],
+        indexName: "idx_agent_events_composite_optimized",
+        priority: "HIGH",
+        reason: "Common query pattern for agent event filtering and pagination",
       },
       {
-        tableName: 'oracle_submissions',
-        columns: ['status', 'created_at'],
-        indexName: 'idx_oracle_submissions_status_time',
-        priority: 'MEDIUM',
-        reason: 'Queries often filter by submission status and time'
-      }
+        tableName: "oracle_submissions",
+        columns: ["status", "created_at"],
+        indexName: "idx_oracle_submissions_status_time",
+        priority: "MEDIUM",
+        reason: "Queries often filter by submission status and time",
+      },
     ];
   }
 
   private async ensurePgStatStatements(): Promise<void> {
     try {
-      await this.dataSource.query('CREATE EXTENSION IF NOT EXISTS pg_stat_statements;');
+      await this.dataSource.query(
+        "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;",
+      );
     } catch (error) {
-      console.warn('Could not enable pg_stat_statements extension:', error);
+      console.warn("Could not enable pg_stat_statements extension:", error);
     }
   }
 }
