@@ -46,6 +46,7 @@ services:
     ports:
       - "16686:16686"  # Jaeger UI
       - "4318:4318"    # OTLP HTTP receiver
+      - "14268:14268"  # Jaeger Thrift HTTP receiver
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     healthcheck:
