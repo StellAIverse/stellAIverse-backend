@@ -25,9 +25,10 @@ export class AlertDispatcherService {
       where: { userId: event.userId, enabled: true },
     });
 
-    const eligible = preferences.filter((preference) =>
-      !preference.alertTypes?.length ||
-      preference.alertTypes.includes(event.alert.type as any),
+    const eligible = preferences.filter(
+      (preference) =>
+        !preference.alertTypes?.length ||
+        preference.alertTypes.includes(event.alert.type as any),
     );
 
     const deliveries: AlertDeliveryLog[] = [];
@@ -77,7 +78,9 @@ export class AlertDispatcherService {
     event: AlertEventPayload,
     preference: AlertPreference,
   ): string {
-    const endpoint = String(preference.config?.endpointUrl || preference.config?.recipientEmail || "");
+    const endpoint = String(
+      preference.config?.endpointUrl || preference.config?.recipientEmail || "",
+    );
     return `${event.userId}:${event.alert.type}:${event.alert.message}:${preference.channel}:${endpoint}`;
   }
 

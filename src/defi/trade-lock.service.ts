@@ -1,11 +1,16 @@
-import { Injectable, Logger, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ConflictException,
+  BadRequestException,
+} from "@nestjs/common";
 
 interface TradeRequest {
   idempotencyKey: string;
   userId: string;
   asset: string;
   amount: number;
-  side: 'buy' | 'sell';
+  side: "buy" | "sell";
 }
 
 export interface TradeResult {
@@ -14,8 +19,8 @@ export interface TradeResult {
   userId: string;
   asset: string;
   amount: number;
-  side: 'buy' | 'sell';
-  status: 'completed' | 'failed';
+  side: "buy" | "sell";
+  status: "completed" | "failed";
   executedAt: Date;
 }
 
@@ -27,7 +32,10 @@ export class TradeLockService {
   private readonly userLocks = new Map<string, Promise<void>>();
 
   /** Idempotency cache: key -> result (TTL: 24h) */
-  private readonly idempotencyCache = new Map<string, { result: TradeResult; expiresAt: number }>();
+  private readonly idempotencyCache = new Map<
+    string,
+    { result: TradeResult; expiresAt: number }
+  >();
 
   private tradeCounter = 0;
 
@@ -38,7 +46,9 @@ export class TradeLockService {
     const cached = this.idempotencyCache.get(request.idempotencyKey);
     if (cached) {
       if (Date.now() < cached.expiresAt) {
-        this.logger.log(`Returning cached result for idempotency key ${request.idempotencyKey}`);
+        this.logger.log(
+          `Returning cached result for idempotency key ${request.idempotencyKey}`,
+        );
         return cached.result;
       }
       this.idempotencyCache.delete(request.idempotencyKey);
@@ -64,7 +74,10 @@ export class TradeLockService {
     });
   }
 
-  private async withUserLock<T>(userId: string, fn: () => Promise<T>): Promise<T> {
+  private async withUserLock<T>(
+    userId: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
     // Wait for any existing lock on this user
     const existingLock = this.userLocks.get(userId);
     if (existingLock) {
@@ -72,7 +85,9 @@ export class TradeLockService {
     }
 
     let releaseLock!: () => void;
-    const lock = new Promise<void>(resolve => { releaseLock = resolve; });
+    const lock = new Promise<void>((resolve) => {
+      releaseLock = resolve;
+    });
     this.userLocks.set(userId, lock);
 
     try {
@@ -89,10 +104,12 @@ export class TradeLockService {
   private async performTrade(request: TradeRequest): Promise<TradeResult> {
     // Simulate atomic trade execution (in production: wrap in DB transaction)
     const tradeId = `trade_${++this.tradeCounter}_${Date.now()}`;
-    this.logger.log(`Executing trade ${tradeId} for user ${request.userId}: ${request.side} ${request.amount} ${request.asset}`);
+    this.logger.log(
+      `Executing trade ${tradeId} for user ${request.userId}: ${request.side} ${request.amount} ${request.asset}`,
+    );
 
     // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     return {
       tradeId,
@@ -101,17 +118,20 @@ export class TradeLockService {
       asset: request.asset,
       amount: request.amount,
       side: request.side,
-      status: 'completed',
+      status: "completed",
       executedAt: new Date(),
     };
   }
 
   private validateRequest(request: TradeRequest): void {
-    if (!request.idempotencyKey) throw new BadRequestException('idempotencyKey is required');
-    if (!request.userId) throw new BadRequestException('userId is required');
-    if (!request.asset) throw new BadRequestException('asset is required');
-    if (request.amount <= 0) throw new BadRequestException('amount must be positive');
-    if (!['buy', 'sell'].includes(request.side)) throw new BadRequestException('side must be buy or sell');
+    if (!request.idempotencyKey)
+      throw new BadRequestException("idempotencyKey is required");
+    if (!request.userId) throw new BadRequestException("userId is required");
+    if (!request.asset) throw new BadRequestException("asset is required");
+    if (request.amount <= 0)
+      throw new BadRequestException("amount must be positive");
+    if (!["buy", "sell"].includes(request.side))
+      throw new BadRequestException("side must be buy or sell");
   }
 
   /** Clean up expired idempotency cache entries */

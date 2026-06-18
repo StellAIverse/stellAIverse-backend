@@ -4,6 +4,7 @@ import { NotFoundException } from "@nestjs/common";
 import { AlertsService } from "./alerts.service";
 import { Alert, AlertType, AlertCondition } from "./entities/alert.entity";
 import { AlertTriggerLog } from "./entities/alert-trigger-log.entity";
+import { AlertPublisherService } from "./alert-publisher.service";
 
 const mockAlertRepo = {
   find: jest.fn(),
@@ -27,6 +28,13 @@ describe("AlertsService", () => {
         AlertsService,
         { provide: getRepositoryToken(Alert), useValue: mockAlertRepo },
         { provide: getRepositoryToken(AlertTriggerLog), useValue: mockLogRepo },
+        {
+          provide: AlertPublisherService,
+          useValue: {
+            publishPriceAlert: jest.fn(),
+            publishPortfolioAlert: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

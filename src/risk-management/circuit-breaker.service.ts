@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
-export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 export interface CircuitBreakerConfig {
   failureThreshold?: number; // Number of failures to open circuit
@@ -27,12 +27,15 @@ export class CircuitBreakerService {
   private readonly logger = new Logger(CircuitBreakerService.name);
 
   // Per-service circuit breakers
-  private readonly breakers = new Map<string, {
-    state: CircuitState;
-    config: Required<CircuitBreakerConfig>;
-    metrics: CircuitBreakerMetrics;
-    halfOpenProbeCount: number;
-  }>();
+  private readonly breakers = new Map<
+    string,
+    {
+      state: CircuitState;
+      config: Required<CircuitBreakerConfig>;
+      metrics: CircuitBreakerMetrics;
+      halfOpenProbeCount: number;
+    }
+  >();
 
   private readonly defaultConfig: Required<CircuitBreakerConfig> = {
     failureThreshold: 5,
@@ -57,19 +60,22 @@ export class CircuitBreakerService {
     const finalConfig = { ...this.defaultConfig, ...config };
 
     this.breakers.set(serviceName, {
-      state: 'CLOSED',
+      state: "CLOSED",
       config: finalConfig,
       metrics: {
         successCount: 0,
         failureCount: 0,
         slowCallCount: 0,
         totalCallCount: 0,
-        stateTransitions: [{ state: 'CLOSED', timestamp: new Date() }],
+        stateTransitions: [{ state: "CLOSED", timestamp: new Date() }],
       },
       halfOpenProbeCount: 0,
     });
 
-    this.logger.log(`Circuit breaker registered for service: ${serviceName}`, finalConfig);
+    this.logger.log(
+      `Circuit breaker registered for service: ${serviceName}`,
+      finalConfig,
+    );
   }
 
   /**
@@ -77,16 +83,19 @@ export class CircuitBreakerService {
    */
   isOpen(serviceName: string): boolean {
     const breaker = this.getBreaker(serviceName);
-    
-    if (breaker.state === 'OPEN') {
+
+    if (breaker.state === "OPEN") {
       // Auto-transition to half-open after recovery time
       const lastFailure = breaker.metrics.lastFailureTime;
-      if (lastFailure && Date.now() - lastFailure.getTime() > breaker.config.recoveryTimeMs) {
-        this.transitionState(serviceName, 'HALF_OPEN');
+      if (
+        lastFailure &&
+        Date.now() - lastFailure.getTime() > breaker.config.recoveryTimeMs
+      ) {
+        this.transitionState(serviceName, "HALF_OPEN");
       }
     }
 
-    return breaker.state === 'OPEN';
+    return breaker.state === "OPEN";
   }
 
   /**
@@ -98,17 +107,17 @@ export class CircuitBreakerService {
     breaker.metrics.totalCallCount++;
     breaker.metrics.lastSuccessTime = new Date();
 
-    if (breaker.state === 'HALF_OPEN') {
+    if (breaker.state === "HALF_OPEN") {
       breaker.halfOpenProbeCount++;
       // Close circuit after successful probes
       if (breaker.halfOpenProbeCount >= breaker.config.halfOpenRequestCount) {
-        this.transitionState(serviceName, 'CLOSED');
+        this.transitionState(serviceName, "CLOSED");
         breaker.metrics.successCount = 0;
         breaker.metrics.failureCount = 0;
         breaker.metrics.slowCallCount = 0;
         breaker.halfOpenProbeCount = 0;
       }
-    } else if (breaker.state === 'CLOSED') {
+    } else if (breaker.state === "CLOSED") {
       // Check if we should open based on failure rate
       this.evaluateCircuitThresholds(serviceName);
     }
@@ -125,8 +134,8 @@ export class CircuitBreakerService {
     breaker.halfOpenProbeCount = 0;
 
     // Immediately open on half-open failure
-    if (breaker.state === 'HALF_OPEN') {
-      this.transitionState(serviceName, 'OPEN');
+    if (breaker.state === "HALF_OPEN") {
+      this.transitionState(serviceName, "OPEN");
       return;
     }
 
@@ -151,7 +160,7 @@ export class CircuitBreakerService {
    */
   reset(serviceName: string): void {
     const breaker = this.getBreaker(serviceName);
-    breaker.state = 'CLOSED';
+    breaker.state = "CLOSED";
     breaker.metrics.successCount = 0;
     breaker.metrics.failureCount = 0;
     breaker.metrics.slowCallCount = 0;
@@ -159,13 +168,16 @@ export class CircuitBreakerService {
     breaker.halfOpenProbeCount = 0;
     breaker.metrics.lastFailureTime = undefined;
     breaker.metrics.lastSuccessTime = undefined;
-    this.transitionState(serviceName, 'CLOSED');
+    this.transitionState(serviceName, "CLOSED");
   }
 
   /**
    * Get metrics for a service
    */
-  getMetrics(serviceName: string): { state: CircuitState; metrics: CircuitBreakerMetrics } {
+  getMetrics(serviceName: string): {
+    state: CircuitState;
+    metrics: CircuitBreakerMetrics;
+  } {
     const breaker = this.getBreaker(serviceName);
     return {
       state: breaker.state,
@@ -176,7 +188,10 @@ export class CircuitBreakerService {
   /**
    * Get all registered services and their status
    */
-  getAllStatus(): Map<string, { state: CircuitState; metrics: CircuitBreakerMetrics }> {
+  getAllStatus(): Map<
+    string,
+    { state: CircuitState; metrics: CircuitBreakerMetrics }
+  > {
     const result = new Map();
     for (const [serviceName, breaker] of this.breakers) {
       result.set(serviceName, {
@@ -192,7 +207,7 @@ export class CircuitBreakerService {
    */
   isHealthy(serviceName: string): boolean {
     const breaker = this.getBreaker(serviceName);
-    return breaker.state !== 'OPEN';
+    return breaker.state !== "OPEN";
   }
 
   /**
@@ -219,19 +234,19 @@ export class CircuitBreakerService {
 
     // Check absolute failure threshold
     if (breaker.metrics.failureCount >= breaker.config.failureThreshold) {
-      this.transitionState(serviceName, 'OPEN');
+      this.transitionState(serviceName, "OPEN");
       return;
     }
 
     // Check failure rate threshold
     if (failureRate >= breaker.config.failureRateThreshold) {
-      this.transitionState(serviceName, 'OPEN');
+      this.transitionState(serviceName, "OPEN");
       return;
     }
 
     // Check slow call rate threshold
     if (slowCallRate >= breaker.config.slowCallRateThreshold) {
-      this.transitionState(serviceName, 'OPEN');
+      this.transitionState(serviceName, "OPEN");
       return;
     }
   }
@@ -246,7 +261,10 @@ export class CircuitBreakerService {
     if (oldState === newState) return;
 
     breaker.state = newState;
-    breaker.metrics.stateTransitions.push({ state: newState, timestamp: new Date() });
+    breaker.metrics.stateTransitions.push({
+      state: newState,
+      timestamp: new Date(),
+    });
 
     const eventName = `circuit-breaker.${newState.toLowerCase()}`;
     const eventData = {
@@ -263,6 +281,6 @@ export class CircuitBreakerService {
     );
 
     this.eventEmitter.emit(eventName, eventData);
-    this.eventEmitter.emit('circuit-breaker.state-change', eventData);
+    this.eventEmitter.emit("circuit-breaker.state-change", eventData);
   }
 }

@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
-import { WalletAuthService } from '../src/auth/wallet-auth.service';
-import { ChallengeService } from '../src/auth/challenge.service';
-import { Wallet } from 'ethers';
+import { Test, TestingModule } from "@nestjs/testing";
+import { JwtService } from "@nestjs/jwt";
+import { UnauthorizedException } from "@nestjs/common";
+import { WalletAuthService } from "../src/auth/wallet-auth.service";
+import { ChallengeService } from "../src/auth/challenge.service";
+import { Wallet } from "ethers";
 
-describe('Wallet Authentication', () => {
+describe("Wallet Authentication", () => {
   let walletAuthService: WalletAuthService;
   let challengeService: ChallengeService;
   let jwtService: JwtService;
@@ -20,13 +20,13 @@ describe('Wallet Authentication', () => {
           provide: JwtService,
           useValue: {
             sign: (payload) => {
-              return 'test-token-' + JSON.stringify(payload);
+              return "test-token-" + JSON.stringify(payload);
             },
             verify: (token) => {
-              if (token.startsWith('test-token-')) {
-                return JSON.parse(token.replace('test-token-', ''));
+              if (token.startsWith("test-token-")) {
+                return JSON.parse(token.replace("test-token-", ""));
               }
-              throw new Error('Invalid token');
+              throw new Error("Invalid token");
             },
           },
         },
@@ -41,16 +41,16 @@ describe('Wallet Authentication', () => {
     testWallet = Wallet.createRandom();
   });
 
-  describe('Challenge Issuance', () => {
-    it('should issue a valid challenge for an address', () => {
+  describe("Challenge Issuance", () => {
+    it("should issue a valid challenge for an address", () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
 
-      expect(message).toContain('Sign this message to authenticate:');
+      expect(message).toContain("Sign this message to authenticate:");
       expect(message).toBeTruthy();
     });
 
-    it('should extract challenge ID from message', () => {
+    it("should extract challenge ID from message", () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
       const challengeId = challengeService.extractChallengeId(message);
@@ -59,7 +59,7 @@ describe('Wallet Authentication', () => {
       expect(challengeId).toHaveLength(64); // 32 bytes hex
     });
 
-    it('should store challenge with expiration', () => {
+    it("should store challenge with expiration", () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
       const challengeId = challengeService.extractChallengeId(message);
@@ -72,8 +72,8 @@ describe('Wallet Authentication', () => {
     });
   });
 
-  describe('Signature Verification', () => {
-    it('should verify a valid signature and return JWT token', async () => {
+  describe("Signature Verification", () => {
+    it("should verify a valid signature and return JWT token", async () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
 
@@ -89,20 +89,23 @@ describe('Wallet Authentication', () => {
       expect(result.address).toBe(address.toLowerCase());
     });
 
-    it('should reject an invalid signature', async () => {
+    it("should reject an invalid signature", async () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
 
       // Create an invalid signature
       const invalidSignature =
-        '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
       await expect(
-        walletAuthService.verifySignatureAndIssueToken(message, invalidSignature),
+        walletAuthService.verifySignatureAndIssueToken(
+          message,
+          invalidSignature,
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should reject signature from different address', async () => {
+    it("should reject signature from different address", async () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
 
@@ -115,7 +118,7 @@ describe('Wallet Authentication', () => {
       ).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should reject expired challenge', async () => {
+    it("should reject expired challenge", async () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
       const challengeId = challengeService.extractChallengeId(message);
@@ -129,12 +132,12 @@ describe('Wallet Authentication', () => {
         walletAuthService.verifySignatureAndIssueToken(message, signature),
       ).rejects.toThrow(
         new UnauthorizedException(
-          'Challenge not found or expired. Please request a new challenge.',
+          "Challenge not found or expired. Please request a new challenge.",
         ),
       );
     });
 
-    it('should consume challenge after successful verification', async () => {
+    it("should consume challenge after successful verification", async () => {
       const address = testWallet.address;
       const message = challengeService.issueChallengeForAddress(address);
       const challengeId = challengeService.extractChallengeId(message);
@@ -149,8 +152,8 @@ describe('Wallet Authentication', () => {
     });
   });
 
-  describe('JWT Token Validation', () => {
-    it('should validate a correct token', () => {
+  describe("JWT Token Validation", () => {
+    it("should validate a correct token", () => {
       const payload = { address: testWallet.address.toLowerCase(), iat: 0 };
       const token = jwtService.sign(payload);
 
@@ -159,8 +162,8 @@ describe('Wallet Authentication', () => {
       expect(result.address).toBe(payload.address);
     });
 
-    it('should reject an invalid token', () => {
-      const invalidToken = 'invalid-token';
+    it("should reject an invalid token", () => {
+      const invalidToken = "invalid-token";
 
       expect(() => {
         walletAuthService.validateToken(invalidToken);
@@ -168,13 +171,13 @@ describe('Wallet Authentication', () => {
     });
   });
 
-  describe('End-to-End Authentication Flow', () => {
-    it('should complete full authentication flow', async () => {
+  describe("End-to-End Authentication Flow", () => {
+    it("should complete full authentication flow", async () => {
       const address = testWallet.address;
 
       // 1. Request challenge
       const message = challengeService.issueChallengeForAddress(address);
-      expect(message).toContain('Sign this message to authenticate:');
+      expect(message).toContain("Sign this message to authenticate:");
 
       // 2. Sign message
       const signature = await testWallet.signMessage(message);

@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Optional,
-  Inject,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import {
@@ -13,7 +12,48 @@ import {
   RateLimitOptions,
 } from "../decorators/rate-limit.decorator";
 import { QUOTA_LEVELS, DEFAULT_QUOTA } from "../../config/quota.config";
-import { RateLimiterService } from "../../quota/rate-limiter.service";
+
+@Injectable()
+export class RateLimiterService {
+  private memory = new Map<string, { tokens: number; lastRefill: number }>();
+
+  async checkQuota(
+    key: string,
+    limit: number,
+    windowMs: number,
+    burst: number = 0,
+  ): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
+    const now = Date.now();
+    const rate = limit / windowMs;
+    const capacity = limit + burst;
+
+    let record = this.memory.get(key);
+    if (!record) {
+      record = { tokens: capacity, lastRefill: now };
+    } else {
+      const elapsed = now - record.lastRefill;
+      const refill = elapsed * rate;
+      record.tokens = Math.min(capacity, record.tokens + refill);
+      record.lastRefill = now;
+    }
+
+    if (record.tokens >= 1) {
+      record.tokens -= 1;
+      this.memory.set(key, record);
+      return {
+        allowed: true,
+        remaining: Math.floor(record.tokens),
+        resetMs: Math.max(0, Math.ceil((capacity - record.tokens) / rate)),
+      };
+    } else {
+      return {
+        allowed: false,
+        remaining: 0,
+        resetMs: Math.max(0, Math.ceil((1 - record.tokens) / rate)),
+      };
+    }
+  }
+}
 
 @Injectable()
 export class QuotaGuard implements CanActivate {
@@ -21,7 +61,7 @@ export class QuotaGuard implements CanActivate {
   private dynamicScaling?: any;
   private analytics?: any;
   private premiumBonus?: any;
-  private rateLimiterService?: any;
+  private rateLimiterService: RateLimiterService;
 
   constructor(
     private readonly reflector: Reflector,
@@ -29,13 +69,13 @@ export class QuotaGuard implements CanActivate {
     @Optional() dynamicScaling?: any,
     @Optional() analytics?: any,
     @Optional() premiumBonus?: any,
-    @Optional() @Inject(RateLimiterService) rateLimiterService?: RateLimiterService,
+    @Optional() rateLimiterService?: RateLimiterService,
   ) {
     this.metrics = metrics;
     this.dynamicScaling = dynamicScaling;
     this.analytics = analytics;
     this.premiumBonus = premiumBonus;
-    this.rateLimiterService = rateLimiterService;
+    this.rateLimiterService = rateLimiterService || new RateLimiterService();
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -52,12 +92,14 @@ export class QuotaGuard implements CanActivate {
     const trackerKey = this.getTrackerKey(request);
 
     // Merge options with level config
-    const levelConfig = QUOTA_LEVELS[(options.level as string) || "free"] || DEFAULT_QUOTA;
+    const levelConfig =
+      QUOTA_LEVELS[(options.level as string) || "free"] || DEFAULT_QUOTA;
     const baseLimit = options.limit ?? levelConfig.limit;
     const baseWindowMs = options.windowMs ?? levelConfig.windowMs;
     const baseBurst = options.burst ?? levelConfig.burst;
 
-    const endpoint = request.route?.path || request.originalUrl || request.url || "unknown";
+    const endpoint =
+      request.route?.path || request.originalUrl || request.url || "unknown";
     const userId = String(request.user?.id || trackerKey);
     const userTier = request.user?.tier || options.level || "unknown";
     const policy = (options.level as string) || "custom";
@@ -78,7 +120,11 @@ export class QuotaGuard implements CanActivate {
 
     if (dynamic) {
       const direction =
-        dynamic.multiplier > 1.01 ? "up" : dynamic.multiplier < 0.99 ? "down" : "stable";
+        dynamic.multiplier > 1.01
+          ? "up"
+          : dynamic.multiplier < 0.99
+            ? "down"
+            : "stable";
       this.metrics?.rateLimitScalingDecisions.inc({
         policy,
         endpoint,
@@ -165,7 +211,11 @@ export class QuotaGuard implements CanActivate {
     );
 
     if (!result.allowed) {
-      this.metrics?.rateLimitExceeded.inc({ policy, user_tier: userTier, endpoint });
+      this.metrics?.rateLimitExceeded.inc({
+        policy,
+        user_tier: userTier,
+        endpoint,
+      });
       this.metrics?.throttlingEvents.inc({
         severity: result.remaining <= 0 ? "high" : "medium",
         policy,
@@ -181,9 +231,13 @@ export class QuotaGuard implements CanActivate {
       });
 
       this.metrics?.premiumBonusClaims.inc({
-        bonus_type: premiumAdjustment.activeBoostIds.length > 0 ? "boost" : "tier",
+        bonus_type:
+          premiumAdjustment.activeBoostIds.length > 0 ? "boost" : "tier",
         user_tier: String(userTier),
-        source: premiumAdjustment.activeBoostIds.length > 0 ? "manual_or_campaign" : "tier_policy",
+        source:
+          premiumAdjustment.activeBoostIds.length > 0
+            ? "manual_or_campaign"
+            : "tier_policy",
       });
 
       if (premiumAdjustment.componentMultipliers.referral > 0) {

@@ -13,6 +13,23 @@ import { User } from "../user/entities/user.entity";
 import { RegisterDto, LoginDto } from "./dto/auth.dto";
 import { TokenBlacklistService } from "./token-blacklist.service";
 
+/**
+ * @deprecated AuthService is the **legacy** email/password authentication service.
+ *
+ * Migration path — use the strategy-based equivalents instead:
+ *
+ * | Legacy method          | Replacement                                                    |
+ * |------------------------|----------------------------------------------------------------|
+ * | `register(dto)`        | `EnhancedAuthService.register(dto, ip, ua)` via `POST /api/auth/register` |
+ * | `login(dto)`           | `EnhancedAuthService.login(dto, ip, ua)` via `POST /api/auth/login`       |
+ * | `logout(jti, exp)`     | Already delegates to TokenBlacklistService — no change needed  |
+ * | `getAuthStatus(user)`  | Same shape; no direct equivalent in the new flow               |
+ *
+ * EnhancedAuthService adds: refresh tokens, 2FA, last-login tracking, and
+ * proper account-state checks.  It is available via AuthModule exports.
+ *
+ * This class will be removed once all consumers have been migrated.
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,6 +39,10 @@ export class AuthService {
     private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
+  /**
+   * @deprecated Use {@link EnhancedAuthService.register} for new code.
+   * Registers a user with email/password and returns a short-lived JWT.
+   */
   async register(
     registerDto: RegisterDto,
   ): Promise<{ token: string; user: Partial<User> }> {
@@ -104,6 +125,10 @@ export class AuthService {
     };
   }
 
+  /**
+   * @deprecated Use {@link EnhancedAuthService.login} for new code.
+   * Authenticates a user with email/password and returns a short-lived JWT.
+   */
   async login(
     loginDto: LoginDto,
   ): Promise<{ token: string; user: Partial<User> }> {

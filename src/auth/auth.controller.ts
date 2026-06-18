@@ -36,6 +36,7 @@ import { Throttle } from "@nestjs/throttler";
 import { SensitiveRateLimit } from "../common/decorators/rate-limit.decorator";
 import { Roles, Role } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guard/roles.guard";
+import { Public } from "../common/decorators/public.decorator";
 
 export class RequestChallengeDto {
   @ApiProperty({
@@ -63,7 +64,7 @@ export class VerifySignatureDto {
 }
 
 // Auth endpoints are high-value targets — enforce strict per-user/IP limit: 5 req/min
-@SensitiveRateLimit('auth')
+@SensitiveRateLimit("auth")
 @ApiTags("Authentication")
 @Throttle({ default: { ttl: 60000, limit: 10 } })
 @Controller("auth")
@@ -78,6 +79,7 @@ export class AuthController {
     private readonly delegationService: DelegationService,
   ) {}
 
+  @Public()
   @Post("challenge")
   @ApiOperation({
     summary: "Request Authentication Challenge",
@@ -122,6 +124,7 @@ export class AuthController {
 
   // Wallet Authentication Endpoints
 
+  @Public()
   @Post("verify")
   async verifySignature(@Body() dto: VerifySignatureDto) {
     const result = await this.walletAuthService.verifySignatureAndIssueToken(
@@ -146,6 +149,7 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Post("verify-email")
   async verifyEmail(@Body() dto: VerifyEmailDto) {
     return this.emailLinkingService.verifyEmailAndLink(dto.token);
@@ -167,11 +171,13 @@ export class AuthController {
 
   // Recovery Endpoints
 
+  @Public()
   @Post("recovery/request")
   async requestRecovery(@Body() dto: RequestRecoveryDto) {
     return this.recoveryService.requestRecovery(dto.email);
   }
 
+  @Public()
   @Post("recovery/verify")
   async verifyRecovery(@Body() dto: RequestRecoveryDto) {
     return this.recoveryService.verifyRecoveryAndGetChallenge(dto.email);
@@ -223,6 +229,7 @@ export class AuthController {
     return this.walletAuthService.setPrimaryWallet(walletId, userId);
   }
 
+  @Public()
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Post("recover-wallet")
   async recoverWallet(@Body() dto: RecoverWalletDto) {
@@ -231,6 +238,7 @@ export class AuthController {
 
   // Advanced Session Recovery Endpoints
 
+  @Public()
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Post("recovery/backup-code/initiate")
   async initiateBackupCodeRecovery(
@@ -244,6 +252,7 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Post("recovery/email/initiate")
   async initiateEmailRecovery(@Body() dto: { email: string }, @Request() req) {
@@ -253,6 +262,7 @@ export class AuthController {
     });
   }
 
+  @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post("recovery/email/verify")
   async verifyEmailRecoveryCode(
@@ -266,6 +276,7 @@ export class AuthController {
     );
   }
 
+  @Public()
   @Post("recovery/complete")
   async completeRecovery(
     @Body() dto: { sessionId: string; message: string; signature: string },
@@ -385,14 +396,16 @@ export class AuthController {
     return { message: "Stats access granted for admin/operator roles." };
   }
 
-  // Traditional Auth Endpoints
+  // Traditional Auth Endpoints (Legacy — see AuthService deprecation notice)
 
+  @Public()
   @Post("register")
   @ApiOperation({ summary: "Register with email and password" })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
+  @Public()
   @Post("login")
   @ApiOperation({ summary: "Login with email and password" })
   async login(@Body() dto: LoginDto) {

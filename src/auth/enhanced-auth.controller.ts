@@ -21,18 +21,19 @@ import {
   TwoFactorVerifyDto,
   RefreshTokenDto,
 } from "./dto/kyc.dto";
+import { Public } from "../common/decorators/public.decorator";
 
 @ApiTags("Enhanced Authentication & KYC")
 @Controller("api/auth")
 export class EnhancedAuthController {
-  constructor(
-    private readonly enhancedAuthService: EnhancedAuthService,
-  ) {}
+  constructor(private readonly enhancedAuthService: EnhancedAuthService) {}
 
+  @Public()
   @Post("register")
   @ApiOperation({
     summary: "Register a new user account",
-    description: "Create a new user account with email and password authentication",
+    description:
+      "Create a new user account with email and password authentication",
   })
   @ApiResponse({
     status: 201,
@@ -58,10 +59,7 @@ export class EnhancedAuthController {
   })
   @ApiResponse({ status: 400, description: "Bad request" })
   @ApiResponse({ status: 409, description: "User already exists" })
-  async register(
-    @Body() registerDto: RegisterDto,
-    @Request() req,
-  ) {
+  async register(@Body() registerDto: RegisterDto, @Request() req) {
     return this.enhancedAuthService.register(
       registerDto,
       req.ip,
@@ -69,6 +67,7 @@ export class EnhancedAuthController {
     );
   }
 
+  @Public()
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -98,10 +97,7 @@ export class EnhancedAuthController {
     },
   })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
-  async login(
-    @Body() loginDto: LoginDto,
-    @Request() req,
-  ) {
+  async login(@Body() loginDto: LoginDto, @Request() req) {
     return this.enhancedAuthService.login(
       loginDto,
       req.ip,
@@ -109,6 +105,7 @@ export class EnhancedAuthController {
     );
   }
 
+  @Public()
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -157,10 +154,7 @@ export class EnhancedAuthController {
       },
     },
   })
-  async setupTwoFactor(
-    @Request() req,
-    @Body() setupDto: TwoFactorSetupDto,
-  ) {
+  async setupTwoFactor(@Request() req, @Body() setupDto: TwoFactorSetupDto) {
     return this.enhancedAuthService.setupTwoFactor(req.user.sub, setupDto);
   }
 
@@ -175,13 +169,14 @@ export class EnhancedAuthController {
     status: 200,
     description: "2FA setup verified successfully",
   })
-  async verifyTwoFactorSetup(
-    @Request() req,
-    @Body() body: { code: string },
-  ) {
-    return this.enhancedAuthService.verifyTwoFactorSetup(req.user.sub, body.code);
+  async verifyTwoFactorSetup(@Request() req, @Body() body: { code: string }) {
+    return this.enhancedAuthService.verifyTwoFactorSetup(
+      req.user.sub,
+      body.code,
+    );
   }
 
+  @Public()
   @Post("2fa/verify")
   @ApiOperation({
     summary: "Verify 2FA for login",
@@ -218,10 +213,10 @@ export class EnhancedAuthController {
     status: 200,
     description: "2FA disabled successfully",
   })
-  async disableTwoFactor(
-    @Request() req,
-    @Body() body: { password: string },
-  ) {
-    return this.enhancedAuthService.disableTwoFactor(req.user.sub, body.password);
+  async disableTwoFactor(@Request() req, @Body() body: { password: string }) {
+    return this.enhancedAuthService.disableTwoFactor(
+      req.user.sub,
+      body.password,
+    );
   }
 }

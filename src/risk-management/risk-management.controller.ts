@@ -61,7 +61,10 @@ export class RiskManagementController {
   resetCircuitBreaker(@Body() body: { serviceName?: string }) {
     if (body.serviceName) {
       this.circuitBreaker.reset(body.serviceName);
-      return { success: true, message: `Circuit breaker reset for ${body.serviceName}` };
+      return {
+        success: true,
+        message: `Circuit breaker reset for ${body.serviceName}`,
+      };
     }
     return { success: false, message: "serviceName is required" };
   }

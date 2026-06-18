@@ -11,7 +11,10 @@ import {
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/jwt.guard";
 import { AlertPreferencesService } from "./alert-preferences.service";
-import { CreateAlertPreferenceDto, UpdateAlertPreferenceDto } from "./dto/alert-preference.dto";
+import {
+  CreateAlertPreferenceDto,
+  UpdateAlertPreferenceDto,
+} from "./dto/alert-preference.dto";
 
 @Controller("api/alerts/preferences")
 @UseGuards(JwtAuthGuard)

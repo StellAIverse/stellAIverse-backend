@@ -67,25 +67,42 @@ export class PositionTrackingService {
     });
 
     const totalValue = positions
-      .reduce((sum, p) => sum.plus(new BigNumber(p.current_amount ?? 0)), new BigNumber(0))
+      .reduce(
+        (sum, p) => sum.plus(new BigNumber(p.current_amount ?? 0)),
+        new BigNumber(0),
+      )
       .toNumber();
     const totalCollateral = positions
       .filter((p) => p.collateral_amount)
-      .reduce((sum, p) => sum.plus(new BigNumber(p.collateral_amount ?? 0)), new BigNumber(0))
+      .reduce(
+        (sum, p) => sum.plus(new BigNumber(p.collateral_amount ?? 0)),
+        new BigNumber(0),
+      )
       .toNumber();
     const totalBorrowed = positions
       .filter((p) => p.borrowed_amount)
-      .reduce((sum, p) => sum.plus(new BigNumber(p.borrowed_amount ?? 0)), new BigNumber(0))
+      .reduce(
+        (sum, p) => sum.plus(new BigNumber(p.borrowed_amount ?? 0)),
+        new BigNumber(0),
+      )
       .toNumber();
-    const netValue = new BigNumber(totalCollateral).minus(totalBorrowed).toNumber();
+    const netValue = new BigNumber(totalCollateral)
+      .minus(totalBorrowed)
+      .toNumber();
 
     const totalYield = positions
-      .reduce((sum, p) => sum.plus(new BigNumber(p.accumulated_yield ?? 0)), new BigNumber(0))
+      .reduce(
+        (sum, p) => sum.plus(new BigNumber(p.accumulated_yield ?? 0)),
+        new BigNumber(0),
+      )
       .toNumber();
     const averageAPY =
       positions.length > 0
         ? positions
-            .reduce((sum, p) => sum.plus(new BigNumber(p.apy ?? 0)), new BigNumber(0))
+            .reduce(
+              (sum, p) => sum.plus(new BigNumber(p.apy ?? 0)),
+              new BigNumber(0),
+            )
             .dividedBy(positions.length)
             .toNumber()
         : 0;
@@ -102,8 +119,12 @@ export class PositionTrackingService {
         };
       }
       byProtocol[position.protocol].count++;
-      byProtocol[position.protocol].totalValue = byProtocol[position.protocol].totalValue.plus(new BigNumber(position.current_amount ?? 0));
-      byProtocol[position.protocol].totalYield = byProtocol[position.protocol].totalYield.plus(new BigNumber(position.accumulated_yield ?? 0));
+      byProtocol[position.protocol].totalValue = byProtocol[
+        position.protocol
+      ].totalValue.plus(new BigNumber(position.current_amount ?? 0));
+      byProtocol[position.protocol].totalYield = byProtocol[
+        position.protocol
+      ].totalYield.plus(new BigNumber(position.accumulated_yield ?? 0));
     }
 
     // Recalculate averages and convert BigNumber to number

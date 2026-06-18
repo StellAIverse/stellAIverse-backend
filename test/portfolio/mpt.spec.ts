@@ -1,28 +1,26 @@
-import { ModernPortfolioTheory } from '../../src/portfolio/algorithms/modern-portfolio-theory';
+import { ModernPortfolioTheory } from "../../src/portfolio/algorithms/modern-portfolio-theory";
 
-describe('ModernPortfolioTheory', () => {
-  describe('calculatePortfolioMetrics', () => {
-    it('should calculate portfolio metrics correctly', () => {
+describe("ModernPortfolioTheory", () => {
+  describe("calculatePortfolioMetrics", () => {
+    it("should calculate portfolio metrics correctly", () => {
       const weights = [0.6, 0.4];
       const expectedReturns = [0.08, 0.12];
       const correlationMatrix = [
         [1, 0.5],
         [0.5, 1],
       ];
-      const volatilities = [0.15, 0.20];
+      const volatilities = [0.15, 0.2];
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
-      const metrics =
-        ModernPortfolioTheory.calculatePortfolioMetrics(
-          weights,
-          expectedReturns,
-          covarianceMatrix,
-        );
+      const metrics = ModernPortfolioTheory.calculatePortfolioMetrics(
+        weights,
+        expectedReturns,
+        covarianceMatrix,
+      );
 
       expect(metrics.weights).toEqual(weights);
       expect(metrics.expectedReturn).toBeCloseTo(0.096);
@@ -31,19 +29,18 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('calculateCovarianceMatrix', () => {
-    it('should calculate covariance matrix from correlation and volatilities', () => {
-      const volatilities = [0.15, 0.20];
+  describe("calculateCovarianceMatrix", () => {
+    it("should calculate covariance matrix from correlation and volatilities", () => {
+      const volatilities = [0.15, 0.2];
       const correlationMatrix = [
         [1, 0.5],
         [0.5, 1],
       ];
 
-      const covMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
       expect(covMatrix[0][0]).toBeCloseTo(0.0225); // 0.15^2
       expect(covMatrix[1][1]).toBeCloseTo(0.04); // 0.20^2
@@ -51,49 +48,45 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('pearsonCorrelation', () => {
-    it('should calculate Pearson correlation correctly', () => {
+  describe("pearsonCorrelation", () => {
+    it("should calculate Pearson correlation correctly", () => {
       const x = [1, 2, 3, 4, 5];
       const y = [2, 4, 6, 8, 10];
 
-      const correlation =
-        ModernPortfolioTheory.pearsonCorrelation(x, y);
+      const correlation = ModernPortfolioTheory.pearsonCorrelation(x, y);
 
       expect(correlation).toBeCloseTo(1, 5); // Perfect positive correlation
     });
 
-    it('should handle negative correlation', () => {
+    it("should handle negative correlation", () => {
       const x = [1, 2, 3, 4, 5];
       const y = [10, 8, 6, 4, 2];
 
-      const correlation =
-        ModernPortfolioTheory.pearsonCorrelation(x, y);
+      const correlation = ModernPortfolioTheory.pearsonCorrelation(x, y);
 
       expect(correlation).toBeCloseTo(-1, 5); // Perfect negative correlation
     });
   });
 
-  describe('meanVarianceOptimization', () => {
-    it('should optimize portfolio using mean-variance', () => {
-      const expectedReturns = [0.08, 0.10, 0.12];
+  describe("meanVarianceOptimization", () => {
+    it("should optimize portfolio using mean-variance", () => {
+      const expectedReturns = [0.08, 0.1, 0.12];
       const correlationMatrix = [
         [1, 0.5, 0.3],
         [0.5, 1, 0.4],
         [0.3, 0.4, 1],
       ];
-      const volatilities = [0.15, 0.18, 0.20];
+      const volatilities = [0.15, 0.18, 0.2];
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
-      const weights =
-        ModernPortfolioTheory.meanVarianceOptimization(
-          expectedReturns,
-          covarianceMatrix,
-        );
+      const weights = ModernPortfolioTheory.meanVarianceOptimization(
+        expectedReturns,
+        covarianceMatrix,
+      );
 
       const sum = weights.reduce((a, b) => a + b);
       expect(sum).toBeCloseTo(1, 5);
@@ -101,24 +94,21 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('minVarianceOptimization', () => {
-    it('should find minimum variance portfolio', () => {
+  describe("minVarianceOptimization", () => {
+    it("should find minimum variance portfolio", () => {
       const correlationMatrix = [
         [1, 0.5],
         [0.5, 1],
       ];
-      const volatilities = [0.15, 0.20];
+      const volatilities = [0.15, 0.2];
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
       const weights =
-        ModernPortfolioTheory.minVarianceOptimization(
-          covarianceMatrix,
-        );
+        ModernPortfolioTheory.minVarianceOptimization(covarianceMatrix);
 
       const sum = weights.reduce((a, b) => a + b);
       expect(sum).toBeCloseTo(1, 5);
@@ -126,24 +116,21 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('riskParityOptimization', () => {
-    it('should create risk parity portfolio', () => {
+  describe("riskParityOptimization", () => {
+    it("should create risk parity portfolio", () => {
       const correlationMatrix = [
         [1, 0.3],
         [0.3, 1],
       ];
-      const volatilities = [0.10, 0.20];
+      const volatilities = [0.1, 0.2];
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
       const weights =
-        ModernPortfolioTheory.riskParityOptimization(
-          covarianceMatrix,
-        );
+        ModernPortfolioTheory.riskParityOptimization(covarianceMatrix);
 
       const sum = weights.reduce((a, b) => a + b);
       expect(sum).toBeCloseTo(1, 5);
@@ -153,43 +140,40 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('calculateValueAtRisk', () => {
-    it('should calculate VaR correctly', () => {
-      const var95 =
-        ModernPortfolioTheory.calculateValueAtRisk(
-          0.05,
-          0.15,
-          0.95,
-          100000,
-        );
+  describe("calculateValueAtRisk", () => {
+    it("should calculate VaR correctly", () => {
+      const var95 = ModernPortfolioTheory.calculateValueAtRisk(
+        0.05,
+        0.15,
+        0.95,
+        100000,
+      );
 
       expect(var95).toBeGreaterThan(0);
       expect(var95).toBeLessThan(100000);
     });
   });
 
-  describe('efficientFrontier', () => {
-    it('should generate efficient frontier', () => {
-      const expectedReturns = [0.08, 0.10, 0.12];
+  describe("efficientFrontier", () => {
+    it("should generate efficient frontier", () => {
+      const expectedReturns = [0.08, 0.1, 0.12];
       const correlationMatrix = [
         [1, 0.5, 0.3],
         [0.5, 1, 0.4],
         [0.3, 0.4, 1],
       ];
-      const volatilities = [0.15, 0.18, 0.20];
+      const volatilities = [0.15, 0.18, 0.2];
 
-      const covarianceMatrix =
-        ModernPortfolioTheory.calculateCovarianceMatrix(
-          volatilities,
-          correlationMatrix,
-        );
+      const covarianceMatrix = ModernPortfolioTheory.calculateCovarianceMatrix(
+        volatilities,
+        correlationMatrix,
+      );
 
-      const frontier =
-        ModernPortfolioTheory.efficientFrontier(
-          expectedReturns,
-          covarianceMatrix,
-          10,
-        );
+      const frontier = ModernPortfolioTheory.efficientFrontier(
+        expectedReturns,
+        covarianceMatrix,
+        10,
+      );
 
       expect(frontier.length).toBe(10);
       expect(frontier[0].volatility).toBeLessThanOrEqual(
@@ -198,19 +182,18 @@ describe('ModernPortfolioTheory', () => {
     });
   });
 
-  describe('applyConstraints', () => {
-    it('should apply weight constraints', () => {
+  describe("applyConstraints", () => {
+    it("should apply weight constraints", () => {
       const weights = [0.3, 0.5, 0.2];
       const constraints = {
         minWeight: 0.1,
         maxWeight: 0.6,
       };
 
-      const constrained =
-        ModernPortfolioTheory.applyConstraints(
-          weights,
-          constraints,
-        );
+      const constrained = ModernPortfolioTheory.applyConstraints(
+        weights,
+        constraints,
+      );
 
       for (const w of constrained) {
         expect(w).toBeGreaterThanOrEqual(0.1);
