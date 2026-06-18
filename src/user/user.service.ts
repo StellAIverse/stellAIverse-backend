@@ -9,6 +9,7 @@ import { User } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserRole } from "./entities/user.entity";
+import { createSpan } from "../config/tracing";
 
 /** Pairs of roles that are mutually exclusive */
 const CONFLICTING_ROLE_PAIRS: [UserRole, UserRole][] = [
@@ -49,15 +50,28 @@ export class UserService {
    * other is already held throws a BadRequestException.
    */
   async assignRole(userId: string, newRole: UserRole): Promise<User> {
-    const user = await this.findOne(userId);
-    if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
+    // Example of manual span creation with OpenTelemetry
+    return createSpan("user.assign-role", async (span) => {
+      span.setAttribute("user.id", userId);
+      span.setAttribute("user.role.new", newRole);
+      
+      const user = await this.findOne(userId);
+      if (!user) {
+        throw new NotFoundException(`User ${userId} not found`);
+      }
 
-    this.assertNoRoleConflict(user.role, newRole);
-
-    user.role = newRole;
-    return this.userRepository.save(user);
+      // Child span for role validation
+      return createSpan("user.validate-role-conflict", async (childSpan) => {
+        childSpan.setAttribute("user.role.current", user.role);
+        this.assertNoRoleConflict(user.role, newRole);
+        
+        user.role = newRole;
+        const savedUser = await this.userRepository.save(user);
+        
+        span.setAttribute("success", true);
+        return savedUser;
+      }, { "validation.type": "role-conflict" });
+    }, { "module": "user-service", "operation": "role-assignment" });
   }
 
   /**

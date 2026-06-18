@@ -1,4 +1,4 @@
-name: Build & Task Direction Check
+name: Build, Test & Security Check
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch: # Allow manual triggering from GitHub UI
 
 jobs:
   build-and-test:
@@ -48,6 +49,23 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Run tests
+        run: npm run test:cov
+        env:
+          CI: true
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: coverage/
+          if-no-files-found: warn
+
+      - name: Run security audit
+        run: npm run security:audit
+        env:
+          CI: true
+
       - name: Check build artifacts
         run: |
           if [ ! -d "dist" ]; then
@@ -72,12 +90,15 @@ jobs:
           echo ""
           echo "| Job | Status |"
           echo "|-----|--------|"
-          echo "| Build & Test | ${{ needs.build-and-test.result }} |"
+          echo "| Lint | ${{ needs.build-and-test.result }} |"
+          echo "| Build | ${{ needs.build-and-test.result }} |"
+          echo "| Tests | ${{ needs.build-and-test.result }} |"
+          echo "| Security Audit | ${{ needs.build-and-test.result }} |"
           echo ""
           
           if [ "${{ needs.build-and-test.result }}" == "failure" ]; then
-            echo "❌ Build failed - please review build logs"
+            echo "❌ Pipeline failed - please review build logs"
             exit 1
           fi
           
-          echo "✅ Pipeline completed"
+          echo "✅ All checks passed! Build, tests, and security audit completed successfully."

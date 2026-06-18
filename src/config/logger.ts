@@ -1,8 +1,9 @@
-// import pino from "pino";
 const pino = require("pino");
+import { getCurrentTraceId } from "./tracing";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
+// Create a Pino logger that automatically includes trace IDs
 export const logger = pino({
   level: process.env.LOG_LEVEL || "info",
   transport: isDevelopment
@@ -25,9 +26,21 @@ export const logger = pino({
     service: "stellAIverse-backend",
   },
   timestamp: pino.stdTimeFunctions.isoTime,
+  // Mixin to add trace ID to every log entry
+  mixin() {
+    const traceId = getCurrentTraceId();
+    if (traceId) {
+      return {
+        trace_id: traceId,
+      };
+    }
+    return {};
+  },
 });
 
 // Helper function to create child loggers with context
 export const createLogger = (context: Record<string, any>) => {
-  return logger.child(context);
+  const traceId = getCurrentTraceId();
+  const contextWithTrace = traceId ? { ...context, trace_id: traceId } : context;
+  return logger.child(contextWithTrace);
 };
