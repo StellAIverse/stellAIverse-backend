@@ -36,7 +36,13 @@ import {
   ExecuteRebalancingDto,
   TriggerRebalancingDto,
 } from "./dto/rebalancing.dto";
-import { GetPerformanceMetricsDto } from "./dto/performance.dto";
+import {
+  GetPerformanceMetricsDto,
+  GetPerformanceByPeriodDto,
+  GetBenchmarkComparisonDto,
+  RecordSnapshotDto,
+  GetVaRDto,
+} from "./dto/performance.dto";
 import { CreateBacktestDto } from "./dto/backtest.dto";
 
 @Controller("portfolio")
@@ -302,6 +308,81 @@ export class PortfolioController {
       portfolioId,
       new Date(startDate),
       new Date(endDate),
+    );
+  }
+
+  @Get("portfolios/:portfolioId/metrics/period")
+  @ApiOperation({
+    summary:
+      "Get performance metrics for a predefined period (1D/1W/1M/3M/6M/YTD/1Y/3Y/ALL)",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getMetricsByPeriod(
+    @Param("portfolioId") portfolioId: string,
+    @Query() dto: GetPerformanceByPeriodDto,
+  ) {
+    return this.performanceService.getMetricsForPeriod(portfolioId, dto.period);
+  }
+
+  @Get("portfolios/:portfolioId/metrics/benchmark")
+  @ApiOperation({
+    summary: "Compare portfolio performance against a benchmark ticker",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getBenchmarkComparison(
+    @Param("portfolioId") portfolioId: string,
+    @Query() dto: GetBenchmarkComparisonDto,
+  ) {
+    return this.performanceService.getBenchmarkComparison(
+      portfolioId,
+      dto.benchmarkTicker,
+      dto.startDate ? new Date(dto.startDate) : undefined,
+      dto.endDate ? new Date(dto.endDate) : undefined,
+    );
+  }
+
+  @Get("portfolios/:portfolioId/metrics/var")
+  @ApiOperation({
+    summary: "Get Value at Risk (VaR) at a given confidence level",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getValueAtRisk(
+    @Param("portfolioId") portfolioId: string,
+    @Query() dto: GetVaRDto,
+  ) {
+    const confidence = dto.confidence ?? 0.95;
+    const var_ = await this.performanceService.calculateVaR(
+      portfolioId,
+      confidence,
+    );
+    return { portfolioId, confidence, valueAtRisk: var_ };
+  }
+
+  @Get("portfolios/:portfolioId/metrics/calmar")
+  @ApiOperation({
+    summary: "Get Calmar ratio (annualised return / max drawdown)",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getCalmarRatio(@Param("portfolioId") portfolioId: string) {
+    const calmarRatio =
+      await this.performanceService.calculateCalmarRatio(portfolioId);
+    return { portfolioId, calmarRatio };
+  }
+
+  @Post("portfolios/:portfolioId/metrics/snapshot")
+  @ApiOperation({
+    summary: "Record a performance snapshot for the portfolio",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async recordSnapshot(
+    @Param("portfolioId") portfolioId: string,
+    @Body() dto: RecordSnapshotDto,
+  ) {
+    return this.performanceService.recordMetrics(
+      portfolioId,
+      dto.portfolioValue,
+      dto.allocation,
+      dto.previousValue,
     );
   }
 
