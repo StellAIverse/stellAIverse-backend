@@ -10,9 +10,28 @@ import { Portfolio } from "../entities/portfolio.entity";
 import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 import { PortfolioService } from "./portfolio.service";
 
+interface RebalancingResult {
+  event?: RebalancingEvent;
+  allocationBefore: Record<string, number>;
+  allocationAfter: Record<string, number>;
+  trades: Array<{
+    ticker: string;
+    action: "buy" | "sell";
+    quantity: number;
+    price: number;
+    value: number;
+  }>;
+  estimatedCost: number;
+  taxImpact: number;
+  allocationDrift: Record<string, number>;
+  maxAllocationDrift: number;
+  avgAllocationDrift: number;
+}
+
 @Injectable()
 export class RebalancingService {
   private readonly logger = new Logger(RebalancingService.name);
+  private readonly TRANSACTION_FEE_PERCENTAGE = 0.1; // 0.1% fee
 
   constructor(
     @InjectRepository(RebalancingEvent)
@@ -36,27 +55,10 @@ export class RebalancingService {
 
     // Check drift from target allocation
     const maxDrift = portfolio.rebalanceThreshold || 5;
+    const drift = await this.calculateAllocationDrift(portfolioId);
+    const maxDriftValue = Math.max(...Object.values(drift).map(Math.abs));
 
-    for (const [ticker, targetPercentage] of Object.entries(
-      portfolio.targetAllocation,
-    )) {
-      const asset = await this.portfolioAssetRepository.findOne({
-        where: { portfolioId, ticker },
-      });
-
-      if (asset) {
-        const drift = Math.abs(
-          asset.allocationPercentage - (targetPercentage as number),
-        );
-
-        if (drift > maxDrift) {
-          this.logger.log(`Drift detected for ${ticker}: ${drift}%`);
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return maxDriftValue > maxDrift;
   }
 
   /**
@@ -111,13 +113,88 @@ export class RebalancingService {
   }
 
   /**
+   * Calculate transaction costs
+   */
+  calculateTransactionCosts(
+    trades: Array<{
+      ticker: string;
+      action: "buy" | "sell";
+      quantity: number;
+      price: number;
+      value: number;
+    }>,
+  ): number {
+    const totalTradeValue = trades.reduce((sum, trade) => sum + trade.value, 0);
+    return totalTradeValue * (this.TRANSACTION_FEE_PERCENTAGE / 100);
+  }
+
+  /**
+   * Calculate tax impact (simplified capital gains tax)
+   */
+  async calculateTaxImpact(
+    portfolioId: string,
+    trades: Array<{
+      ticker: string;
+      action: "buy" | "sell";
+      quantity: number;
+      price: number;
+      value: number;
+    }>,
+  ): Promise<number> {
+    const assets = await this.portfolioAssetRepository.find({
+      where: { portfolioId },
+    });
+
+    let totalTaxImpact = 0;
+    const CAPITAL_GAINS_TAX_RATE = 0.15; // 15% capital gains tax
+
+    for (const trade of trades) {
+      if (trade.action === "sell") {
+        const asset = assets.find((a) => a.ticker === trade.ticker);
+        if (asset && asset.costBasisPerShare && asset.currentPrice) {
+          const gainPerShare = asset.currentPrice - asset.costBasisPerShare;
+          const totalGain = gainPerShare * trade.quantity;
+          if (totalGain > 0) {
+            totalTaxImpact += totalGain * CAPITAL_GAINS_TAX_RATE;
+          }
+        }
+      }
+    }
+
+    return totalTaxImpact;
+  }
+
+  /**
+   * Calculate allocation drift
+   */
+  async calculateAllocationDrift(
+    portfolioId: string,
+  ): Promise<Record<string, number>> {
+    const portfolio = await this.portfolioService.getPortfolio(portfolioId);
+    const assets = await this.portfolioAssetRepository.find({
+      where: { portfolioId },
+    });
+
+    const drift: Record<string, number> = {};
+
+    for (const asset of assets) {
+      const targetPercentage = portfolio.targetAllocation?.[asset.ticker] || 0;
+      drift[asset.ticker] =
+        asset.allocationPercentage - (targetPercentage as number);
+    }
+
+    return drift;
+  }
+
+  /**
    * Trigger rebalancing
    */
   async triggerRebalancing(
     portfolioId: string,
     trigger: RebalanceTrigger,
     reason?: string,
-  ): Promise<RebalancingEvent> {
+    dryRun: boolean = false,
+  ): Promise<RebalancingResult> {
     const portfolio = await this.portfolioService.getPortfolio(portfolioId);
     const assets = await this.portfolioAssetRepository.find({
       where: { portfolioId },
@@ -125,6 +202,28 @@ export class RebalancingService {
 
     const allocationBefore = { ...portfolio.currentAllocation };
     const trades = await this.calculateRebalancingTrades(portfolioId);
+    const allocationDrift = await this.calculateAllocationDrift(portfolioId);
+    const driftValues = Object.values(allocationDrift).map(Math.abs);
+    const maxAllocationDrift = Math.max(...driftValues);
+    const avgAllocationDrift =
+      driftValues.reduce((a, b) => a + b, 0) / driftValues.length || 0;
+    const estimatedCost = this.calculateTransactionCosts(trades);
+    const taxImpact = await this.calculateTaxImpact(portfolioId, trades);
+
+    const allocationAfter = portfolio.targetAllocation || portfolio.currentAllocation;
+
+    if (dryRun) {
+      return {
+        allocationBefore,
+        allocationAfter,
+        trades,
+        estimatedCost,
+        taxImpact,
+        allocationDrift,
+        maxAllocationDrift,
+        avgAllocationDrift,
+      };
+    }
 
     // Create rebalancing event
     const event = this.rebalancingRepository.create({
@@ -133,17 +232,32 @@ export class RebalancingService {
       status: RebalanceStatus.PENDING,
       triggerReason: reason,
       allocationBefore,
-      allocationAfter:
-        portfolio.targetAllocation || portfolio.currentAllocation,
+      allocationAfter,
       trades,
-      estimatedCost: trades.reduce((sum, t) => sum + t.value, 0),
+      estimatedCost,
+      taxImpact,
+      allocationDrift,
+      maxAllocationDrift,
+      avgAllocationDrift,
     });
 
     this.logger.log(
       `Rebalancing triggered for ${portfolioId}: ${trades.length} trades`,
     );
 
-    return this.rebalancingRepository.save(event);
+    const savedEvent = await this.rebalancingRepository.save(event);
+
+    return {
+      event: savedEvent,
+      allocationBefore,
+      allocationAfter,
+      trades,
+      estimatedCost,
+      taxImpact,
+      allocationDrift,
+      maxAllocationDrift,
+      avgAllocationDrift,
+    };
   }
 
   /**
@@ -172,6 +286,7 @@ export class RebalancingService {
     rebalancingEventId: string,
     actualCost?: number,
     slippage?: number,
+    notes?: string,
   ): Promise<RebalancingEvent> {
     const event = await this.rebalancingRepository.findOne({
       where: { id: rebalancingEventId },
@@ -193,6 +308,7 @@ export class RebalancingService {
     event.status = RebalanceStatus.COMPLETED;
     event.actualCost = actualCost || event.estimatedCost;
     event.executionSlippage = slippage || 0;
+    event.executionNotes = notes;
     event.executedAt = new Date();
     event.completedAt = new Date();
 
@@ -234,28 +350,6 @@ export class RebalancingService {
       order: { createdAt: "DESC" },
       take: limit,
     });
-  }
-
-  /**
-   * Calculate allocation drift
-   */
-  async calculateAllocationDrift(
-    portfolioId: string,
-  ): Promise<Record<string, number>> {
-    const portfolio = await this.portfolioService.getPortfolio(portfolioId);
-    const assets = await this.portfolioAssetRepository.find({
-      where: { portfolioId },
-    });
-
-    const drift: Record<string, number> = {};
-
-    for (const asset of assets) {
-      const targetPercentage = portfolio.targetAllocation?.[asset.ticker] || 0;
-      drift[asset.ticker] =
-        asset.allocationPercentage - (targetPercentage as number);
-    }
-
-    return drift;
   }
 
   /**
