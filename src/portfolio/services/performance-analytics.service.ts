@@ -3,7 +3,17 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Repository } from "typeorm";
 import { PerformanceMetric } from "../entities/performance-metric.entity";
 import { Portfolio } from "../entities/portfolio.entity";
+import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 import { PerformancePeriod } from "../dto/performance.dto";
+
+/**
+ * Number of trading days in a year (used for annualising volatility).
+ * 252 is the trading-day convention for US equity markets.
+ */
+const TRADING_DAYS_PER_YEAR = 252;
+
+/** Number of calendar days in a year, used for lookback windows. */
+const CALENDAR_DAYS_PER_YEAR = 365;
 
 @Injectable()
 export class PerformanceAnalyticsService {
@@ -14,6 +24,8 @@ export class PerformanceAnalyticsService {
     private metricRepository: Repository<PerformanceMetric>,
     @InjectRepository(Portfolio)
     private portfolioRepository: Repository<Portfolio>,
+    @InjectRepository(PortfolioAsset)
+    private assetRepository: Repository<PortfolioAsset>,
   ) {}
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -49,7 +61,13 @@ export class PerformanceAnalyticsService {
   // ─── Recording ──────────────────────────────────────────────────────────────
 
   /**
-   * Record performance metrics for a portfolio
+   * Record performance metrics for a portfolio.
+   *
+   * Also computes and persists period-specific returns (YTD/1Y/3Y/5Y) and
+   * the live drawdown against the all-time peak so callers can render
+   * dashboards without re-querying the entire history. Both derived
+   * quantities default to 0 when the recorded history is too short or
+   * unavailable.
    */
   async recordMetrics(
     portfolioId: string,
@@ -62,6 +80,11 @@ export class PerformanceAnalyticsService {
         ? (portfolioValue - previousValue) / previousValue
         : 0;
 
+    const [periodReturns, currentDrawdown] = await Promise.all([
+      this.calculatePeriodReturns(portfolioId),
+      this.calculateCurrentDrawdown(portfolioId),
+    ]);
+
     const metric = this.metricRepository.create({
       portfolioId,
       dateTime: new Date(),
@@ -69,6 +92,11 @@ export class PerformanceAnalyticsService {
       previousValue,
       dailyReturn,
       allocation,
+      yearToDateReturn: periodReturns.yearToDateReturn,
+      oneYearReturn: periodReturns.oneYearReturn,
+      threeYearReturn: periodReturns.threeYearReturn,
+      fiveYearReturn: periodReturns.fiveYearReturn,
+      currentDrawdown,
     });
 
     return this.metricRepository.save(metric);
@@ -129,7 +157,7 @@ export class PerformanceAnalyticsService {
     const variance =
       returns.reduce((sum, r) => sum + (r - mean) ** 2, 0) / returns.length;
 
-    return Math.sqrt(variance) * Math.sqrt(252);
+    return Math.sqrt(variance) * Math.sqrt(TRADING_DAYS_PER_YEAR);
   }
 
   /**
@@ -180,6 +208,132 @@ export class PerformanceAnalyticsService {
 
     const cumulativeReturn = await this.calculateCumulativeReturn(portfolioId);
     return (cumulativeReturn - riskFreeRate) / downsideDeviation;
+  }
+
+  /**
+   * Calculate the live drawdown of the most recent portfolio value
+   * relative to the all-time peak in the recorded history.
+   *
+   * Unlike {@link calculateMaxDrawdown}, this returns the drawdown *right
+   * now* – useful for surfacing red/green on a dashboard. Returns 0 when
+   * the portfolio is at or above its historical peak.
+   */
+  async calculateCurrentDrawdown(portfolioId: string): Promise<number> {
+    const metrics = await this.metricRepository.find({
+      where: { portfolioId },
+      order: { dateTime: "ASC" },
+    });
+
+    if (metrics.length === 0) return 0;
+
+    let peak = metrics[0].portfolioValue;
+    for (const metric of metrics) {
+      if (metric.portfolioValue > peak) peak = metric.portfolioValue;
+    }
+
+    const lastValue = metrics[metrics.length - 1].portfolioValue;
+    if (peak <= 0 || lastValue >= peak) return 0;
+
+    return (peak - lastValue) / peak;
+  }
+
+  /**
+   * Calculate Return on Investment (ROI) for a portfolio relative to its
+   * invested capital.
+   *
+   * ROI = (current value − cost basis) / cost basis. This differs from
+   * `cumulativeReturn` because `cumulativeReturn` is a time-series price
+   * return, whereas ROI is a profit on the actual capital the user put in.
+   *
+   * Current portfolio value is derived from `asset.quantity * asset.currentPrice`
+   * rather than the persisted `asset.value` column, which is only refreshed
+   * when `PortfolioService.updatePortfolioAllocation` runs. Computing it
+   * inline avoids a stale-value bug for assets whose `value` field has not
+   * yet been rebalanced after the latest price change.
+   *
+   * If no assets are recorded, or their cost basis sums to zero, returns 0
+   * to avoid a divide-by-zero result.
+   */
+  async calculateROI(portfolioId: string): Promise<number> {
+    const assets = await this.assetRepository.find({ where: { portfolioId } });
+
+    if (assets.length === 0) return 0;
+
+    let totalValue = 0;
+    let totalCostBasis = 0;
+
+    for (const asset of assets) {
+      const quantity = asset.quantity ?? 0;
+      const currentPrice = asset.currentPrice ?? 0;
+      totalValue += quantity * currentPrice;
+      totalCostBasis += asset.costBasis ?? 0;
+    }
+
+    if (totalCostBasis <= 0) return 0;
+    return (totalValue - totalCostBasis) / totalCostBasis;
+  }
+
+  /**
+   * Calculate the standard period-specific returns that most reporting
+   * dashboards expect: YTD, 1 year, 3 years and 5 years.
+   *
+   * Each return is computed from the corresponding lookback date to the
+   * most recent snapshot and falls back to 0 when the history is too
+   * short to compute the period.
+   */
+  async calculatePeriodReturns(portfolioId: string): Promise<{
+    yearToDateReturn: number;
+    oneYearReturn: number;
+    threeYearReturn: number;
+    fiveYearReturn: number;
+  }> {
+    const now = new Date();
+    const ytdStart = new Date(now.getFullYear(), 0, 1);
+    const oneYearAgo = new Date(
+      now.getTime() - CALENDAR_DAYS_PER_YEAR * 24 * 60 * 60 * 1000,
+    );
+    const threeYearAgo = new Date(
+      now.getTime() - 3 * CALENDAR_DAYS_PER_YEAR * 24 * 60 * 60 * 1000,
+    );
+    const fiveYearAgo = new Date(
+      now.getTime() - 5 * CALENDAR_DAYS_PER_YEAR * 24 * 60 * 60 * 1000,
+    );
+
+    const [yearToDateReturn, oneYearReturn, threeYearReturn, fiveYearReturn] =
+      await Promise.all([
+        this.calculateCumulativeReturn(portfolioId, ytdStart),
+        this.calculateCumulativeReturn(portfolioId, oneYearAgo),
+        this.calculateCumulativeReturn(portfolioId, threeYearAgo),
+        this.calculateCumulativeReturn(portfolioId, fiveYearAgo),
+      ]);
+
+    return {
+      yearToDateReturn,
+      oneYearReturn,
+      threeYearReturn,
+      fiveYearReturn,
+    };
+  }
+
+  /**
+   * Return the latest allocation breakdown for a portfolio (ticker → %).
+   *
+   * Source of truth is `Portfolio.currentAllocation`, which is kept in
+   * sync with the running holdings by `PortfolioService.updatePortfolioAllocation`.
+   * Returns an empty object if no portfolio is found or the allocation map
+   * has not yet been populated.
+   */
+  async getAllocationBreakdown(
+    portfolioId: string,
+  ): Promise<Record<string, number>> {
+    const portfolio = await this.portfolioRepository.findOne({
+      where: { id: portfolioId },
+    });
+
+    if (!portfolio) return {};
+
+    const allocation = portfolio.currentAllocation ?? {};
+    return allocation && typeof allocation === "object" ? allocation : {};
   }
 
   /**
@@ -356,6 +510,13 @@ export class PerformanceAnalyticsService {
 
   /**
    * Get comprehensive performance summary for a portfolio.
+   *
+   * Includes the legacy risk-adjusted metrics (Sharpe, Sortino, Calmar,
+   * max drawdown, VaR, volatility) as well as the explicit reporting
+   * metrics called out in the Portfolio Performance API spec:
+   * total/cumulative return, ROI relative to the invested cost basis,
+   * the current allocation breakdown, the live drawdown vs. the all-time
+   * peak, and period-specific returns (YTD/1Y/3Y/5Y).
    */
   async getPerformanceSummary(
     portfolioId: string,
@@ -368,6 +529,15 @@ export class PerformanceAnalyticsService {
     maxDrawdown: number;
     calmarRatio: number;
     valueAtRisk95: number;
+    roi: number;
+    currentDrawdown: number;
+    allocationBreakdown: Record<string, number>;
+    periodReturns: {
+      yearToDateReturn: number;
+      oneYearReturn: number;
+      threeYearReturn: number;
+      fiveYearReturn: number;
+    };
   }> {
     const [
       cumulativeReturn,
@@ -377,6 +547,10 @@ export class PerformanceAnalyticsService {
       maxDrawdown,
       calmarRatio,
       valueAtRisk95,
+      roi,
+      currentDrawdown,
+      allocationBreakdown,
+      periodReturns,
     ] = await Promise.all([
       this.calculateCumulativeReturn(portfolioId, startDate),
       this.calculateVolatility(portfolioId),
@@ -385,6 +559,10 @@ export class PerformanceAnalyticsService {
       this.calculateMaxDrawdown(portfolioId),
       this.calculateCalmarRatio(portfolioId),
       this.calculateVaR(portfolioId),
+      this.calculateROI(portfolioId),
+      this.calculateCurrentDrawdown(portfolioId),
+      this.getAllocationBreakdown(portfolioId),
+      this.calculatePeriodReturns(portfolioId),
     ]);
 
     return {
@@ -395,6 +573,10 @@ export class PerformanceAnalyticsService {
       maxDrawdown,
       calmarRatio,
       valueAtRisk95,
+      roi,
+      currentDrawdown,
+      allocationBreakdown,
+      periodReturns,
     };
   }
 

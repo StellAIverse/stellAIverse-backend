@@ -4,6 +4,7 @@ import { Between } from "typeorm";
 import { PerformanceAnalyticsService } from "./performance-analytics.service";
 import { PerformanceMetric } from "../entities/performance-metric.entity";
 import { Portfolio } from "../entities/portfolio.entity";
+import { PortfolioAsset } from "../entities/portfolio-asset.entity";
 import { PerformancePeriod } from "../dto/performance.dto";
 
 const PORTFOLIO_ID = "portfolio-1";
@@ -39,6 +40,13 @@ const mockPortfolioRepo = {
   findOne: jest.fn(),
 };
 
+const mockAssetRepo = {
+  find: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+};
+
 describe("PerformanceAnalyticsService", () => {
   let service: PerformanceAnalyticsService;
 
@@ -54,6 +62,10 @@ describe("PerformanceAnalyticsService", () => {
           provide: getRepositoryToken(Portfolio),
           useValue: mockPortfolioRepo,
         },
+        {
+          provide: getRepositoryToken(PortfolioAsset),
+          useValue: mockAssetRepo,
+        },
       ],
     }).compile();
 
@@ -61,6 +73,16 @@ describe("PerformanceAnalyticsService", () => {
       PerformanceAnalyticsService,
     );
     jest.clearAllMocks();
+    // Default: a portfolio exists with empty assets and zero metrics so
+    // tests that don't care about ROI/drawdowns/period returns don't trip
+    // on a missing mock (calculateXxx methods short-circuit to 0 on empty
+    // histories or asset lists).
+    mockPortfolioRepo.findOne.mockResolvedValue({
+      id: PORTFOLIO_ID,
+      currentAllocation: {},
+    } as Portfolio);
+    mockAssetRepo.find.mockResolvedValue([]);
+    mockMetricRepo.find.mockResolvedValue([]);
   });
 
   it("should be defined", () => {
@@ -104,6 +126,44 @@ describe("PerformanceAnalyticsService", () => {
       expect(mockMetricRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({ dailyReturn: 0 }),
       );
+    });
+
+    it("attaches period returns and currentDrawdown when history exists", async () => {
+      // Build a history long enough for period returns + drawdown to compute.
+      const dailyPrices = [100, 105, 110, 115, 120, 125, 130, 135, 140, 145];
+      mockMetricRepo.find.mockResolvedValue(
+        dailyPrices.map((p, i) => makeMetric(p, day(dailyPrices.length - i))),
+      );
+
+      const saved = makeMetric(150, new Date());
+      mockMetricRepo.create.mockReturnValue(saved);
+      mockMetricRepo.save.mockResolvedValue(saved);
+
+      await service.recordMetrics(PORTFOLIO_ID, 150, { AAPL: 100 }, 145);
+
+      expect(mockMetricRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          yearToDateReturn: expect.any(Number),
+          oneYearReturn: expect.any(Number),
+          threeYearReturn: expect.any(Number),
+          fiveYearReturn: expect.any(Number),
+          currentDrawdown: expect.any(Number),
+        }),
+      );
+    });
+
+    it("writes the snapshot even when there is no prior history", async () => {
+      // Empty history → calculatePeriodReturns returns 0s and
+      // calculateCurrentDrawdown returns 0, both must not block the write.
+      mockMetricRepo.find.mockResolvedValue([]);
+
+      const saved = makeMetric(10000, new Date());
+      mockMetricRepo.create.mockReturnValue(saved);
+      mockMetricRepo.save.mockResolvedValue(saved);
+
+      await expect(
+        service.recordMetrics(PORTFOLIO_ID, 10000, {}),
+      ).resolves.toBe(saved);
     });
   });
 
@@ -423,7 +483,278 @@ describe("PerformanceAnalyticsService", () => {
         maxDrawdown: expect.any(Number),
         calmarRatio: expect.any(Number),
         valueAtRisk95: expect.any(Number),
+        roi: expect.any(Number),
+        currentDrawdown: expect.any(Number),
+        allocationBreakdown: expect.any(Object),
+        periodReturns: expect.objectContaining({
+          yearToDateReturn: expect.any(Number),
+          oneYearReturn: expect.any(Number),
+          threeYearReturn: expect.any(Number),
+          fiveYearReturn: expect.any(Number),
+        }),
       });
+    });
+
+    it("includes ROI computed from portfolio assets", async () => {
+      const metrics = [
+        makeMetric(100, day(2)),
+        makeMetric(110, day(1)),
+        makeMetric(120, day(0)),
+      ];
+      mockMetricRepo.find.mockResolvedValue(metrics);
+      mockAssetRepo.find.mockResolvedValue([
+        // quantity * currentPrice = 100 * 150 = 15_000
+        {
+          id: "a1",
+          portfolioId: PORTFOLIO_ID,
+          quantity: 100,
+          currentPrice: 150,
+          costBasis: 10_000,
+        },
+        // quantity * currentPrice = 50 * 100 = 5_000
+        {
+          id: "a2",
+          portfolioId: PORTFOLIO_ID,
+          quantity: 50,
+          currentPrice: 100,
+          costBasis: 5_000,
+        },
+      ]);
+
+      const summary = await service.getPerformanceSummary(PORTFOLIO_ID);
+
+      // ROI = (15k + 5k - 10k - 5k) / (10k + 5k) = 5_000 / 15_000 ≈ 0.333…
+      expect(summary.roi).toBeCloseTo(5_000 / 15_000, 5);
+    });
+
+    it("wires allocation breakdown from the latest portfolio snapshot", async () => {
+      mockMetricRepo.find.mockResolvedValue([]);
+      mockPortfolioRepo.findOne.mockResolvedValue({
+        id: PORTFOLIO_ID,
+        currentAllocation: { BTC: 60, ETH: 40 },
+      } as unknown as Portfolio);
+
+      const summary = await service.getPerformanceSummary(PORTFOLIO_ID);
+      expect(summary.allocationBreakdown).toEqual({ BTC: 60, ETH: 40 });
+    });
+  });
+
+  // ─── calculateCurrentDrawdown ────────────────────────────────────────────────
+
+  describe("calculateCurrentDrawdown", () => {
+    it("returns 0 when there is no history", async () => {
+      mockMetricRepo.find.mockResolvedValue([]);
+      expect(await service.calculateCurrentDrawdown(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("returns 0 when the latest value is at or above the peak", async () => {
+      mockMetricRepo.find.mockResolvedValue([
+        makeMetric(100, day(4)),
+        makeMetric(120, day(3)),
+        makeMetric(140, day(2)),
+        makeMetric(150, day(0)),
+      ]);
+
+      // Latest is the peak → drawdown = 0.
+      expect(await service.calculateCurrentDrawdown(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("returns 0 for a monotonically increasing series", async () => {
+      const prices = [100, 110, 120, 130, 140, 150];
+      mockMetricRepo.find.mockResolvedValue(
+        prices.map((p, i) => makeMetric(p, day(prices.length - i))),
+      );
+      expect(await service.calculateCurrentDrawdown(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("computes the drawdown from the historical peak to the latest value", async () => {
+      // Peak = 200, latest = 150 → drawdown = (200 - 150) / 200 = 0.25
+      mockMetricRepo.find.mockResolvedValue([
+        makeMetric(100, day(5)),
+        makeMetric(200, day(4)), // peak
+        makeMetric(180, day(3)),
+        makeMetric(150, day(0), { allocation: {}, assetContribution: null }),
+      ]);
+
+      const dd = await service.calculateCurrentDrawdown(PORTFOLIO_ID);
+      expect(dd).toBeCloseTo(0.25, 5);
+    });
+
+    it("computes drawdown correctly when the peak occurred at the first metric", async () => {
+      mockMetricRepo.find.mockResolvedValue([
+        makeMetric(200, day(3)), // all-time peak & also first metric
+        makeMetric(150, day(2)),
+        makeMetric(100, day(1)),
+        makeMetric(120, day(0)), // latest value, below the historic peak
+      ]);
+      const dd = await service.calculateCurrentDrawdown(PORTFOLIO_ID);
+      // Peak = 200, latest = 120 → (200 - 120) / 200 = 0.4
+      expect(dd).toBeCloseTo(0.4, 5);
+    });
+
+    it("handles a monotonically declining series (latest is below peak)", async () => {
+      const prices = [200, 180, 160, 140, 120, 100];
+      mockMetricRepo.find.mockResolvedValue(
+        prices.map((p, i) => makeMetric(p, day(prices.length - i))),
+      );
+      // Peak = 200, latest = 100 → 0.5
+      expect(await service.calculateCurrentDrawdown(PORTFOLIO_ID)).toBeCloseTo(
+        0.5,
+        5,
+      );
+    });
+
+    it("ignores values <= 0 when computing the peak", async () => {
+      mockMetricRepo.find.mockResolvedValue([
+        makeMetric(0, day(2)),
+        makeMetric(100, day(1)),
+        makeMetric(50, day(0)),
+      ]);
+      // Peak > 0 satisfies the guard and computes (100 - 50) / 100 = 0.5
+      expect(await service.calculateCurrentDrawdown(PORTFOLIO_ID)).toBeCloseTo(
+        0.5,
+        5,
+      );
+    });
+  });
+
+  // ─── calculateROI ─────────────────────────────────────────────────────────────
+
+  describe("calculateROI", () => {
+    it("returns 0 when the portfolio has no assets", async () => {
+      mockAssetRepo.find.mockResolvedValue([]);
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("returns 0 when total cost basis is 0", async () => {
+      mockAssetRepo.find.mockResolvedValue([
+        { id: "a1", costBasis: 0, quantity: 1, currentPrice: 1000 },
+      ]);
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("handles a fully costless portfolio (a.k.a. gifts/airdrops)", async () => {
+      mockAssetRepo.find.mockResolvedValue([
+        { id: "a1", costBasis: 0, quantity: 1, currentPrice: 1000 },
+        { id: "a2", costBasis: 0, quantity: 1, currentPrice: 500 },
+      ]);
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBe(0);
+    });
+
+    it("computes ROI = (value - cost) / cost across all assets", async () => {
+      mockAssetRepo.find.mockResolvedValue([
+        { id: "a1", costBasis: 8_000, quantity: 100, currentPrice: 120 },
+        { id: "a2", costBasis: 2_000, quantity: 50, currentPrice: 60 },
+      ]);
+      // currentValue = 100*120 + 50*60 = 15_000
+      // (15_000 - 10_000) / 10_000 = 0.5
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBeCloseTo(0.5, 5);
+    });
+
+    it("returns negative ROI when value is below cost basis", async () => {
+      mockAssetRepo.find.mockResolvedValue([
+        { id: "a1", costBasis: 10_000, quantity: 100, currentPrice: 40 },
+      ]);
+      // currentValue = 4_000, ROI = (4k - 10k) / 10k = -0.6
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBeCloseTo(-0.6, 5);
+    });
+
+    it("treats null/undefined fields as zero", async () => {
+      mockAssetRepo.find.mockResolvedValue([
+        {
+          id: "a1",
+          costBasis: undefined as any,
+          quantity: undefined as any,
+          currentPrice: undefined as any,
+        },
+      ]);
+      expect(await service.calculateROI(PORTFOLIO_ID)).toBe(0);
+    });
+  });
+
+  // ─── calculatePeriodReturns ───────────────────────────────────────────────────
+
+  describe("calculatePeriodReturns", () => {
+    it("returns all four period returns as numbers", async () => {
+      mockMetricRepo.find.mockResolvedValue([]);
+
+      const result = await service.calculatePeriodReturns(PORTFOLIO_ID);
+
+      expect(result).toEqual({
+        yearToDateReturn: expect.any(Number),
+        oneYearReturn: expect.any(Number),
+        threeYearReturn: expect.any(Number),
+        fiveYearReturn: expect.any(Number),
+      });
+    });
+
+    it("queries the metric repository for each period via calculateCumulativeReturn", async () => {
+      mockMetricRepo.find.mockResolvedValue([]);
+
+      await service.calculatePeriodReturns(PORTFOLIO_ID);
+
+      // Four period calls + 0 from each (no history). 4 calls to find.
+      expect(mockMetricRepo.find).toHaveBeenCalledTimes(4);
+      const startDates = mockMetricRepo.find.mock.calls.map(
+        (call) => (call[0].where.dateTime as any)._value[0],
+      );
+      const nowMs = Date.now();
+      const toleranceMs = 5_000; // 5 s slop is plenty for date math
+      const ytdStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+      const oneYearStart = nowMs - 365 * 24 * 60 * 60 * 1000;
+      const threeYearStart = nowMs - 3 * 365 * 24 * 60 * 60 * 1000;
+      const fiveYearStart = nowMs - 5 * 365 * 24 * 60 * 60 * 1000;
+
+      const withinTolerance = (target: number) =>
+        startDates.some(
+          (d: Date) => Math.abs(d.getTime() - target) < toleranceMs,
+        );
+      expect(withinTolerance(ytdStart)).toBe(true);
+      expect(withinTolerance(oneYearStart)).toBe(true);
+      expect(withinTolerance(threeYearStart)).toBe(true);
+      expect(withinTolerance(fiveYearStart)).toBe(true);
+    });
+
+    it("computes returns correctly for a price series with full history", async () => {
+      // 6 prices: 100 → 160 → 120 → 180 → 140 → 220 (last = 220, first = 100)
+      const prices = [100, 160, 120, 180, 140, 220];
+      mockMetricRepo.find.mockResolvedValue(
+        prices.map((p, i) => makeMetric(p, day(prices.length - i))),
+      );
+
+      const result = await service.calculatePeriodReturns(PORTFOLIO_ID);
+
+      // Each lookback returns the same first/last in this stub → 120% return.
+      Object.values(result).forEach((value) => {
+        expect(value).toBeCloseTo(1.2, 5);
+      });
+    });
+  });
+
+  // ─── getAllocationBreakdown ───────────────────────────────────────────────────
+
+  describe("getAllocationBreakdown", () => {
+    it("returns an empty object when the portfolio is not found", async () => {
+      mockPortfolioRepo.findOne.mockResolvedValue(null);
+      expect(await service.getAllocationBreakdown(PORTFOLIO_ID)).toEqual({});
+    });
+
+    it("returns an empty object when currentAllocation is null", async () => {
+      mockPortfolioRepo.findOne.mockResolvedValue({
+        id: PORTFOLIO_ID,
+        currentAllocation: null,
+      } as unknown as Portfolio);
+      expect(await service.getAllocationBreakdown(PORTFOLIO_ID)).toEqual({});
+    });
+
+    it("returns the live allocation breakdown from the portfolio entity", async () => {
+      mockPortfolioRepo.findOne.mockResolvedValue({
+        id: PORTFOLIO_ID,
+        currentAllocation: { BTC: 55, ETH: 25, USDC: 20 },
+      } as unknown as Portfolio);
+
+      const result = await service.getAllocationBreakdown(PORTFOLIO_ID);
+      expect(result).toEqual({ BTC: 55, ETH: 25, USDC: 20 });
     });
   });
 

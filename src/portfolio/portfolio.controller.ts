@@ -437,6 +437,47 @@ export class PortfolioController {
     );
   }
 
+  @Get("portfolios/:portfolioId/metrics/roi")
+  @ApiOperation({
+    summary:
+      "Get Return on Investment (ROI) relative to the invested cost basis",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getROI(@Param("portfolioId") portfolioId: string) {
+    const roi = await this.performanceService.calculateROI(portfolioId);
+    return { portfolioId, roi };
+  }
+
+  @Get("portfolios/:portfolioId/metrics/drawdown")
+  @ApiOperation({
+    summary:
+      "Get current drawdown relative to the all-time peak portfolio value",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getCurrentDrawdown(@Param("portfolioId") portfolioId: string) {
+    const currentDrawdown =
+      await this.performanceService.calculateCurrentDrawdown(portfolioId);
+    return { portfolioId, currentDrawdown };
+  }
+
+  @Get("portfolios/:portfolioId/metrics/periods")
+  @ApiOperation({
+    summary: "Get standard period returns (YTD, 1Y, 3Y, 5Y) for the portfolio",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getPeriodReturns(@Param("portfolioId") portfolioId: string) {
+    return this.performanceService.calculatePeriodReturns(portfolioId);
+  }
+
+  @Get("portfolios/:portfolioId/metrics/allocation")
+  @ApiOperation({
+    summary: "Get the current allocation breakdown (ticker → percentage)",
+  })
+  @UseGuards(PortfolioOwnerGuard)
+  async getAllocationBreakdown(@Param("portfolioId") portfolioId: string) {
+    return this.performanceService.getAllocationBreakdown(portfolioId);
+  }
+
   // Backtesting Endpoints
 
   @Post("backtests")
