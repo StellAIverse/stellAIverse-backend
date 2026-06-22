@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   ProtocolAdapter,
+  ProtocolAdapterMetadata,
   PositionData,
   TransactionData,
   CollateralData,
@@ -34,6 +35,11 @@ export class CompoundAdapter implements ProtocolAdapter {
   private logger = new Logger("CompoundAdapter");
   name = "Compound";
   supportedChains = ["ethereum", "arbitrum", "polygon"];
+  readonly metadata: ProtocolAdapterMetadata = {
+    name: "Compound",
+    supportedChains: ["ethereum", "arbitrum", "polygon"],
+    capabilities: ["lending", "borrowing", "rewards"],
+  };
 
   private providers: Map<string, ethers.Provider> = new Map();
   private comptrollerAddress = "0x3d9819210A31b4961b30EF54fE2F5454d242d86d"; // Ethereum mainnet

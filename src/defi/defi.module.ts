@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { BullModule } from "@nestjs/bull";
 
@@ -18,7 +18,7 @@ import { TransactionOptimizationService } from "./services/transaction-optimizat
 // Protocol Adapters
 import { AaveAdapter } from "./protocols/aave.adapter";
 import { CompoundAdapter } from "./protocols/compound.adapter";
-import { ProtocolRegistry } from "./protocols/protocol-registry";
+import { ProtocolRegistry } from "./protocols/protocol-registry.service";
 
 // Controller
 import { DeFiController } from "./defi.controller";
@@ -111,4 +111,15 @@ import { TradeLockService } from "./trade-lock.service";
     TradeLockService,
   ],
 })
-export class DeFiModule {}
+export class DeFiModule implements OnModuleInit {
+  constructor(
+    private readonly protocolRegistry: ProtocolRegistry,
+    private readonly aaveAdapter: AaveAdapter,
+    private readonly compoundAdapter: CompoundAdapter,
+  ) {}
+
+  onModuleInit() {
+    this.protocolRegistry.register(this.aaveAdapter);
+    this.protocolRegistry.register(this.compoundAdapter);
+  }
+}

@@ -1,6 +1,13 @@
+export interface ProtocolAdapterMetadata {
+  name: string;
+  supportedChains: string[];
+  capabilities: string[];
+}
+
 export interface ProtocolAdapter {
   name: string;
   supportedChains: string[];
+  readonly metadata: ProtocolAdapterMetadata;
 
   // Position Management
   getPosition(address: string, token: string): Promise<PositionData>;

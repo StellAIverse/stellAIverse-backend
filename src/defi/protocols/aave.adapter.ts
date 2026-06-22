@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   ProtocolAdapter,
+  ProtocolAdapterMetadata,
   PositionData,
   TransactionData,
   CollateralData,
@@ -33,6 +34,11 @@ export class AaveAdapter implements ProtocolAdapter {
   private logger = new Logger("AaveAdapter");
   name = "Aave";
   supportedChains = ["ethereum", "arbitrum", "polygon", "optimism"];
+  readonly metadata: ProtocolAdapterMetadata = {
+    name: "Aave",
+    supportedChains: ["ethereum", "arbitrum", "polygon", "optimism"],
+    capabilities: ["lending", "borrowing", "collateral", "rewards"],
+  };
 
   private providers: Map<string, ethers.JsonRpcProvider> = new Map();
   private lendingPoolAddress = "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9"; // Ethereum mainnet

@@ -19,6 +19,7 @@ import { PositionTrackingService } from "./services/position-tracking.service";
 import { YieldOptimizationService } from "./services/yield-optimization.service";
 import { RiskAssessmentService } from "./services/risk-assessment.service";
 import { TransactionOptimizationService } from "./services/transaction-optimization.service";
+import { ProtocolRegistry } from "./protocols/protocol-registry.service";
 import {
   CreateDeFiPositionDto,
   UpdateDeFiPositionDto,
@@ -46,7 +47,15 @@ export class DeFiController {
     private yieldOptimizationService: YieldOptimizationService,
     private riskAssessmentService: RiskAssessmentService,
     private transactionOptimizationService: TransactionOptimizationService,
+    private protocolRegistry: ProtocolRegistry,
   ) {}
+
+  // ==================== Protocol Discovery ====================
+
+  @Get("protocols")
+  listProtocols() {
+    return this.protocolRegistry.listProtocols();
+  }
 
   // ==================== Portfolio Management ====================
 
